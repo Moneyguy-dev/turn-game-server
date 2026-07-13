@@ -53,14 +53,18 @@ async function loadGameStateFromServer() {
         return;
     }
 
+    // Replace board from server
     if (state.board) {
         board = state.board;
-        updateBoard();
     }
 
+    // Apply remote move
     if (state.lastMove && !state.lastMove.init) {
         applyRemoteMove(state.lastMove);
     }
+
+    // Draw board once
+    updateBoard();
 }
 
 setInterval(loadGameStateFromServer, 10000);
@@ -296,7 +300,7 @@ function updateBoard() {
         for (let c=0;c<cols;c++) {
 
             const cell = cells[i++];
-            if (!cell) return; // prevent crash
+            if (!cell) return;
 
             cell.className = "hex";
             cell.innerHTML = "";
@@ -326,8 +330,14 @@ function updateBoard() {
                     d.className = `unit ${u.team}`;
                     d.textContent = u.type;
 
+                    // TEAM LOCKING FIX
                     d.addEventListener("click", (e) => {
                         e.stopPropagation();
+
+                        if (playerId !== "all" && u.team !== playerId) {
+                            return;
+                        }
+
                         onUnitClick(r, c, u);
                     });
 
