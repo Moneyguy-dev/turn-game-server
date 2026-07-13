@@ -1,0 +1,75 @@
+body {
+    background: #111;
+    color: white;
+    font-family: Arial;
+}
+
+#gameBoard {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+}
+
+.hex {
+    position: absolute;
+    width: 60px;
+    height: 52px;
+    background: #333;
+    clip-path: polygon(
+        25% 0%, 75% 0%,
+        100% 50%, 75% 100%,
+        25% 100%, 0% 50%
+    );
+    text-align: center;
+    line-height: 52px;
+    font-size: 12px;
+}
+
+.unit-stack {
+    display: flex;
+    flex-direction: column;
+}
+
+.unit {
+    padding: 2px 4px;
+    margin: 2px;
+    border-radius: 4px;
+    background: black;
+    color: white;
+    font-size: 10px;
+}
+
+.unit.blue { background: blue; }
+.unit.red { background: red; }
+
+.highlight {
+    background: yellow;
+}
+
+#sidePanel {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 200px;
+    background: #222;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.menu-btn {
+    padding: 20px 40px;
+    margin: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+}
+
+.menu-btn.red { background: red; }
+.menu-btn.blue { background: blue; }
+.menu-btn.admin {
+    background: gray;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}

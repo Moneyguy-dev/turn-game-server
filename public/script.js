@@ -1,9 +1,11 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 /* =========================
    READ MODE FROM URL
 ========================= */
 const urlParams = new URLSearchParams(window.location.search);
 let filterMode = urlParams.get("mode") || "all"; 
-let playerId = filterMode;  // red, blue, or all
+let playerId = filterMode;
 
 const SERVER_URL = "https://turn-game-server.onrender.com";
 let gameId = 1;
@@ -17,7 +19,6 @@ let firstLoad = true;
    HTTP FUNCTIONS
 ========================= */
 
-// Send move + board to server
 async function sendMoveToServer(movePayload) {
     const res = await fetch(`${SERVER_URL}/submitMove`, {
         method: "POST",
@@ -34,52 +35,38 @@ async function sendMoveToServer(movePayload) {
     console.log("Server move response:", data);
 }
 
-// Load full game state from server
 async function loadGameStateFromServer() {
     const res = await fetch(`${SERVER_URL}/gameState?gameId=${gameId}`);
     const state = await res.json();
 
     console.log("Loaded game state:", state);
 
-    /* =========================
-       FIRST LOAD BEHAVIOR
-    ========================= */
     if (firstLoad) {
         if (state.board) {
-            // Use server board
             board = state.board;
             updateBoard();
         } else {
-            // Create board locally and send it to server
             createBoard();
             await sendMoveToServer({ init: true });
         }
-
         firstLoad = false;
         return;
     }
 
-    /* =========================
-       SUBSEQUENT LOADS
-    ========================= */
-
-    // Replace board only if server has one
     if (state.board) {
         board = state.board;
         updateBoard();
     }
 
-    // Apply remote move ONLY if new
     if (state.lastMove && !state.lastMove.init) {
         applyRemoteMove(state.lastMove);
     }
 }
 
-// Auto-refresh every 10 seconds
 setInterval(loadGameStateFromServer, 10000);
 
 /* =========================
-   GAME LOGIC (UNCHANGED)
+   GAME LOGIC
 ========================= */
 
 const rows = 17;
@@ -268,11 +255,9 @@ function onHexClick(e) {
     let index = fromStack.findIndex(u => u === unit);
     if (index === -1) return;
 
-    // Local move
     fromStack.splice(index, 1);
     toStack.push(unit);
 
-    // SEND MOVE TO SERVER
     sendMoveToServer({
         from: { r: fr, c: fc },
         to: { r: toR, c: toC },
@@ -311,6 +296,8 @@ function updateBoard() {
         for (let c=0;c<cols;c++) {
 
             const cell = cells[i++];
+            if (!cell) return; // prevent crash
+
             cell.className = "hex";
             cell.innerHTML = "";
 
@@ -386,7 +373,6 @@ function updateUnitList() {
     }
 }
 
-/* =========================
-   START GAME
-========================= */
 loadGameStateFromServer();
+
+});
