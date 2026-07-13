@@ -1,0 +1,12 @@
+{
+  "name": "turn-game-server",
+  "version": "1.0.0",
+  "description": "HTTP server for weekly turn-based game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
