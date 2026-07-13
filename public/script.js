@@ -53,17 +53,14 @@ async function loadGameStateFromServer() {
         return;
     }
 
-    // Replace board from server
     if (state.board) {
         board = state.board;
     }
 
-    // Apply remote move
     if (state.lastMove && !state.lastMove.init) {
         applyRemoteMove(state.lastMove);
     }
 
-    // Draw board once
     updateBoard();
 }
 
@@ -324,18 +321,18 @@ function updateBoard() {
 
                 stack.forEach(u => {
 
-                    if (filterMode !== "all" && u.team !== filterMode) return;
+                    // SHOW ALL UNITS — NO VISIBILITY FILTERING
 
                     const d = document.createElement("div");
                     d.className = `unit ${u.team}`;
                     d.textContent = u.type;
 
-                    // TEAM LOCKING FIX
+                    // CONTROL LOCKING
                     d.addEventListener("click", (e) => {
                         e.stopPropagation();
 
                         if (playerId !== "all" && u.team !== playerId) {
-                            return;
+                            return; // cannot control enemy units
                         }
 
                         onUnitClick(r, c, u);
@@ -373,8 +370,7 @@ function updateUnitList() {
         for (let c=0;c<cols;c++) {
             for (let u of board[r][c]) {
 
-                if (filterMode !== "all" && u.team !== filterMode) continue;
-
+                // SHOW ALL UNITS IN LIST
                 let div = document.createElement("div");
                 div.textContent = `${u.type} (${u.team}) [${r},${c}]`;
                 unitList.appendChild(div);
