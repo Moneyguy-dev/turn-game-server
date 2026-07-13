@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose a Side</title>
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .button {
+            padding: 20px 40px;
+            margin: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+        }
+        #red { background: red; }
+        #blue { background: blue; }
+        #admin {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: gray;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="red" class="button" onclick="location.href='red.html?mode=red'">Red</button>
+    <button id="blue" class="button" onclick="location.href='blue.html?mode=blue'">Blue</button>
+    <button id="admin" class="button" onclick="location.href='admin.html?mode=all'">Admin</button>
+
+</body>
+</html>
