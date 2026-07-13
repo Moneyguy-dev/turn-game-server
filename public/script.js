@@ -5,8 +5,13 @@ const urlParams = new URLSearchParams(window.location.search);
 let filterMode = urlParams.get("mode") || "all"; 
 let playerId = filterMode;  // red, blue, or all
 
-const SERVER_URL = "https://your-render-url.onrender.com";  // CHANGE THIS
+const SERVER_URL = "https://turn-game-server.onrender.com";
 let gameId = 1;
+
+/* =========================
+   FIRST LOAD FLAG
+========================= */
+let firstLoad = true;
 
 /* =========================
    HTTP FUNCTIONS
@@ -36,12 +41,36 @@ async function loadGameStateFromServer() {
 
     console.log("Loaded game state:", state);
 
+    /* =========================
+       FIRST LOAD BEHAVIOR
+    ========================= */
+    if (firstLoad) {
+        if (state.board) {
+            // Use server board
+            board = state.board;
+            updateBoard();
+        } else {
+            // Create board locally and send it to server
+            createBoard();
+            await sendMoveToServer({ init: true });
+        }
+
+        firstLoad = false;
+        return;
+    }
+
+    /* =========================
+       SUBSEQUENT LOADS
+    ========================= */
+
+    // Replace board only if server has one
     if (state.board) {
         board = state.board;
         updateBoard();
     }
 
-    if (state.lastMove) {
+    // Apply remote move ONLY if new
+    if (state.lastMove && !state.lastMove.init) {
         applyRemoteMove(state.lastMove);
     }
 }
@@ -360,5 +389,4 @@ function updateUnitList() {
 /* =========================
    START GAME
 ========================= */
-createBoard();
 loadGameStateFromServer();
