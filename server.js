@@ -3,8 +3,6 @@ const path = require("path");
 const app = express();
 
 app.use(express.json());
-
-// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
 const games = {};
@@ -18,115 +16,68 @@ function getGame(gameId) {
             moveHistory: [],
             currentTurnPlayer: "red",
             unlockTime: null,
-
-            turnLocked: {
-                red: false,
-                blue: false
-            }
+            turnLocked: { red: false, blue: false }
         };
     }
     return games[gameId];
 }
 
 /* =========================
-   SUBMIT MOVE
+   UNIT DEFINITIONS (MATCH CLIENT)
 ========================= */
-app.post("/submitMove", (req, res) => {
-    const { gameId, playerId, move, board } = req.body;
-    const game = getGame(gameId);
-
-    if (playerId !== "all" && game.turnLocked[playerId]) {
-        return res.json({ status: "error", message: "Turn already submitted" });
+const units = {
+    blue: {
+        F15E:  { move: 8 },
+        F16:   { move: 7 },
+        F22:   { move: 8 },
+        F35:   { move: 6 },
+        B2:    { move: 10 },
+        B52:   { move: 11 },
+        KC135: { move: 12 },
+        DDG80: { move: 6 },
+        ARG:   { move: 3 }
+    },
+    red: {
+        J10:      { move: 7 },
+        J11:      { move: 7 },
+        J16:      { move: 7 },
+        J20:      { move: 8 },
+        H6:       { move: 9 },
+        Y20:      { move: 11 },
+        Type052:  { move: 5 },
+        Garrison: { move: 0 },
+        ARG:      { move: 3 }
     }
+};
 
-    if (playerId !== "all" && game.currentTurnPlayer !== playerId) {
-        return res.json({ status: "error", message: "Not your turn" });
-    }
+const startHexes = {
+    blue: { r: 0, c: 0 },
+    red: { r: 16, c: 18 }
+};
 
-    // Keep board as proper nested array
-    game.board = JSON.parse(JSON.stringify(board));
-
-    game.lastMove = move;
-    game.moveHistory.push(move);
-
-    if (playerId !== "all") {
-        game.currentTurnPlayer = playerId === "red" ? "blue" : "red";
-    }
-
-    game.unlockTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
-
-    res.json({
-        status: "ok",
-        nextTurnPlayer: game.currentTurnPlayer,
-        unlockTime: game.unlockTime
+/* =========================
+   SERVER-SIDE UNIT SPAWN
+========================= */
+function addUnit(board, r, c, type, team) {
+    board[r][c].push({
+        type,
+        team,
+        move: units[team][type].move
     });
-});
+}
 
-/* =========================
-   SUBMIT TURN (LOCK PLAYER)
-========================= */
-app.post("/submitTurn", (req, res) => {
-    const { gameId, playerId } = req.body;
-    const game = getGame(gameId);
+function spawnAllUnits(board) {
+    const blueStart = startHexes.blue;
+    const redStart = startHexes.red;
 
-    if (playerId === "red") game.turnLocked.red = true;
-    if (playerId === "blue") game.turnLocked.blue = true;
-
-    res.json({
-        status: "ok",
-        turnLocked: game.turnLocked
+    Object.keys(units.blue).forEach(type => {
+        addUnit(board, blueStart.r, blueStart.c, type, "blue");
     });
-});
 
-/* =========================
-   ADMIN CONTINUE TURN
-========================= */
-app.post("/continueTurn", (req, res) => {
-    const { gameId } = req.body;
-    const game = getGame(gameId);
-
-    game.turnLocked.red = false;
-    game.turnLocked.blue = false;
-    game.currentTurnPlayer = "red";
-
-    res.json({ status: "ok" });
-});
-
-/* =========================
-   RESET GAME (ADMIN)
-========================= */
-app.post("/resetGame", (req, res) => {
-    const { gameId } = req.body;
-
-    // Delete entire game state
-    delete games[gameId];
-
-    // Recreate fresh game
-    const game = getGame(gameId);
-
-    game.board = generateEmptyBoard();
-    game.lastMove = null;
-    game.moveHistory = [];
-    game.turnLocked = { red: false, blue: false };
-    game.currentTurnPlayer = "red";
-
-    res.json({ status: "ok", message: "Game reset" });
-});
-
-/* =========================
-   GET GAME STATE
-========================= */
-app.get("/gameState", (req, res) => {
-    const gameId = req.query.gameId;
-    const game = getGame(gameId);
-
-    if (!game.board) {
-        console.log("Server: Board missing — generating empty board.");
-        game.board = generateEmptyBoard();
-    }
-
-    res.json(game);
-});
+    Object.keys(units.red).forEach(type => {
+        addUnit(board, redStart.r, redStart.c, type, "red");
+    });
+}
 
 /* =========================
    EMPTY BOARD GENERATOR
@@ -144,6 +95,100 @@ function generateEmptyBoard() {
     }
     return board;
 }
+
+/* =========================
+   SUBMIT MOVE
+========================= */
+app.post("/submitMove", (req, res) => {
+    const { gameId, playerId, move, board } = req.body;
+    const game = getGame(gameId);
+
+    if (playerId !== "all" && game.turnLocked[playerId]) {
+        return res.json({ status: "error", message: "Turn already submitted" });
+    }
+
+    if (playerId !== "all" && game.currentTurnPlayer !== playerId) {
+        return res.json({ status: "error", message: "Not your turn" });
+    }
+
+    game.board = JSON.parse(JSON.stringify(board));
+    game.lastMove = move;
+    game.moveHistory.push(move);
+
+    if (playerId !== "all") {
+        game.currentTurnPlayer = playerId === "red" ? "blue" : "red";
+    }
+
+    game.unlockTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+    res.json({
+        status: "ok",
+        nextTurnPlayer: game.currentTurnPlayer,
+        unlockTime: game.unlockTime
+    });
+});
+
+/* =========================
+   SUBMIT TURN
+========================= */
+app.post("/submitTurn", (req, res) => {
+    const { gameId, playerId } = req.body;
+    const game = getGame(gameId);
+
+    if (playerId === "red") game.turnLocked.red = true;
+    if (playerId === "blue") game.turnLocked.blue = true;
+
+    res.json({ status: "ok", turnLocked: game.turnLocked });
+});
+
+/* =========================
+   CONTINUE TURN
+========================= */
+app.post("/continueTurn", (req, res) => {
+    const { gameId } = req.body;
+    const game = getGame(gameId);
+
+    game.turnLocked.red = false;
+    game.turnLocked.blue = false;
+    game.currentTurnPlayer = "red";
+
+    res.json({ status: "ok" });
+});
+
+/* =========================
+   RESET GAME — NOW SPAWNS UNITS
+========================= */
+app.post("/resetGame", (req, res) => {
+    const { gameId } = req.body;
+
+    delete games[gameId];
+    const game = getGame(gameId);
+
+    game.board = generateEmptyBoard();
+    spawnAllUnits(game.board);   // ⭐ FIXED — units now spawn on reset
+
+    game.lastMove = null;
+    game.moveHistory = [];
+    game.turnLocked = { red: false, blue: false };
+    game.currentTurnPlayer = "red";
+
+    res.json({ status: "ok", message: "Game reset with units" });
+});
+
+/* =========================
+   GET GAME STATE — SPAWN IF EMPTY
+========================= */
+app.get("/gameState", (req, res) => {
+    const gameId = req.query.gameId;
+    const game = getGame(gameId);
+
+    if (!game.board) {
+        game.board = generateEmptyBoard();
+        spawnAllUnits(game.board);   // ⭐ FIXED — units spawn on first load
+    }
+
+    res.json(game);
+});
 
 /* =========================
    START SERVER

@@ -27,26 +27,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const units = {
         blue: {
-            F15E: { move: 8 },
-            F16:  { move: 7 },
-            F22:  { move: 8 },
-            F35:  { move: 6 },
-            B2:   { move: 10 },
-            B52:  { move: 11 },
-            KC135:{ move: 12 },
-            DDG80:{ move: 6 },
-            ARG:  { move: 3 }
+            F15E:  { move: 8 },
+            F16:   { move: 7 },
+            F22:   { move: 8 },
+            F35:   { move: 6 },
+            B2:    { move: 10 },
+            B52:   { move: 11 },
+            KC135: { move: 12 },
+            DDG80: { move: 6 },
+            ARG:   { move: 3 }
         },
         red: {
-            J10:  { move: 7 },
-            J11:  { move: 7 },
-            J16:  { move: 7 },
-            J20:  { move: 8 },
-            H6:   { move: 9 },
-            Y20:  { move: 11 },
-            Type052: { move: 5 },
+            J10:      { move: 7 },
+            J11:      { move: 7 },
+            J16:      { move: 7 },
+            J20:      { move: 8 },
+            H6:       { move: 9 },
+            Y20:      { move: 11 },
+            Type052:  { move: 5 },
             Garrison: { move: 0 },
-            ARG:  { move: 3 }
+            ARG:      { move: 3 }
         }
     };
 
@@ -311,13 +311,16 @@ document.addEventListener("DOMContentLoaded", () => {
             turnLocked = state.turnLocked;
         }
 
+        // FIRST LOAD: ensure units exist; only use server board if it has units
         if (firstLoad) {
-            // ⭐ ALWAYS build the DOM hex grid
-            createBoard();
-
-            // ⭐ Load server board if present
-            if (state.board) {
+            if (state.board && state.board.flat().some(cell => cell.length > 0)) {
+                // server already has a populated board
                 board = state.board;
+                createBoard(); // builds DOM; board already has units
+            } else {
+                // server board empty or missing: create fresh board + units, then send init
+                createBoard();
+                await sendMoveToServer({ init: true });
             }
 
             updateBoard();
@@ -325,7 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-
+        // SUBSEQUENT LOADS
         if (state.board) {
             board = state.board;
         } else {
