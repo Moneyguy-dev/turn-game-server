@@ -138,3 +138,35 @@ body {
 #continueTurn {
     transition: background 0.2s ease, transform 0.2s ease;
 }
+
+body {
+    background: #111;
+    color: white;
+    font-family: Arial;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* ⭐ Board takes entire screen except side panel */
+#gameBoard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 220px;   /* reserve space for side panel */
+    bottom: 0;
+    overflow: visible;
+    z-index: 1;
+}
+
+/* ⭐ Side panel stays fixed on the right */
+#sidePanel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 220px;
+    height: 100vh;
+    background: #222;
+    padding: 10px;
+    z-index: 10;
+}
+
