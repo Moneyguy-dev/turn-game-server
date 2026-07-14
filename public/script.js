@@ -4,8 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
    READ MODE FROM URL
 ========================= */
 const urlParams = new URLSearchParams(window.location.search);
-let filterMode = urlParams.get("mode") || "all"; 
-let playerId = filterMode;
+let playerId = urlParams.get("mode") || "all";
 
 const SERVER_URL = "https://turn-game-server.onrender.com";
 let gameId = 1;
@@ -14,6 +13,11 @@ let gameId = 1;
    FIRST LOAD FLAG
 ========================= */
 let firstLoad = true;
+
+/* =========================
+   TURN LOCK STATE
+========================= */
+let turnLocked = { red: false, blue: false };
 
 /* =========================
    HTTP FUNCTIONS
@@ -40,6 +44,11 @@ async function loadGameStateFromServer() {
     const state = await res.json();
 
     console.log("Loaded game state:", state);
+
+    // Update turn lock state
+    if (state.turnLocked) {
+        turnLocked = state.turnLocked;
+    }
 
     if (firstLoad) {
         if (state.board) {
@@ -229,12 +238,30 @@ function getValidMoves(r, c, range) {
 }
 
 function onUnitClick(r, c, unit) {
+
+    // BLOCK MOVEMENT IF LOCKED
+    if (playerId !== "all" && turnLocked[playerId]) {
+        alert("You have already submitted your moves.");
+        return;
+    }
+
+    // BLOCK CONTROLLING ENEMY UNITS
+    if (playerId !== "all" && unit.team !== playerId) {
+        return;
+    }
+
     selectedUnit = { r, c, unit };
     validMoves = getValidMoves(r, c, unit.move);
     updateBoard();
 }
 
 function onHexClick(e) {
+
+    // BLOCK MOVEMENT IF LOCKED
+    if (playerId !== "all" && turnLocked[playerId]) {
+        return;
+    }
+
     if (!selectedUnit) return;
 
     const toR = +e.currentTarget.dataset.row;
@@ -321,20 +348,12 @@ function updateBoard() {
 
                 stack.forEach(u => {
 
-                    // SHOW ALL UNITS — NO VISIBILITY FILTERING
-
                     const d = document.createElement("div");
                     d.className = `unit ${u.team}`;
                     d.textContent = u.type;
 
-                    // CONTROL LOCKING
                     d.addEventListener("click", (e) => {
                         e.stopPropagation();
-
-                        if (playerId !== "all" && u.team !== playerId) {
-                            return; // cannot control enemy units
-                        }
-
                         onUnitClick(r, c, u);
                     });
 
@@ -369,14 +388,74 @@ function updateUnitList() {
     for (let r=0;r<rows;r++) {
         for (let c=0;c<cols;c++) {
             for (let u of board[r][c]) {
-
-                // SHOW ALL UNITS IN LIST
                 let div = document.createElement("div");
                 div.textContent = `${u.type} (${u.team}) [${r},${c}]`;
                 unitList.appendChild(div);
             }
         }
     }
+}
+
+/* =========================
+   SUBMIT TURN BUTTON
+========================= */
+const submitBtn = document.getElementById("submitTurn");
+if (submitBtn) {
+    submitBtn.addEventListener("click", async () => {
+
+        if (playerId === "all") return;
+
+        await fetch(`${SERVER_URL}/submitTurn`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gameId, playerId })
+        });
+
+        turnLocked[playerId] = true;
+
+        await loadGameStateFromServer();
+
+        alert("Your moves have been submitted. Waiting for admin to continue.");
+
+        // AUTO RETURN TO MENU
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1500);
+    });
+}
+
+/* =========================
+   ADMIN CONTINUE BUTTON
+========================= */
+const continueBtn = document.getElementById("continueTurn");
+if (continueBtn) {
+    continueBtn.addEventListener("click", async () => {
+
+        await fetch(`${SERVER_URL}/continueTurn`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gameId })
+        });
+
+        await loadGameStateFromServer();
+
+        alert("New turn started. Red and Blue unlocked.");
+
+        // OPTIONAL AUTO RETURN
+        // setTimeout(() => {
+        //     window.location.href = "index.html";
+        // }, 1500);
+    });
+}
+
+/* =========================
+   BACK BUTTON
+========================= */
+const backBtn = document.getElementById("backButton");
+if (backBtn) {
+    backBtn.addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
 }
 
 loadGameStateFromServer();
