@@ -1,3 +1,6 @@
+/* =========================
+   GLOBAL
+========================= */
 body {
     background: #111;
     color: white;
@@ -6,34 +9,27 @@ body {
     overflow: hidden;
 }
 
-/* ⭐ Board takes entire screen except side panel */
+/* =========================
+   GAME BOARD (FULL SCREEN)
+========================= */
 #gameBoard {
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0;
 
-    /* ⭐ FIX: Instead of right:220px, give it a MINIMUM width */
-    width: calc(100% - 220px);
-    min-width: 900px;   /* ⭐ CRITICAL FIX — hex map now always visible */
+    /* ⭐ FULL WIDTH ALWAYS */
+    width: 100%;
+    height: 100vh;
 
+    /* ⭐ Hexes will ALWAYS be visible */
     overflow: visible;
+
     z-index: 1;
 }
 
-/* ⭐ Side panel stays fixed on the right */
-#sidePanel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 220px;
-    height: 100vh;
-    background: #222;
-    padding: 10px;
-    z-index: 10;
-}
-
-/* ⭐ Hex cells */
+/* =========================
+   HEX CELLS
+========================= */
 .hex {
     position: absolute;
     width: 60px;
@@ -47,6 +43,8 @@ body {
     text-align: center;
     line-height: 52px;
     font-size: 12px;
+
+    /* ⭐ Make sure hexes appear ABOVE the board */
     z-index: 2;
 }
 
@@ -72,9 +70,27 @@ body {
 }
 
 /* =========================
-   BUTTON STYLES
+   SIDE PANEL (FLOATS ABOVE)
 ========================= */
+#sidePanel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
 
+    width: 220px;
+    height: auto;
+
+    background: #222;
+    padding: 10px;
+    border-radius: 8px;
+
+    /* ⭐ Panel floats ABOVE hexes but DOES NOT shrink board */
+    z-index: 10;
+}
+
+/* =========================
+   BUTTONS
+========================= */
 .menu-btn {
     padding: 20px 40px;
     margin: 20px;
