@@ -175,16 +175,15 @@ app.post("/continueTurn", (req, res) => {
     const game = getGame(gameId);
 
     // DO NOT TOUCH game.board
-    // DO NOT RESPAWN UNITS
-    // DO NOT RESET ANYTHING EXCEPT TURN LOCKS
+    // DO NOT TOUCH game.lastMove
 
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
     game.currentTurnPlayer = "red";
-    game.lastMove = null;
 
     res.json({ status: "ok" });
 });
+
 
 /* =========================
    RESET GAME — SPAWNS UNITS
