@@ -35,7 +35,6 @@ app.post("/submitMove", (req, res) => {
     const { gameId, playerId, move, board } = req.body;
     const game = getGame(gameId);
 
-    // Turn lock enforcement
     if (playerId !== "all" && game.turnLocked[playerId]) {
         return res.json({ status: "error", message: "Turn already submitted" });
     }
@@ -44,19 +43,16 @@ app.post("/submitMove", (req, res) => {
         return res.json({ status: "error", message: "Not your turn" });
     }
 
-    // Update board
-    game.board = JSON.parse(JSON.stringify(board));   // ⭐ CRITICAL FIX
+    // Keep board as proper nested array
+    game.board = JSON.parse(JSON.stringify(board));
 
-    // Update last move
     game.lastMove = move;
     game.moveHistory.push(move);
 
-    // Switch turn
     if (playerId !== "all") {
         game.currentTurnPlayer = playerId === "red" ? "blue" : "red";
     }
 
-    // Unlock time (unused but kept for compatibility)
     game.unlockTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
     res.json({
@@ -89,14 +85,32 @@ app.post("/continueTurn", (req, res) => {
     const { gameId } = req.body;
     const game = getGame(gameId);
 
-    // Reset locks
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
-
-    // Reset turn to red
     game.currentTurnPlayer = "red";
 
     res.json({ status: "ok" });
+});
+
+/* =========================
+   RESET GAME (ADMIN)
+========================= */
+app.post("/resetGame", (req, res) => {
+    const { gameId } = req.body;
+
+    // Delete entire game state
+    delete games[gameId];
+
+    // Recreate fresh game
+    const game = getGame(gameId);
+
+    game.board = generateEmptyBoard();
+    game.lastMove = null;
+    game.moveHistory = [];
+    game.turnLocked = { red: false, blue: false };
+    game.currentTurnPlayer = "red";
+
+    res.json({ status: "ok", message: "Game reset" });
 });
 
 /* =========================
@@ -106,7 +120,6 @@ app.get("/gameState", (req, res) => {
     const gameId = req.query.gameId;
     const game = getGame(gameId);
 
-    // ⭐ CRITICAL: Ensure board ALWAYS exists
     if (!game.board) {
         console.log("Server: Board missing — generating empty board.");
         game.board = generateEmptyBoard();

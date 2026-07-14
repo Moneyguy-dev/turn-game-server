@@ -45,7 +45,6 @@ async function loadGameStateFromServer() {
 
     console.log("Loaded game state:", state);
 
-    // Update turn lock state
     if (state.turnLocked) {
         turnLocked = state.turnLocked;
     }
@@ -245,13 +244,11 @@ function getValidMoves(r, c, range) {
 
 function onUnitClick(r, c, unit) {
 
-    // BLOCK MOVEMENT IF LOCKED
     if (playerId !== "all" && turnLocked[playerId]) {
         alert("You have already submitted your moves.");
         return;
     }
 
-    // BLOCK CONTROLLING ENEMY UNITS
     if (playerId !== "all" && unit.team !== playerId) {
         return;
     }
@@ -263,7 +260,6 @@ function onUnitClick(r, c, unit) {
 
 function onHexClick(e) {
 
-    // BLOCK MOVEMENT IF LOCKED
     if (playerId !== "all" && turnLocked[playerId]) {
         return;
     }
@@ -423,7 +419,6 @@ if (submitBtn) {
 
         alert("Your moves have been submitted. Waiting for admin to continue.");
 
-        // AUTO RETURN TO MENU
         setTimeout(() => {
             window.location.href = "index.html";
         }, 1500);
@@ -446,11 +441,25 @@ if (continueBtn) {
         await loadGameStateFromServer();
 
         alert("New turn started. Red and Blue unlocked.");
+    });
+}
 
-        // OPTIONAL AUTO RETURN
-        // setTimeout(() => {
-        //     window.location.href = "index.html";
-        // }, 1500);
+/* =========================
+   ADMIN RESET BUTTON
+========================= */
+const resetBtn = document.getElementById("resetGame");
+if (resetBtn) {
+    resetBtn.addEventListener("click", async () => {
+
+        await fetch(`${SERVER_URL}/resetGame`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gameId })
+        });
+
+        alert("Game reset. Fresh board created.");
+
+        window.location.href = "index.html";
     });
 }
 

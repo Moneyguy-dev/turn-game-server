@@ -3,17 +3,33 @@
 <head>
     <title>Choose a Side</title>
     <link rel="stylesheet" href="/styles.css">
+
     <style>
         body {
             background: #111;
             color: white;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            flex-direction: column;
+            text-align: center;
         }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 36px;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 18px;
+            color: #ccc;
+            max-width: 600px;
+        }
+
         .button {
             padding: 20px 40px;
             margin: 20px;
@@ -21,21 +37,49 @@
             cursor: pointer;
             border: none;
             border-radius: 10px;
+            transition: transform 0.15s ease;
         }
-        #red { background: red; }
-        #blue { background: blue; }
+
+        .button:hover {
+            transform: scale(1.05);
+        }
+
+        #red { background: #cc0000; }
+        #blue { background: #1e3cff; }
         #admin {
+            background: gray;
             position: absolute;
             bottom: 20px;
             right: 20px;
-            background: gray;
+        }
+
+        #spectatorWarning {
+            margin-top: 40px;
+            padding: 15px 25px;
+            background: #222;
+            border-left: 5px solid #ffcc00;
+            border-radius: 6px;
+            font-size: 16px;
+            color: #f0e68c;
+            max-width: 600px;
         }
     </style>
 </head>
+
 <body>
 
-    <button id="red" class="button" onclick="location.href='red.html?mode=red'">Red</button>
-    <button id="blue" class="button" onclick="location.href='blue.html?mode=blue'">Blue</button>
+    <h1>Select Your Role</h1>
+    <p>Choose Red or Blue to play. If you stay here, you are in spectator mode and cannot submit moves.</p>
+
+    <button id="red" class="button" onclick="location.href='red.html?mode=red'">Red Team</button>
+    <button id="blue" class="button" onclick="location.href='blue.html?mode=blue'">Blue Team</button>
+
+    <div id="spectatorWarning">
+        <strong>Spectator Mode:</strong>  
+        You can view the map from this page, but <em>Submit Moves</em> and <em>Continue Turn</em> buttons will not work.  
+        Select Red or Blue to play, or Admin to control turn flow.
+    </div>
+
     <button id="admin" class="button" onclick="location.href='admin.html?mode=all'">Admin</button>
 
 </body>
