@@ -73,3 +73,62 @@ body {
     bottom: 20px;
     right: 20px;
 }
+
+/* =========================
+   NEW BUTTON STYLES
+========================= */
+
+#submitTurn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#submitTurn.red {
+    background: #cc0000;
+    color: white;
+}
+
+#submitTurn.blue {
+    background: #1e3cff;
+    color: white;
+}
+
+#continueTurn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    background: #555;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+/* Hover for Red Submit Button */
+#submitTurn.red:hover {
+    background: #ff3333;
+    transform: scale(1.03);
+}
+
+/* Hover for Blue Submit Button */
+#submitTurn.blue:hover {
+    background: #4d6bff;
+    transform: scale(1.03);
+}
+
+/* Hover for Admin Continue Button */
+#continueTurn:hover {
+    background: #777;
+    transform: scale(1.03);
+}
+
+/* Smooth animation */
+#submitTurn,
+#continueTurn {
+    transition: background 0.2s ease, transform 0.2s ease;
+}
