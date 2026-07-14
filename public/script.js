@@ -50,11 +50,13 @@ async function loadGameStateFromServer() {
         turnLocked = state.turnLocked;
     }
 
+    // FIRST LOAD
     if (firstLoad) {
         if (state.board) {
             board = state.board;
             updateBoard();
         } else {
+            console.log("Board missing on first load — creating new board.");
             createBoard();
             await sendMoveToServer({ init: true });
         }
@@ -62,8 +64,12 @@ async function loadGameStateFromServer() {
         return;
     }
 
+    // SUBSEQUENT LOADS
     if (state.board) {
         board = state.board;
+    } else {
+        console.log("Board missing — forcing rebuild.");
+        createBoard();
     }
 
     if (state.lastMove && !state.lastMove.init) {
