@@ -312,17 +312,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (firstLoad) {
+            // ⭐ ALWAYS build the DOM hex grid
+            createBoard();
+
+            // ⭐ Load server board if present
             if (state.board) {
                 board = state.board;
-                updateBoard();
-            } else {
-                console.log("Board missing on first load — creating new board.");
-                createBoard();
-                await sendMoveToServer({ init: true });
             }
+
+            updateBoard();
             firstLoad = false;
             return;
         }
+
 
         if (state.board) {
             board = state.board;
