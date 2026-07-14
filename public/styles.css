@@ -2,17 +2,22 @@ body {
     background: #111;
     color: white;
     font-family: Arial;
+    margin: 0;
+    overflow: hidden;
 }
 
+/* ⭐ Board takes entire screen except side panel */
 #gameBoard {
-    position: relative;
-    width: 100%;
-    height: 80vh;
-    min-height: 600px;   /* ⭐ FIX */
-    display: block;      /* ⭐ FIX */
-    z-index: 1;          /* ⭐ FIX */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 220px;   /* reserve space for side panel */
+    bottom: 0;
+    overflow: visible;
+    z-index: 1;
 }
 
+/* ⭐ Hex cells */
 .hex {
     position: absolute;
     width: 60px;
@@ -26,7 +31,7 @@ body {
     text-align: center;
     line-height: 52px;
     font-size: 12px;
-    z-index: 2;          /* ⭐ FIX */
+    z-index: 2;
 }
 
 .unit-stack {
@@ -50,16 +55,21 @@ body {
     background: yellow;
 }
 
+/* ⭐ Side panel stays fixed on the right */
 #sidePanel {
     position: absolute;
-    right: 20px;
-    top: 20px;
-    width: 200px;
+    top: 0;
+    right: 0;
+    width: 220px;
+    height: 100vh;
     background: #222;
     padding: 10px;
-    border-radius: 8px;
-    z-index: 3;          /* ⭐ FIX */
+    z-index: 10;
 }
+
+/* =========================
+   BUTTON STYLES
+========================= */
 
 .menu-btn {
     padding: 20px 40px;
@@ -78,10 +88,6 @@ body {
     bottom: 20px;
     right: 20px;
 }
-
-/* =========================
-   NEW BUTTON STYLES
-========================= */
 
 #submitTurn {
     margin-top: 20px;
@@ -115,58 +121,22 @@ body {
     cursor: pointer;
 }
 
-/* Hover for Red Submit Button */
 #submitTurn.red:hover {
     background: #ff3333;
     transform: scale(1.03);
 }
 
-/* Hover for Blue Submit Button */
 #submitTurn.blue:hover {
     background: #4d6bff;
     transform: scale(1.03);
 }
 
-/* Hover for Admin Continue Button */
 #continueTurn:hover {
     background: #777;
     transform: scale(1.03);
 }
 
-/* Smooth animation */
 #submitTurn,
 #continueTurn {
     transition: background 0.2s ease, transform 0.2s ease;
 }
-
-body {
-    background: #111;
-    color: white;
-    font-family: Arial;
-    margin: 0;
-    overflow: hidden;
-}
-
-/* ⭐ Board takes entire screen except side panel */
-#gameBoard {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 220px;   /* reserve space for side panel */
-    bottom: 0;
-    overflow: visible;
-    z-index: 1;
-}
-
-/* ⭐ Side panel stays fixed on the right */
-#sidePanel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 220px;
-    height: 100vh;
-    background: #222;
-    padding: 10px;
-    z-index: 10;
-}
-
