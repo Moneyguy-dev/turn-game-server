@@ -11,10 +11,26 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    right: 220px;   /* reserve space for side panel */
     bottom: 0;
+
+    /* ⭐ FIX: Instead of right:220px, give it a MINIMUM width */
+    width: calc(100% - 220px);
+    min-width: 900px;   /* ⭐ CRITICAL FIX — hex map now always visible */
+
     overflow: visible;
     z-index: 1;
+}
+
+/* ⭐ Side panel stays fixed on the right */
+#sidePanel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 220px;
+    height: 100vh;
+    background: #222;
+    padding: 10px;
+    z-index: 10;
 }
 
 /* ⭐ Hex cells */
@@ -53,18 +69,6 @@ body {
 
 .highlight {
     background: yellow;
-}
-
-/* ⭐ Side panel stays fixed on the right */
-#sidePanel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 220px;
-    height: 100vh;
-    background: #222;
-    padding: 10px;
-    z-index: 10;
 }
 
 /* =========================
