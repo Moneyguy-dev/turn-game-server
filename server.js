@@ -119,7 +119,7 @@ function applyMoveToBoard(board, move) {
    SUBMIT MOVE
 ========================= */
 app.post("/submitMove", (req, res) => {
-    const { gameId, playerId, move, board } = req.body;
+    const { gameId, playerId, move } = req.body;
     const game = getGame(gameId);
 
     if (playerId !== "all" && game.turnLocked[playerId]) {
@@ -130,12 +130,13 @@ app.post("/submitMove", (req, res) => {
         return res.json({ status: "error", message: "Not your turn" });
     }
 
-    // Apply move to server board
+    // Ensure board exists
     if (!game.board) {
         game.board = generateEmptyBoard();
         spawnAllUnits(game.board);
     }
 
+    // ⭐ APPLY MOVE TO SERVER BOARD ONLY
     applyMoveToBoard(game.board, move);
 
     game.lastMove = move;
@@ -145,12 +146,9 @@ app.post("/submitMove", (req, res) => {
         game.currentTurnPlayer = playerId === "red" ? "blue" : "red";
     }
 
-    game.unlockTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
-
     res.json({
         status: "ok",
-        nextTurnPlayer: game.currentTurnPlayer,
-        unlockTime: game.unlockTime
+        nextTurnPlayer: game.currentTurnPlayer
     });
 });
 
@@ -174,8 +172,8 @@ app.post("/continueTurn", (req, res) => {
     const { gameId } = req.body;
     const game = getGame(gameId);
 
-    // DO NOT TOUCH game.board
-    // DO NOT TOUCH game.lastMove
+    // ⭐ DO NOT TOUCH game.board
+    // ⭐ DO NOT TOUCH game.lastMove
 
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
@@ -183,7 +181,6 @@ app.post("/continueTurn", (req, res) => {
 
     res.json({ status: "ok" });
 });
-
 
 /* =========================
    RESET GAME — SPAWNS UNITS
