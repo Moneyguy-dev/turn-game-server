@@ -97,6 +97,25 @@ function generateEmptyBoard() {
 }
 
 /* =========================
+   APPLY MOVE TO BOARD
+========================= */
+function applyMoveToBoard(board, move) {
+    if (!move || move.init) return;
+
+    const { from, to, unit, team } = move;
+
+    const fromStack = board[from.r][from.c];
+    const toStack = board[to.r][to.c];
+
+    const idx = fromStack.findIndex(u => u.type === unit && u.team === team);
+    if (idx === -1) return;
+
+    const u = fromStack[idx];
+    fromStack.splice(idx, 1);
+    toStack.push(u);
+}
+
+/* =========================
    SUBMIT MOVE
 ========================= */
 app.post("/submitMove", (req, res) => {
@@ -111,7 +130,14 @@ app.post("/submitMove", (req, res) => {
         return res.json({ status: "error", message: "Not your turn" });
     }
 
-    game.board = JSON.parse(JSON.stringify(board));
+    // Apply move to server board
+    if (!game.board) {
+        game.board = generateEmptyBoard();
+        spawnAllUnits(game.board);
+    }
+
+    applyMoveToBoard(game.board, move);
+
     game.lastMove = move;
     game.moveHistory.push(move);
 
@@ -142,21 +168,26 @@ app.post("/submitTurn", (req, res) => {
 });
 
 /* =========================
-   CONTINUE TURN
+   CONTINUE TURN (NO RESET)
 ========================= */
 app.post("/continueTurn", (req, res) => {
     const { gameId } = req.body;
     const game = getGame(gameId);
 
+    // DO NOT TOUCH game.board
+    // DO NOT RESPAWN UNITS
+    // DO NOT RESET ANYTHING EXCEPT TURN LOCKS
+
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
     game.currentTurnPlayer = "red";
+    game.lastMove = null;
 
     res.json({ status: "ok" });
 });
 
 /* =========================
-   RESET GAME — NOW SPAWNS UNITS
+   RESET GAME — SPAWNS UNITS
 ========================= */
 app.post("/resetGame", (req, res) => {
     const { gameId } = req.body;
@@ -165,7 +196,7 @@ app.post("/resetGame", (req, res) => {
     const game = getGame(gameId);
 
     game.board = generateEmptyBoard();
-    spawnAllUnits(game.board);   // ⭐ FIXED — units now spawn on reset
+    spawnAllUnits(game.board);
 
     game.lastMove = null;
     game.moveHistory = [];
@@ -184,7 +215,7 @@ app.get("/gameState", (req, res) => {
 
     if (!game.board) {
         game.board = generateEmptyBoard();
-        spawnAllUnits(game.board);   // ⭐ FIXED — units spawn on first load
+        spawnAllUnits(game.board);
     }
 
     res.json(game);
