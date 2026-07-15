@@ -57,16 +57,12 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    function createBoard() {
+    // BUILD ONLY THE HEX GRID DOM — DO NOT TOUCH board
+    function buildHexGrid() {
         gameBoard.innerHTML = "";
-        board = [];
 
         for (let r = 0; r < rows; r++) {
-            board[r] = [];
-
             for (let c = 0; c < cols; c++) {
-                board[r][c] = [];
-
                 const cell = document.createElement("div");
                 cell.classList.add("hex");
 
@@ -83,9 +79,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 gameBoard.appendChild(cell);
             }
         }
+    }
 
+    // INITIALIZE board LOCALLY FOR A BRAND-NEW GAME
+    function initLocalBoardWithUnits() {
+        board = [];
+        for (let r = 0; r < rows; r++) {
+            board[r] = [];
+            for (let c = 0; c < cols; c++) {
+                board[r][c] = [];
+            }
+        }
         spawnAllUnits();
-        updateBoard();
     }
 
     function addUnit(r, c, type, team) {
@@ -292,8 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({
                 gameId,
                 playerId,
-                move: movePayload,
-                board
+                move: movePayload
             })
         });
 
@@ -311,16 +315,16 @@ document.addEventListener("DOMContentLoaded", () => {
             turnLocked = state.turnLocked;
         }
 
-        // FIRST LOAD: ensure units exist; only use server board if it has units
         if (firstLoad) {
+            // Build DOM grid once
+            buildHexGrid();
+
+            // If server already has a board with units, use it
             if (state.board && state.board.flat().some(cell => cell.length > 0)) {
-                // server already has a populated board
                 board = state.board;
-                createBoard(); // builds DOM; board already has units
             } else {
-                // server board empty or missing: create fresh board + units, then send init
-                createBoard();
-                await sendMoveToServer({ init: true });
+                // Fresh game: init local board + units, server already spawns too
+                initLocalBoardWithUnits();
             }
 
             updateBoard();
@@ -328,34 +332,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // SUBSEQUENT LOADS
+        // Subsequent loads: just trust server board
         if (state.board) {
             board = state.board;
-        } else {
-            console.log("Board missing — forcing rebuild.");
-            createBoard();
         }
-
-        if (state.lastMove && !state.lastMove.init) {
-            applyRemoteMove(state.lastMove);
-        }
-
-        updateBoard();
-    }
-
-    function applyRemoteMove(data) {
-        const { from, to, unit, team } = data;
-
-        const fromStack = board[from.r][from.c];
-        const toStack = board[to.r][to.c];
-
-        const uIndex = fromStack.findIndex(u => u.type === unit && u.team === team);
-        if (uIndex === -1) return;
-
-        const u = fromStack[uIndex];
-
-        fromStack.splice(uIndex, 1);
-        toStack.push(u);
 
         updateBoard();
     }
