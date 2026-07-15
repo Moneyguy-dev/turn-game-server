@@ -16,7 +16,8 @@ function getGame(gameId) {
             moveHistory: [],
             currentTurnPlayer: "red",
             unlockTime: null,
-            turnLocked: { red: false, blue: false }
+            turnLocked: { red: false, blue: false },
+            pendingMoves: [] // store red/blue moves until admin resolves
         };
     }
     return games[gameId];
@@ -116,44 +117,32 @@ function applyMoveToBoard(board, move) {
 }
 
 /* =========================
-   SUBMIT MOVE
+   SUBMIT MOVE (STORE ONLY)
 ========================= */
 app.post("/submitMove", (req, res) => {
     const { gameId, playerId, move } = req.body;
     const game = getGame(gameId);
 
-    if (playerId !== "all" && game.turnLocked[playerId]) {
-        return res.json({ status: "error", message: "Turn already submitted" });
-    }
-
-    if (playerId !== "all" && game.currentTurnPlayer !== playerId) {
-        return res.json({ status: "error", message: "Not your turn" });
-    }
-
-    // Ensure board exists
     if (!game.board) {
         game.board = generateEmptyBoard();
         spawnAllUnits(game.board);
     }
 
-    // ⭐ APPLY MOVE TO SERVER BOARD ONLY
-    applyMoveToBoard(game.board, move);
+    if (!game.pendingMoves) game.pendingMoves = [];
 
-    game.lastMove = move;
-    game.moveHistory.push(move);
+    // store move but do NOT apply yet
+    game.pendingMoves.push({ playerId, move });
+    game.moveHistory.push({ playerId, move });
 
-    if (playerId !== "all") {
-        game.currentTurnPlayer = playerId === "red" ? "blue" : "red";
-    }
+    // lock that player
+    if (playerId === "red") game.turnLocked.red = true;
+    if (playerId === "blue") game.turnLocked.blue = true;
 
-    res.json({
-        status: "ok",
-        nextTurnPlayer: game.currentTurnPlayer
-    });
+    res.json({ status: "ok", message: "Move stored" });
 });
 
 /* =========================
-   SUBMIT TURN
+   SUBMIT TURN (LOCK ONLY)
 ========================= */
 app.post("/submitTurn", (req, res) => {
     const { gameId, playerId } = req.body;
@@ -166,20 +155,33 @@ app.post("/submitTurn", (req, res) => {
 });
 
 /* =========================
-   CONTINUE TURN (NO RESET)
+   CONTINUE TURN (RESOLVE ALL PENDING MOVES)
 ========================= */
 app.post("/continueTurn", (req, res) => {
     const { gameId } = req.body;
     const game = getGame(gameId);
 
-    // ⭐ DO NOT TOUCH game.board
-    // ⭐ DO NOT TOUCH game.lastMove
+    if (!game.board) {
+        game.board = generateEmptyBoard();
+        spawnAllUnits(game.board);
+    }
 
+    // apply all stored moves at once
+    if (game.pendingMoves && game.pendingMoves.length > 0) {
+        for (const entry of game.pendingMoves) {
+            applyMoveToBoard(game.board, entry.move);
+        }
+    }
+
+    // clear pending moves
+    game.pendingMoves = [];
+
+    // unlock players and start new turn
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
     game.currentTurnPlayer = "red";
 
-    res.json({ status: "ok" });
+    res.json({ status: "ok", message: "Turn resolved" });
 });
 
 /* =========================
@@ -198,12 +200,13 @@ app.post("/resetGame", (req, res) => {
     game.moveHistory = [];
     game.turnLocked = { red: false, blue: false };
     game.currentTurnPlayer = "red";
+    game.pendingMoves = [];
 
     res.json({ status: "ok", message: "Game reset with units" });
 });
 
 /* =========================
-   GET GAME STATE — SPAWN IF EMPTY
+   GET GAME STATE — HIDE PENDING MOVES
 ========================= */
 app.get("/gameState", (req, res) => {
     const gameId = req.query.gameId;
@@ -214,7 +217,15 @@ app.get("/gameState", (req, res) => {
         spawnAllUnits(game.board);
     }
 
-    res.json(game);
+    // do NOT expose pendingMoves to clients
+    const safeGame = {
+        gameId: game.gameId,
+        board: game.board,
+        turnLocked: game.turnLocked,
+        currentTurnPlayer: game.currentTurnPlayer
+    };
+
+    res.json(safeGame);
 });
 
 /* =========================
