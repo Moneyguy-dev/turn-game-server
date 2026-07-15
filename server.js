@@ -1,3 +1,66 @@
+const axios = require("axios");
+const fs = require("fs");
+
+async function saveGameStateToGitHub(gameState) {
+    const username = process.env.GITHUB_USERNAME;
+    const repo = process.env.GITHUB_REPO;
+    const token = process.env.GITHUB_TOKEN;
+
+    const filePath = "game-state.json";
+    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
+
+    const jsonString = JSON.stringify(gameState, null, 2);
+    const contentEncoded = Buffer.from(jsonString).toString("base64");
+
+    let sha = null;
+
+    try {
+        const existing = await axios.get(apiUrl, {
+            headers: { Authorization: `token ${token}` }
+        });
+        sha = existing.data.sha;
+    } catch (err) {
+        // File does not exist yet — that's fine
+    }
+
+    const payload = {
+        message: "Update game state",
+        content: contentEncoded,
+        sha: sha || undefined
+    };
+
+    await axios.put(apiUrl, payload, {
+        headers: { Authorization: `token ${token}` }
+    });
+
+    console.log("✔ Game state saved to GitHub");
+}
+
+async function loadGameStateFromGitHub() {
+    const username = process.env.GITHUB_USERNAME;
+    const repo = process.env.GITHUB_REPO;
+    const token = process.env.GITHUB_TOKEN;
+
+    const filePath = "game-state.json";
+    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
+
+    try {
+        const res = await axios.get(apiUrl, {
+            headers: { Authorization: `token ${token}` }
+        });
+
+        const decoded = Buffer.from(res.data.content, "base64").toString("utf8");
+        const gameState = JSON.parse(decoded);
+
+        console.log("✔ Game state restored from GitHub");
+        return gameState;
+
+    } catch (err) {
+        console.log("⚠ No saved game state found on GitHub");
+        return null;
+    }
+}
+
 const express = require("express");
 const path = require("path");
 const app = express();
@@ -5,7 +68,14 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-const games = {};
+let games = {};
+
+(async () => {
+    const saved = await loadGameStateFromGitHub();
+    if (saved) {
+        games = saved;
+    }
+})();
 
 function getGame(gameId) {
     if (!games[gameId]) {
@@ -17,7 +87,7 @@ function getGame(gameId) {
             currentTurnPlayer: "red",
             unlockTime: null,
             turnLocked: { red: false, blue: false },
-            pendingMoves: [] // store red/blue moves until admin resolves
+            pendingMoves: []
         };
     }
     return games[gameId];
@@ -117,9 +187,9 @@ function applyMoveToBoard(board, move) {
 }
 
 /* =========================
-   SUBMIT MOVE (STORE ONLY)
+   SUBMIT MOVE (STORE ONLY, SAVE TO GITHUB)
 ========================= */
-app.post("/submitMove", (req, res) => {
+app.post("/submitMove", async (req, res) => {
     const { gameId, playerId, move } = req.body;
     const game = getGame(gameId);
 
@@ -130,15 +200,19 @@ app.post("/submitMove", (req, res) => {
 
     if (!game.pendingMoves) game.pendingMoves = [];
 
-    // store move but do NOT apply yet
     game.pendingMoves.push({ playerId, move });
     game.moveHistory.push({ playerId, move });
 
-    // lock that player
     if (playerId === "red") game.turnLocked.red = true;
     if (playerId === "blue") game.turnLocked.blue = true;
 
-    res.json({ status: "ok", message: "Move stored" });
+    try {
+        await saveGameStateToGitHub(games);
+    } catch (err) {
+        console.log("⚠ Failed to save game state to GitHub on submitMove:", err.message);
+    }
+
+    res.json({ status: "ok", message: "Move stored and saved" });
 });
 
 /* =========================
@@ -157,7 +231,7 @@ app.post("/submitTurn", (req, res) => {
 /* =========================
    CONTINUE TURN (RESOLVE ALL PENDING MOVES)
 ========================= */
-app.post("/continueTurn", (req, res) => {
+app.post("/continueTurn", async (req, res) => {
     const { gameId } = req.body;
     const game = getGame(gameId);
 
@@ -166,20 +240,22 @@ app.post("/continueTurn", (req, res) => {
         spawnAllUnits(game.board);
     }
 
-    // apply all stored moves at once
     if (game.pendingMoves && game.pendingMoves.length > 0) {
         for (const entry of game.pendingMoves) {
             applyMoveToBoard(game.board, entry.move);
         }
     }
 
-    // clear pending moves
     game.pendingMoves = [];
-
-    // unlock players and start new turn
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
     game.currentTurnPlayer = "red";
+
+    try {
+        await saveGameStateToGitHub(games);
+    } catch (err) {
+        console.log("⚠ Failed to save game state to GitHub on continueTurn:", err.message);
+    }
 
     res.json({ status: "ok", message: "Turn resolved" });
 });
@@ -187,7 +263,7 @@ app.post("/continueTurn", (req, res) => {
 /* =========================
    RESET GAME — SPAWNS UNITS
 ========================= */
-app.post("/resetGame", (req, res) => {
+app.post("/resetGame", async (req, res) => {
     const { gameId } = req.body;
 
     delete games[gameId];
@@ -201,6 +277,12 @@ app.post("/resetGame", (req, res) => {
     game.turnLocked = { red: false, blue: false };
     game.currentTurnPlayer = "red";
     game.pendingMoves = [];
+
+    try {
+        await saveGameStateToGitHub(games);
+    } catch (err) {
+        console.log("⚠ Failed to save game state to GitHub on resetGame:", err.message);
+    }
 
     res.json({ status: "ok", message: "Game reset with units" });
 });
@@ -217,7 +299,6 @@ app.get("/gameState", (req, res) => {
         spawnAllUnits(game.board);
     }
 
-    // do NOT expose pendingMoves to clients
     const safeGame = {
         gameId: game.gameId,
         board: game.board,
