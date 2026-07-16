@@ -10,16 +10,20 @@ body {
 }
 
 /* =========================
-   GAME BOARD (ABSOLUTE HEX GRID)
+   GAME BOARD (CENTERED HEX GRID)
 ========================= */
+#mapContainer {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;   /* center horizontally */
+    align-items: center;       /* center vertically */
+    overflow: hidden;
+}
+
 #gameBoard {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%; /* IMPORTANT: NOT 100vh */
-
+    position: relative;        /* hexes are absolute inside this */
     overflow: visible;
     z-index: 1;
 }
@@ -94,14 +98,6 @@ body {
     position: relative;
 }
 
-/* Map container (hex map area) */
-#mapContainer {
-    position: relative;
-    flex: 1;            /* ⭐ REQUIRED to center the map */
-    height: 100%;
-    overflow: visible;
-}
-
 /* Collapsible Unit Panel */
 #unitPanel {
     width: 300px;
@@ -122,7 +118,7 @@ body {
     background: #333;
     padding: 10px;
     text-align: right;
-    width: 100%;        /* ⭐ REQUIRED so Units ▸ button is visible */
+    width: 100%;
 }
 
 #toggleUnits {

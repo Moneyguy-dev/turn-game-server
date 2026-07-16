@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameBoard = document.getElementById("gameBoard");
     const unitList = document.getElementById("unitList");
 
-    /* NEW UI ELEMENTS */
     const unitPanel = document.getElementById("unitPanel");
     const toggleUnits = document.getElementById("toggleUnits");
     const mapContainer = document.getElementById("mapContainer");
@@ -65,9 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    /* BUILD HEX GRID */
     function buildHexGrid() {
         gameBoard.innerHTML = "";
+
+        let maxX = 0;
+        let maxY = 0;
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -85,11 +86,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 cell.addEventListener("click", onHexClick);
 
                 gameBoard.appendChild(cell);
+
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
             }
         }
+
+        // set board size so centering works
+        gameBoard.style.width = (maxX + hexSize) + "px";
+        gameBoard.style.height = (maxY + hexSize) + "px";
     }
 
-    /* INITIALIZE LOCAL BOARD */
     function initLocalBoardWithUnits() {
         board = [];
         for (let r = 0; r < rows; r++) {
@@ -344,7 +351,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateBoard();
     }
 
-    /* SUBMIT TURN */
     const submitBtn = document.getElementById("submitTurn");
     if (submitBtn) {
         submitBtn.addEventListener("click", async () => {
@@ -367,7 +373,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ADMIN CONTINUE TURN */
     const continueBtn = document.getElementById("continueTurn");
     if (continueBtn) {
         continueBtn.addEventListener("click", async () => {
@@ -382,7 +387,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ADMIN RESET GAME */
     const resetBtn = document.getElementById("resetGame");
     if (resetBtn) {
         resetBtn.addEventListener("click", async () => {
@@ -397,7 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* BACK BUTTON */
     const backBtn = document.getElementById("backButton");
     if (backBtn) {
         backBtn.addEventListener("click", () => {
@@ -405,7 +408,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* NEW UI BUTTONS */
     if (logBookBtn) {
         logBookBtn.addEventListener("click", () => {
             alert("Log Book feature coming soon.");
@@ -418,17 +420,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* COLLAPSIBLE UNIT PANEL */
     if (toggleUnits) {
         toggleUnits.addEventListener("click", () => {
             const isOpen = unitPanel.classList.toggle("open");
 
             if (isOpen) {
                 toggleUnits.textContent = "Units ◂";
-                mapContainer.style.marginRight = "300px";
             } else {
                 toggleUnits.textContent = "Units ▸";
-                mapContainer.style.marginRight = "0px";
             }
         });
     }
