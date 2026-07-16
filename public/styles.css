@@ -7,15 +7,31 @@
     display: flex;
     width: 100%;
     height: calc(100vh - 80px); /* bottom menu bar height */
+    margin: 0;
+    padding: 0;
     overflow: hidden;
     position: relative;
 }
 
 /* Map container (hex map area) */
 #mapContainer {
-    flex: 1;
-    transition: margin-right 0.3s ease;
     position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Game board must fill mapContainer, NOT the whole screen */
+#gameBoard {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: visible;
+    z-index: 1;
 }
 
 /* Collapsible Unit Panel */
@@ -87,6 +103,10 @@
     background: #666;
     transform: scale(1.03);
 }
+
+/* =========================
+   BASE COLORS
+========================= */
 
 .base-blue {
     background: #0033ff !important;
