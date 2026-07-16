@@ -97,7 +97,7 @@ body {
 /* Map container (hex map area) */
 #mapContainer {
     position: relative; /* REQUIRED for absolute hex grid */
-    width: 100%;
+    flex: 1;            /* ⭐ REQUIRED to center the map */
     height: 100%;
     overflow: visible;
 }
@@ -122,6 +122,7 @@ body {
     background: #333;
     padding: 10px;
     text-align: right;
+    width: 100%;        /* ⭐ REQUIRED so Units ▸ button is visible */
 }
 
 #toggleUnits {
