@@ -1,12 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    /* AUTO-SCALING HEX SIZE */
+    function getAutoHexSize() {
+        const w = window.innerWidth;
+
+        if (w > 1600) return 60;   // big monitors
+        if (w > 1300) return 55;   // medium monitors
+        if (w > 1100) return 50;   // laptops
+        if (w > 900)  return 45;   // small laptops
+        if (w > 700)  return 40;   // tablets
+        return 35;                 // small screens
+    }
+
+    let hexSize = getAutoHexSize();
+    let horizontalSpacing = hexSize * 0.75;
+    let verticalSpacing = hexSize * Math.sqrt(3) / 2;
+
     const urlParams = new URLSearchParams(window.location.search);
     const SERVER_URL = "https://turn-game-server.onrender.com";
 
     const rows = 17;
     const cols = 19;
-    const hexSize = 60;
-    const horizontalSpacing = hexSize * 0.75;
-    const verticalSpacing = hexSize * Math.sqrt(3) / 2;
     const MAX_UNITS_PER_HEX = 4;
 
     let playerId = urlParams.get("mode") || "all";
@@ -82,6 +96,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 cell.style.left = `${x}px`;
                 cell.style.top = `${y}px`;
+                cell.style.width = `${hexSize}px`;
+                cell.style.height = `${hexSize * 0.866}px`;
+                cell.style.lineHeight = `${hexSize * 0.866}px`;
+
                 cell.dataset.row = r;
                 cell.dataset.col = c;
                 cell.addEventListener("click", onHexClick);
@@ -93,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // set board size so centering works
         gameBoard.style.width = (maxX + hexSize) + "px";
         gameBoard.style.height = (maxY + hexSize) + "px";
     }
@@ -445,5 +462,15 @@ document.addEventListener("DOMContentLoaded", () => {
     /* INITIAL LOAD */
     loadGameStateFromServer();
     setInterval(loadGameStateFromServer, 10000);
+
+    /* REBUILD GRID ON RESIZE */
+    window.addEventListener("resize", () => {
+        hexSize = getAutoHexSize();
+        horizontalSpacing = hexSize * 0.75;
+        verticalSpacing = hexSize * Math.sqrt(3) / 2;
+
+        buildHexGrid();
+        updateBoard();
+    });
 
 }); // END DOMContentLoaded
