@@ -11,11 +11,11 @@ body {
 #layout {
     position: relative;
     width: 100%;
-    height: calc(100vh - 50px);   /* bottom menu is now 50px */
+    height: calc(100vh - 50px);
     overflow: hidden;
 }
 
-/* MAP CONTAINER — RESPONSIVE CENTERING */
+/* MAP CONTAINER */
 #mapContainer {
     position: absolute;
     left: 0;
@@ -34,14 +34,11 @@ body {
 #gameBoard {
     position: relative;
     overflow: visible;
-    transform-origin: top center;   /* required for scaling */
 }
 
 /* HEX CELLS */
 .hex {
     position: absolute;
-    width: 60px;
-    height: 52px;
     background: #333;
     clip-path: polygon(
         25% 0%, 75% 0%,
@@ -49,7 +46,6 @@ body {
         25% 100%, 0% 50%
     );
     text-align: center;
-    line-height: 52px;
     font-size: 12px;
 }
 
@@ -59,7 +55,7 @@ body {
     top: 0;
     right: 0;
     width: 300px;
-    height: calc(100vh - 50px);   /* match bottom menu */
+    height: calc(100vh - 50px);
     background: #222;
     border-left: 2px solid #444;
     transform: translateX(100%);
@@ -91,7 +87,7 @@ body {
 
 /* BOTTOM MENU */
 #bottomMenu {
-    height: 50px;   /* reduced height */
+    height: 50px;
     background: #111;
     display: flex;
     justify-content: space-between;
@@ -112,36 +108,18 @@ body {
     cursor: pointer;
 }
 
-/* HEIGHT-BASED RESPONSIVE SCALING */
-@media (max-height: 800px) {
-    #gameBoard { transform: scale(0.85); }
+/* UNIT STACK */
+.unit-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-@media (max-height: 700px) {
-    #gameBoard { transform: scale(0.75); }
+.unit {
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 10px;
 }
 
-@media (max-height: 600px) {
-    #gameBoard { transform: scale(0.65); }
-}
-
-/* WIDTH-BASED RESPONSIVE SCALING */
-@media (max-width: 1400px) {
-    #gameBoard { transform: scale(0.90); }
-}
-
-@media (max-width: 1200px) {
-    #gameBoard { transform: scale(0.80); }
-}
-
-@media (max-width: 1000px) {
-    #gameBoard { transform: scale(0.70); }
-}
-
-@media (max-width: 850px) {
-    #gameBoard { transform: scale(0.60); }
-}
-
-@media (max-width: 700px) {
-    #gameBoard { transform: scale(0.50); }
-}
+.unit.blue { background: #1e3cff; }
+.unit.red { background: #cc0000; }

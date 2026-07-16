@@ -1,15 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* AUTO-SCALING HEX SIZE */
+    const rows = 17;
+    const cols = 19;
+
+    /* UNIVERSAL AUTO-SCALING HEX SIZE */
     function getAutoHexSize() {
         const w = window.innerWidth;
+        const h = window.innerHeight;
 
-        if (w > 1600) return 60;   // big monitors
-        if (w > 1300) return 55;   // medium monitors
-        if (w > 1100) return 50;   // laptops
-        if (w > 900)  return 45;   // small laptops
-        if (w > 700)  return 40;   // tablets
-        return 35;                 // small screens
+        const maxHexWidth = w / (cols * 0.85);
+        const maxHexHeight = h / (rows * 1.00);
+
+        return Math.floor(Math.min(maxHexWidth, maxHexHeight));
     }
 
     let hexSize = getAutoHexSize();
@@ -18,10 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const SERVER_URL = "https://turn-game-server.onrender.com";
-
-    const rows = 17;
-    const cols = 19;
-    const MAX_UNITS_PER_HEX = 4;
 
     let playerId = urlParams.get("mode") || "all";
     let gameId = 1;
@@ -33,7 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const gameBoard = document.getElementById("gameBoard");
     const unitList = document.getElementById("unitList");
-
     const unitPanel = document.getElementById("unitPanel");
     const toggleUnits = document.getElementById("toggleUnits");
     const mapContainer = document.getElementById("mapContainer");
@@ -45,6 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
         blue: { r: 0, c: 0 },
         red: { r: rows - 1, c: cols - 1 }
     };
+
+    const MAX_UNITS_PER_HEX = 4;
 
     const units = {
         blue: {
@@ -87,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
+
                 const cell = document.createElement("div");
                 cell.classList.add("hex");
 
@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 cell.dataset.row = r;
                 cell.dataset.col = c;
+
                 cell.addEventListener("click", onHexClick);
 
                 gameBoard.appendChild(cell);
@@ -115,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gameBoard.style.height = (maxY + hexSize) + "px";
     }
 
-    /* INITIALIZE LOCAL BOARD */
+    /* INIT BOARD */
     function initLocalBoardWithUnits() {
         board = [];
         for (let r = 0; r < rows; r++) {
@@ -252,6 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
+
                 const cell = cells[i++];
                 if (!cell) return;
 
@@ -259,14 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cell.innerHTML = "";
 
                 if (validMoves.some(([vr, vc]) => vr === r && vc === c)) {
-                    cell.classList.add("highlight");
-                }
-
-                if (r === startHexes.blue.r && c === startHexes.blue.c) {
-                    cell.classList.add("base-blue");
-                }
-                if (r === startHexes.red.r && c === startHexes.red.c) {
-                    cell.classList.add("base-red");
+                    cell.style.background = "#555";
                 }
 
                 const stack = board[r][c];
@@ -294,13 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     cell.appendChild(wrap);
                 } else {
-                    if (r === startHexes.blue.r && c === startHexes.blue.c) {
-                        cell.textContent = "BLUE BASE";
-                    } else if (r === startHexes.red.r && c === startHexes.red.c) {
-                        cell.textContent = "RED BASE";
-                    } else {
-                        cell.textContent = `${r},${c}`;
-                    }
+                    cell.textContent = `${r},${c}`;
                 }
             }
         }
@@ -325,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendMoveToServer(movePayload) {
-        const res = await fetch(`${SERVER_URL}/submitMove`, {
+        await fetch(`${SERVER_URL}/submitMove`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -334,16 +323,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 move: movePayload
             })
         });
-
-        const data = await res.json();
-        console.log("Server move response:", data);
     }
 
     async function loadGameStateFromServer() {
         const res = await fetch(`${SERVER_URL}/gameState?gameId=${gameId}`);
         const state = await res.json();
-
-        console.log("Loaded game state:", state);
 
         if (state.turnLocked) {
             turnLocked = state.turnLocked;
@@ -385,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
             turnLocked[playerId] = true;
             await loadGameStateFromServer();
 
-            alert("Your moves have been submitted. Waiting for admin to continue.");
+            alert("Your moves have been submitted.");
 
             setTimeout(() => {
                 window.location.href = "index.html";
@@ -404,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             await loadGameStateFromServer();
-            alert("New turn started. Red and Blue unlocked.");
+            alert("New turn started.");
         });
     }
 
@@ -418,7 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ gameId })
             });
 
-            alert("Game reset. Fresh board created.");
+            alert("Game reset.");
             window.location.href = "index.html";
         });
     }
@@ -431,20 +415,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* NEW UI BUTTONS */
+    /* UI BUTTONS */
     if (logBookBtn) {
         logBookBtn.addEventListener("click", () => {
-            alert("Log Book feature coming soon.");
+            alert("Log Book coming soon.");
         });
     }
 
     if (armamentsBtn) {
         armamentsBtn.addEventListener("click", () => {
-            alert("Armaments feature coming soon.");
+            alert("Armaments coming soon.");
         });
     }
 
-    /* COLLAPSIBLE UNIT PANEL */
+    /* COLLAPSIBLE PANEL */
     if (toggleUnits) {
         toggleUnits.addEventListener("click", () => {
             const isOpen = unitPanel.classList.toggle("open");
@@ -473,4 +457,45 @@ document.addEventListener("DOMContentLoaded", () => {
         updateBoard();
     });
 
-}); // END DOMContentLoaded
+    /* ================================
+       DIAGNOSTIC OVERLAY (LIVE DEBUG)
+       ================================ */
+
+    function createDiagnosticOverlay() {
+        const diag = document.createElement("div");
+        diag.id = "diagOverlay";
+        diag.style.position = "fixed";
+        diag.style.top = "10px";
+        diag.style.left = "10px";
+        diag.style.padding = "10px 14px";
+        diag.style.background = "rgba(0,0,0,0.75)";
+        diag.style.color = "#0f0";
+        diag.style.fontFamily = "monospace";
+        diag.style.fontSize = "12px";
+        diag.style.zIndex = "9999";
+        diag.style.border = "1px solid #0f0";
+        diag.style.borderRadius = "6px";
+        diag.style.pointerEvents = "none";
+        document.body.appendChild(diag);
+    }
+
+    function updateDiagnosticOverlay() {
+        const diag = document.getElementById("diagOverlay");
+        if (!diag) return;
+
+        const boardWidth = gameBoard.offsetWidth;
+        const boardHeight = gameBoard.offsetHeight;
+
+        diag.innerHTML =
+            "Viewport: " + window.innerWidth + " x " + window.innerHeight + "<br>" +
+            "Hex Size: " + hexSize + "<br>" +
+            "H-Spacing: " + horizontalSpacing.toFixed(2) + "<br>" +
+            "V-Spacing: " + verticalSpacing.toFixed(2) + "<br>" +
+            "Board: " + boardWidth + " x " + boardHeight + "<br>" +
+            "Cols: " + cols + "  Rows: " + rows;
+    }
+
+    createDiagnosticOverlay();
+    setInterval(updateDiagnosticOverlay, 200);
+
+});
