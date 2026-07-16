@@ -20,6 +20,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameBoard = document.getElementById("gameBoard");
     const unitList = document.getElementById("unitList");
 
+    /* NEW UI ELEMENTS */
+    const unitPanel = document.getElementById("unitPanel");
+    const toggleUnits = document.getElementById("toggleUnits");
+    const mapContainer = document.getElementById("mapContainer");
+
+    const logBookBtn = document.getElementById("logBook");
+    const armamentsBtn = document.getElementById("armaments");
+
     const startHexes = {
         blue: { r: 0, c: 0 },
         red: { r: rows - 1, c: cols - 1 }
@@ -57,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    // BUILD ONLY THE HEX GRID DOM — DO NOT TOUCH board
+    /* BUILD HEX GRID */
     function buildHexGrid() {
         gameBoard.innerHTML = "";
 
@@ -81,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // INITIALIZE board LOCALLY FOR A BRAND-NEW GAME
+    /* INITIALIZE LOCAL BOARD */
     function initLocalBoardWithUnits() {
         board = [];
         for (let r = 0; r < rows; r++) {
@@ -316,14 +324,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (firstLoad) {
-            // Build DOM grid once
             buildHexGrid();
 
-            // If server already has a board with units, use it
             if (state.board && state.board.flat().some(cell => cell.length > 0)) {
                 board = state.board;
             } else {
-                // Fresh game: init local board + units, server already spawns too
                 initLocalBoardWithUnits();
             }
 
@@ -332,7 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Subsequent loads: just trust server board
         if (state.board) {
             board = state.board;
         }
@@ -340,6 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateBoard();
     }
 
+    /* SUBMIT TURN */
     const submitBtn = document.getElementById("submitTurn");
     if (submitBtn) {
         submitBtn.addEventListener("click", async () => {
@@ -362,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    /* ADMIN CONTINUE TURN */
     const continueBtn = document.getElementById("continueTurn");
     if (continueBtn) {
         continueBtn.addEventListener("click", async () => {
@@ -376,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    /* ADMIN RESET GAME */
     const resetBtn = document.getElementById("resetGame");
     if (resetBtn) {
         resetBtn.addEventListener("click", async () => {
@@ -390,10 +397,39 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    /* BACK BUTTON */
     const backBtn = document.getElementById("backButton");
     if (backBtn) {
         backBtn.addEventListener("click", () => {
             window.location.href = "index.html";
+        });
+    }
+
+    /* NEW UI BUTTONS */
+    if (logBookBtn) {
+        logBookBtn.addEventListener("click", () => {
+            alert("Log Book feature coming soon.");
+        });
+    }
+
+    if (armamentsBtn) {
+        armamentsBtn.addEventListener("click", () => {
+            alert("Armaments feature coming soon.");
+        });
+    }
+
+    /* COLLAPSIBLE UNIT PANEL */
+    if (toggleUnits) {
+        toggleUnits.addEventListener("click", () => {
+            const isOpen = unitPanel.classList.toggle("open");
+
+            if (isOpen) {
+                toggleUnits.textContent = "Units ◂";
+                mapContainer.style.marginRight = "300px";
+            } else {
+                toggleUnits.textContent = "Units ▸";
+                mapContainer.style.marginRight = "0px";
+            }
         });
     }
 

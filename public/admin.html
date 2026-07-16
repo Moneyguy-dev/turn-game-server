@@ -1,61 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin View</title>
+    <title>Admin Control</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
 
-    <div id="gameBoard"></div>
+    <!-- MAIN LAYOUT -->
+    <div id="layout">
 
-    <div id="sidePanel">
-        <h3>Admin Controls</h3>
-        <div id="unitList"></div>
+        <!-- LEFT: HEX MAP -->
+        <div id="mapContainer">
+            <div id="gameBoard"></div>
+        </div>
 
-        <!-- ADMIN CONTINUE BUTTON -->
-        <button id="continueTurn" style="
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            font-size: 18px;
-            background: #555;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        ">
-            Continue Turn
-        </button>
+        <!-- RIGHT: COLLAPSIBLE UNIT PANEL -->
+        <div id="unitPanel">
+            <div id="unitPanelHeader">
+                <button id="toggleUnits">Units ▸</button>
+            </div>
+            <div id="unitList"></div>
+        </div>
 
-        <!-- RESET GAME BUTTON -->
-        <button id="resetGame" style="
-            margin-top: 10px;
-            width: 100%;
-            padding: 12px;
-            font-size: 18px;
-            background: #8b0000;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        ">
-            Reset Game
-        </button>
+    </div>
 
-        <!-- BACK BUTTON -->
-        <button id="backButton" style="
-            margin-top: 10px;
-            width: 100%;
-            padding: 12px;
-            font-size: 18px;
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        ">
-            Back to Menu
-        </button>
+    <!-- BOTTOM MENU BAR -->
+    <div id="bottomMenu">
+
+        <!-- FAR LEFT -->
+        <button id="backButton" class="menuBtn">Back to Menu</button>
+
+        <!-- CENTER LEFT -->
+        <button id="logBook" class="menuBtn">Log Book</button>
+
+        <!-- CENTER RIGHT -->
+        <button id="armaments" class="menuBtn">Armaments</button>
+
+        <!-- ADMIN BUTTONS -->
+        <button id="continueTurn" class="menuBtn" style="background:#2a7;">Continue Turn</button>
+        <button id="resetGame" class="menuBtn" style="background:#a22;">Reset Game</button>
+
     </div>
 
     <script src="/script.js" defer></script>

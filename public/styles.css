@@ -1,162 +1,101 @@
 /* =========================
-   GLOBAL
+   NEW LAYOUT SYSTEM
 ========================= */
-body {
-    background: #111;
-    color: white;
-    font-family: Arial;
-    margin: 0;
-    overflow: hidden;
-}
 
-/* =========================
-   GAME BOARD (FULL SCREEN)
-========================= */
-#gameBoard {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    /* ⭐ FULL WIDTH ALWAYS */
+/* Main layout wrapper */
+#layout {
+    display: flex;
     width: 100%;
-    height: 100vh;
-
-    /* ⭐ Hexes will ALWAYS be visible */
-    overflow: visible;
-
-    z-index: 1;
+    height: calc(100vh - 80px); /* bottom menu bar height */
+    overflow: hidden;
+    position: relative;
 }
 
-/* =========================
-   HEX CELLS
-========================= */
-.hex {
-    position: absolute;
-    width: 60px;
-    height: 52px;
-    background: #333;
-    clip-path: polygon(
-        25% 0%, 75% 0%,
-        100% 50%, 75% 100%,
-        25% 100%, 0% 50%
-    );
-    text-align: center;
-    line-height: 52px;
-    font-size: 12px;
-
-    /* ⭐ Make sure hexes appear ABOVE the board */
-    z-index: 2;
+/* Map container (hex map area) */
+#mapContainer {
+    flex: 1;
+    transition: margin-right 0.3s ease;
+    position: relative;
 }
 
-.unit-stack {
+/* Collapsible Unit Panel */
+#unitPanel {
+    width: 300px;
+    background: #222;
+    border-left: 2px solid #444;
+    transition: transform 0.3s ease;
+    transform: translateX(100%); /* hidden by default */
     display: flex;
     flex-direction: column;
+    z-index: 20; /* above map */
 }
 
-.unit {
-    padding: 2px 4px;
-    margin: 2px;
-    border-radius: 4px;
-    background: black;
-    color: white;
-    font-size: 10px;
+#unitPanel.open {
+    transform: translateX(0); /* slide in */
 }
 
-.unit.blue { background: blue; }
-.unit.red { background: red; }
-
-.highlight {
-    background: yellow;
-}
-
-/* =========================
-   SIDE PANEL (FLOATS ABOVE)
-========================= */
-#sidePanel {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-
-    width: 220px;
-    height: auto;
-
-    background: #222;
+#unitPanelHeader {
+    background: #333;
     padding: 10px;
-    border-radius: 8px;
-
-    /* ⭐ Panel floats ABOVE hexes but DOES NOT shrink board */
-    z-index: 10;
+    text-align: right;
 }
 
-/* =========================
-   BUTTONS
-========================= */
-.menu-btn {
-    padding: 20px 40px;
-    margin: 20px;
-    font-size: 24px;
-    cursor: pointer;
-    border: none;
-    border-radius: 10px;
-}
-
-.menu-btn.red { background: red; }
-.menu-btn.blue { background: blue; }
-.menu-btn.admin {
-    background: gray;
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-}
-
-#submitTurn {
-    margin-top: 20px;
-    width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-#submitTurn.red {
-    background: #cc0000;
-    color: white;
-}
-
-#submitTurn.blue {
-    background: #1e3cff;
-    color: white;
-}
-
-#continueTurn {
-    margin-top: 20px;
-    width: 100%;
-    padding: 12px;
-    font-size: 18px;
+#toggleUnits {
     background: #555;
     color: white;
     border: none;
-    border-radius: 6px;
+    padding: 8px 12px;
     cursor: pointer;
+    border-radius: 6px;
 }
 
-#submitTurn.red:hover {
-    background: #ff3333;
-    transform: scale(1.03);
+/* Unit list inside the panel */
+#unitList {
+    overflow-y: auto;
+    padding: 10px;
+    flex: 1;
 }
 
-#submitTurn.blue:hover {
-    background: #4d6bff;
-    transform: scale(1.03);
+/* =========================
+   BOTTOM MENU BAR
+========================= */
+
+#bottomMenu {
+    height: 80px;
+    background: #111;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    border-top: 2px solid #333;
+    position: relative;
+    z-index: 30; /* above everything */
 }
 
-#continueTurn:hover {
-    background: #777;
-    transform: scale(1.03);
-}
-
-#submitTurn,
-#continueTurn {
+.menuBtn {
+    background: #444;
+    color: white;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.menuBtn:hover {
+    background: #666;
+    transform: scale(1.03);
+}
+
+.base-blue {
+    background: #0033ff !important;
+    color: white;
+    font-weight: bold;
+}
+
+.base-red {
+    background: #cc0000 !important;
+    color: white;
+    font-weight: bold;
 }
