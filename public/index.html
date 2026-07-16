@@ -15,6 +15,7 @@
             align-items: center;
             height: 100vh;
             text-align: center;
+            margin: 0;
         }
 
         h1 {
@@ -46,6 +47,7 @@
 
         #red { background: #cc0000; }
         #blue { background: #1e3cff; }
+
         #admin {
             background: gray;
             position: absolute;
@@ -63,6 +65,21 @@
             color: #f0e68c;
             max-width: 600px;
         }
+
+        /* Responsive scaling for small screens */
+        @media (max-height: 700px) {
+            h1 { font-size: 30px; }
+            p { font-size: 16px; }
+            .button { padding: 15px 30px; font-size: 20px; }
+            #spectatorWarning { font-size: 14px; }
+        }
+
+        @media (max-height: 550px) {
+            h1 { font-size: 26px; }
+            p { font-size: 14px; }
+            .button { padding: 12px 25px; font-size: 18px; }
+            #spectatorWarning { font-size: 12px; }
+        }
     </style>
 </head>
 
@@ -75,8 +92,8 @@
     <button id="blue" class="button" onclick="location.href='blue.html?mode=blue'">Blue Team</button>
 
     <div id="spectatorWarning">
-        <strong>Spectator Mode:</strong>  
-        You can view the map from this page, but <em>Submit Moves</em> and <em>Continue Turn</em> buttons will not work.  
+        <strong>Spectator Mode:</strong><br>
+        You can view the map from this page, but <em>Submit Moves</em> and <em>Continue Turn</em> buttons will not work.<br>
         Select Red or Blue to play, or Admin to control turn flow.
     </div>
 
