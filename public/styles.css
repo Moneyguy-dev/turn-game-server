@@ -112,7 +112,7 @@ body {
     cursor: pointer;
 }
 
-/* RESPONSIVE MAP SCALING */
+/* HEIGHT-BASED RESPONSIVE SCALING */
 @media (max-height: 800px) {
     #gameBoard { transform: scale(0.85); }
 }
@@ -123,4 +123,25 @@ body {
 
 @media (max-height: 600px) {
     #gameBoard { transform: scale(0.65); }
+}
+
+/* WIDTH-BASED RESPONSIVE SCALING */
+@media (max-width: 1400px) {
+    #gameBoard { transform: scale(0.90); }
+}
+
+@media (max-width: 1200px) {
+    #gameBoard { transform: scale(0.80); }
+}
+
+@media (max-width: 1000px) {
+    #gameBoard { transform: scale(0.70); }
+}
+
+@media (max-width: 850px) {
+    #gameBoard { transform: scale(0.60); }
+}
+
+@media (max-width: 700px) {
+    #gameBoard { transform: scale(0.50); }
 }
