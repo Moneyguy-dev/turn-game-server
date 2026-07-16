@@ -96,7 +96,7 @@ body {
 
 /* Map container (hex map area) */
 #mapContainer {
-    position: relative; /* REQUIRED for absolute hex grid */
+    position: relative;
     flex: 1;            /* ⭐ REQUIRED to center the map */
     height: 100%;
     overflow: visible;
