@@ -16,12 +16,6 @@ export function initFOB() {
 
     initFobPool();
     updateFobList();
-
-    const fobButton = document.getElementById("fobButton");
-    fobButton.addEventListener("click", () => {
-        fobPanel.classList.toggle("open");
-        updateFobList();
-    });
 }
 
 export function initFobPool() {

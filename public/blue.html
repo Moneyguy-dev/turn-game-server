@@ -9,38 +9,35 @@
 
     <div id="layout">
 
+        <!-- LEFT FOB PANEL -->
+        <div id="fobPanel">
+            <div id="fobList"></div>
+        </div>
+
         <!-- HEX MAP -->
         <div id="mapContainer">
             <div id="gameBoard"></div>
         </div>
 
-        <!-- FLOATING ARROW -->
-        <button id="toggleUnits" class="unitArrow">▸</button>
-
-        <!-- COLLAPSIBLE UNIT PANEL -->
+        <!-- RIGHT UNIT PANEL -->
         <div id="unitPanel">
             <div id="unitList"></div>
-        </div>
-
-        <!-- FOB DRAWER -->
-        <div id="fobPanel">
-            <div id="fobList"></div>
         </div>
 
     </div>
 
     <!-- BOTTOM MENU -->
     <div id="bottomMenu">
-        <button id="backButton" class="menuBtn">Back to Menu</button>
+        <button id="backButton" class="menuBtn">Back</button>
         <button id="logBook" class="menuBtn">Log Book</button>
         <button id="armaments" class="menuBtn">Armaments</button>
 
-        <!-- BLUE PLAYER BUTTONS -->
-        <button id="fobButton" class="menuBtn">FOB</button>
-        <button id="submitTurn" class="menuBtn" style="background:#2a7;">Submit Turn</button>
+        <button id="unitsBtn" class="menuBtn">Units ▸</button>
+        <button id="fobButton" class="menuBtn">FOB ▸</button>
+
+        <button id="submitTurn" class="menuBtn" style="background:#2a7;">Submit</button>
     </div>
 
-    <!-- MAIN SCRIPT -->
     <script type="module" src="/script.js"></script>
 
 </body>

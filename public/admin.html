@@ -9,39 +9,36 @@
 
     <div id="layout">
 
+        <!-- LEFT FOB PANEL -->
+        <div id="fobPanel">
+            <div id="fobList"></div>
+        </div>
+
         <!-- HEX MAP -->
         <div id="mapContainer">
             <div id="gameBoard"></div>
         </div>
 
-        <!-- FLOATING ARROW -->
-        <button id="toggleUnits" class="unitArrow">▸</button>
-
-        <!-- COLLAPSIBLE UNIT PANEL -->
+        <!-- RIGHT UNIT PANEL -->
         <div id="unitPanel">
             <div id="unitList"></div>
-        </div>
-
-        <!-- FOB DRAWER (BOTTOM) -->
-        <div id="fobPanel">
-            <div id="fobList"></div>
         </div>
 
     </div>
 
     <!-- BOTTOM MENU -->
     <div id="bottomMenu">
-        <button id="backButton" class="menuBtn">Back to Menu</button>
+        <button id="backButton" class="menuBtn">Back</button>
         <button id="logBook" class="menuBtn">Log Book</button>
         <button id="armaments" class="menuBtn">Armaments</button>
 
-        <!-- ADMIN BUTTONS -->
-        <button id="fobButton" class="menuBtn">FOB</button>
-        <button id="continueTurn" class="menuBtn" style="background:#2a7;">Continue Turn</button>
-        <button id="resetGame" class="menuBtn" style="background:#a22;">Reset Game</button>
+        <button id="unitsBtn" class="menuBtn">Units ▸</button>
+        <button id="fobButton" class="menuBtn">FOB ▸</button>
+
+        <button id="continueTurn" class="menuBtn" style="background:#2a7;">Continue</button>
+        <button id="resetGame" class="menuBtn" style="background:#a22;">Reset</button>
     </div>
 
-    <!-- MAIN SCRIPT (MODULE ENTRY) -->
     <script type="module" src="/script.js"></script>
 
 </body>

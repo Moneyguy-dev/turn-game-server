@@ -2,21 +2,31 @@ import { updateBoard } from "./units.js";
 
 export function initUI() {
     const unitPanel = document.getElementById("unitPanel");
-    const toggleUnits = document.getElementById("toggleUnits");
+    const fobPanel = document.getElementById("fobPanel");
     const mapContainer = document.getElementById("mapContainer");
 
+    const unitsBtn = document.getElementById("unitsBtn");
+    const fobBtn = document.getElementById("fobButton");
+
     /* ============================
-       UNIT PANEL TOGGLE (RIGHT SIDE)
+       UNITS PANEL BUTTON (RIGHT SIDE)
        ============================ */
-    if (toggleUnits && unitPanel && mapContainer) {
-        toggleUnits.addEventListener("click", () => {
+    if (unitsBtn && unitPanel) {
+        unitsBtn.addEventListener("click", () => {
             const isOpen = unitPanel.classList.toggle("open");
-
-            // Update arrow text
-            toggleUnits.textContent = isOpen ? "Units ◂" : "Units ▸";
-
-            // Shift map only when unit panel is open
+            unitsBtn.textContent = isOpen ? "Units ◂" : "Units ▸";
             mapContainer.style.marginRight = isOpen ? "300px" : "0px";
+        });
+    }
+
+    /* ============================
+       FOB PANEL BUTTON (LEFT SIDE)
+       ============================ */
+    if (fobBtn && fobPanel) {
+        fobBtn.addEventListener("click", () => {
+            const isOpen = fobPanel.classList.toggle("open");
+            fobBtn.textContent = isOpen ? "FOB ◂" : "FOB ▸";
+            mapContainer.style.marginLeft = isOpen ? "260px" : "0px";
         });
     }
 
@@ -26,9 +36,6 @@ export function initUI() {
     createDiagnosticOverlay();
 }
 
-/* ============================
-   DIAGNOSTIC OVERLAY (UNCHANGED)
-   ============================ */
 export function createDiagnosticOverlay() {
     const diag = document.createElement("div");
     diag.id = "diagOverlay";
