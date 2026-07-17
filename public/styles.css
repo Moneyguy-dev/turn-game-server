@@ -49,7 +49,7 @@ body {
     font-size: 12px;
 }
 
-/* COLLAPSIBLE PANEL */
+/* COLLAPSIBLE UNIT PANEL */
 #unitPanel {
     position: absolute;
     top: 0;
@@ -124,20 +124,26 @@ body {
 .unit.blue { background: #1e3cff; }
 .unit.red { background: #cc0000; }
 
-/* FOB PANEL (same style as unitPanel) */
+/* ============================
+   FOB PANEL (NEW)
+   ============================ */
+
 #fobPanel {
     position: absolute;
     top: 0;
     right: 0;
     width: 300px;
-    height: 100%;
+    height: calc(100vh - 50px);
     background: #111;
     color: #fff;
     overflow-y: auto;
     transform: translateX(100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
     padding: 10px;
     box-sizing: border-box;
+
+    /* CRITICAL: must be ABOVE unitPanel */
+    z-index: 25;
 }
 
 #fobPanel.open {
