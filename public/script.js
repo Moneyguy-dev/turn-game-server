@@ -29,11 +29,21 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedUnit = null;
     let validMoves = [];
 
+    // FOB pool: units not yet deployed
+    let fobPool = {
+        blue: [],
+        red: []
+    };
+
     const gameBoard = document.getElementById("gameBoard");
     const unitList = document.getElementById("unitList");
     const unitPanel = document.getElementById("unitPanel");
     const toggleUnits = document.getElementById("toggleUnits");
     const mapContainer = document.getElementById("mapContainer");
+
+    const fobPanel = document.getElementById("fobPanel");
+    const fobList = document.getElementById("fobList");
+    const fobButton = document.getElementById("fobButton");
 
     const logBookBtn = document.getElementById("logBook");
     const armamentsBtn = document.getElementById("armaments");
@@ -116,8 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gameBoard.style.height = (maxY + hexSize) + "px";
     }
 
-    /* INIT BOARD */
-    function initLocalBoardWithUnits() {
+    /* INIT BOARD (EMPTY) */
+    function initLocalBoard() {
         board = [];
         for (let r = 0; r < rows; r++) {
             board[r] = [];
@@ -125,30 +135,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 board[r][c] = [];
             }
         }
-        spawnAllUnits();
     }
 
-    function addUnit(r, c, type, team) {
-        if (!isStartHex(r, c) && board[r][c].length >= MAX_UNITS_PER_HEX) return;
-
-        board[r][c].push({
-            type,
-            team,
-            move: units[team][type].move
-        });
-    }
-
-    function spawnAllUnits() {
-        const blueStart = startHexes.blue;
-        const redStart = startHexes.red;
+    /* INIT FOB POOL (UNITS NOT DEPLOYED) */
+    function initFobPool() {
+        fobPool.blue = [];
+        fobPool.red = [];
 
         Object.keys(units.blue).forEach(type => {
-            addUnit(blueStart.r, blueStart.c, type, "blue");
+            fobPool.blue.push({
+                type,
+                team: "blue",
+                move: units.blue[type].move
+            });
         });
 
         Object.keys(units.red).forEach(type => {
-            addUnit(redStart.r, redStart.c, type, "red");
+            fobPool.red.push({
+                type,
+                team: "red",
+                move: units.red[type].move
+            });
         });
+    }
+
+    function addUnitToBoard(r, c, unit) {
+        if (!isStartHex(r, c) && board[r][c].length >= MAX_UNITS_PER_HEX) return;
+        board[r][c].push(unit);
     }
 
     function getNeighbors(r, c) {
@@ -205,8 +218,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (playerId !== "all" && unit.team !== playerId) return;
 
-        selectedUnit = { r, c, unit };
+        selectedUnit = { r, c, unit, fromFob: false };
         validMoves = getValidMoves(r, c, unit.move);
+        updateBoard();
+    }
+
+    function onFobUnitClick(unit) {
+        if (playerId !== "all" && turnLocked[playerId]) {
+            alert("You have already submitted your moves.");
+            return;
+        }
+
+        if (playerId !== "all" && unit.team !== playerId && playerId !== "all") return;
+
+        const start = startHexes[unit.team];
+
+        selectedUnit = {
+            r: start.r,
+            c: start.c,
+            unit,
+            fromFob: true
+        };
+
+        validMoves = getValidMoves(start.r, start.c, unit.move);
         updateBoard();
     }
 
@@ -220,31 +254,50 @@ document.addEventListener("DOMContentLoaded", () => {
         const valid = validMoves.some(([r, c]) => r === toR && c === toC);
         if (!valid) return;
 
-        const { r: fr, c: fc, unit } = selectedUnit;
-        const fromStack = board[fr][fc];
-        const toStack = board[toR][toC];
+        const { r: fr, c: fc, unit, fromFob } = selectedUnit;
 
-        if (!isStartHex(toR, toC) && toStack.length >= MAX_UNITS_PER_HEX) {
+        if (!isStartHex(toR, toC) && board[toR][toC].length >= MAX_UNITS_PER_HEX) {
             alert("Max 4 units per hex!");
             return;
         }
 
-        const index = fromStack.findIndex(u => u === unit);
-        if (index === -1) return;
+        if (fromFob) {
+            // Deploy from FOB pool to board
+            addUnitToBoard(toR, toC, unit);
 
-        fromStack.splice(index, 1);
-        toStack.push(unit);
+            const pool = fobPool[unit.team];
+            const idx = pool.indexOf(unit);
+            if (idx !== -1) pool.splice(idx, 1);
 
-        sendMoveToServer({
-            from: { r: fr, c: fc },
-            to: { r: toR, c: toC },
-            unit: unit.type,
-            team: unit.team
-        });
+            sendMoveToServer({
+                from: { r: fr, c: fc },
+                to: { r: toR, c: toC },
+                unit: unit.type,
+                team: unit.team
+            });
+        } else {
+            // Normal movement from board
+            const fromStack = board[fr][fc];
+            const toStack = board[toR][toC];
+
+            const index = fromStack.findIndex(u => u === unit);
+            if (index === -1) return;
+
+            fromStack.splice(index, 1);
+            toStack.push(unit);
+
+            sendMoveToServer({
+                from: { r: fr, c: fc },
+                to: { r: toR, c: toC },
+                unit: unit.type,
+                team: unit.team
+            });
+        }
 
         selectedUnit = null;
         validMoves = [];
         updateBoard();
+        updateFobList();
     }
 
     function updateBoard() {
@@ -259,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 cell.className = "hex";
                 cell.innerHTML = "";
+                cell.style.background = "";
 
                 if (validMoves.some(([vr, vc]) => vr === r && vc === c)) {
                     cell.style.background = "#555";
@@ -280,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             onUnitClick(r, c, u);
                         });
 
-                        if (selectedUnit && selectedUnit.unit === u) {
+                        if (selectedUnit && selectedUnit.unit === u && !selectedUnit.fromFob) {
                             d.style.outline = "2px solid yellow";
                         }
 
@@ -313,6 +367,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function updateFobList() {
+        if (!fobList) return;
+
+        fobList.innerHTML = "";
+
+        let teamsToShow = [];
+
+        if (playerId === "red" || playerId === "blue") {
+            teamsToShow = [playerId];
+        } else {
+            teamsToShow = ["blue", "red"];
+        }
+
+        teamsToShow.forEach(team => {
+            const pool = fobPool[team];
+
+            pool.forEach(u => {
+                const div = document.createElement("div");
+                div.className = `fob-unit ${team}`;
+                div.textContent = `${u.type} (${team})`;
+                div.addEventListener("click", () => {
+                    onFobUnitClick(u);
+                });
+                fobList.appendChild(div);
+            });
+        });
+    }
+
     async function sendMoveToServer(movePayload) {
         await fetch(`${SERVER_URL}/submitMove`, {
             method: "POST",
@@ -338,11 +420,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (state.board && state.board.flat().some(cell => cell.length > 0)) {
                 board = state.board;
+                fobPool.blue = [];
+                fobPool.red = [];
             } else {
-                initLocalBoardWithUnits();
+                initLocalBoard();
+                initFobPool();
             }
 
             updateBoard();
+            updateFobList();
             firstLoad = false;
             return;
         }
@@ -352,6 +438,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         updateBoard();
+        updateFobList();
     }
 
     /* SUBMIT TURN */
@@ -428,18 +515,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* COLLAPSIBLE PANEL */
-    if (toggleUnits) {
+    function updateMapMargin() {
+        const anyOpen =
+            (unitPanel && unitPanel.classList.contains("open")) ||
+            (fobPanel && fobPanel.classList.contains("open"));
+
+        mapContainer.style.marginRight = anyOpen ? "300px" : "0px";
+    }
+
+    /* COLLAPSIBLE UNIT PANEL */
+    if (toggleUnits && unitPanel) {
         toggleUnits.addEventListener("click", () => {
             const isOpen = unitPanel.classList.toggle("open");
 
             if (isOpen) {
                 toggleUnits.textContent = "Units ◂";
-                mapContainer.style.marginRight = "300px";
             } else {
                 toggleUnits.textContent = "Units ▸";
-                mapContainer.style.marginRight = "0px";
             }
+
+            updateMapMargin();
+        });
+    }
+
+    /* FOB BUTTON / PANEL */
+    if (fobButton && fobPanel) {
+        fobButton.addEventListener("click", () => {
+            const isOpen = fobPanel.classList.toggle("open");
+            updateFobList();
+            updateMapMargin();
         });
     }
 

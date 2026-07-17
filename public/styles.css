@@ -123,3 +123,44 @@ body {
 
 .unit.blue { background: #1e3cff; }
 .unit.red { background: #cc0000; }
+
+/* FOB PANEL (same style as unitPanel) */
+#fobPanel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background: #111;
+    color: #fff;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#fobPanel.open {
+    transform: translateX(0);
+}
+
+#fobList .fob-unit {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#fobList .fob-unit.blue {
+    color: #6cf;
+}
+
+#fobList .fob-unit.red {
+    color: #f66;
+}
+
+/* Diagnostic overlay */
+#diagOverlay {
+    user-select: none;
+}
