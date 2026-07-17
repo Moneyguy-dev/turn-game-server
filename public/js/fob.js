@@ -49,7 +49,7 @@ export function updateFobList() {
         fobPool[team].forEach(u => {
             const div = document.createElement("div");
             div.className = `fob-unit ${team}`;
-            div.textContent = `${u.type} (${team})`;
+            div.textContent = u.type;
             div.addEventListener("click", () => onFobUnitClick(u));
             fobList.appendChild(div);
         });

@@ -125,47 +125,74 @@ body {
 .unit.red { background: #cc0000; }
 
 /* ============================
-   FOB PANEL — SLIDES UP FROM BOTTOM
+   FOB PANEL — SLIDES UP FROM BOTTOM AND COVERS MENU
    ============================ */
 
 #fobPanel {
     position: absolute;
     left: 0;
-    bottom: 50px; /* sits right above bottom menu */
+    bottom: 0;
     width: 100%;
-    height: 300px; /* drawer height */
+    height: 300px;
     background: #111;
     color: #fff;
-    overflow-y: auto;
-
     transform: translateY(100%);
     transition: transform 0.3s ease;
-
     padding: 10px;
     box-sizing: border-box;
-
-    z-index: 40; /* above everything */
+    z-index: 40;
 }
 
+/* When open */
 #fobPanel.open {
     transform: translateY(0);
 }
 
-#fobList .fob-unit {
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    border-bottom: 1px solid #333;
+/* Horizontal scrolling hex strip */
+#fobList {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 20px;
+    padding: 10px;
+    height: 100%;
+    align-items: center;
+    scrollbar-width: thin;
+}
+
+/* Hex-shaped FOB tiles */
+.fob-unit {
+    width: 90px;
+    height: 78px;
+    background: #333;
+    clip-path: polygon(
+        25% 0%, 75% 0%,
+        100% 50%, 75% 100%,
+        25% 100%, 0% 50%
+    );
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
     cursor: pointer;
-    font-size: 16px;
+    user-select: none;
+    border: 2px solid #555;
+    transition: transform 0.15s ease;
 }
 
-#fobList .fob-unit.blue {
-    color: #6cf;
+.fob-unit:hover {
+    transform: scale(1.1);
 }
 
-#fobList .fob-unit.red {
-    color: #f66;
+.fob-unit.blue {
+    background: #1e3cff;
 }
+
+.fob-unit.red {
+    background: #cc0000;
+}
+
 
 
 /* Diagnostic overlay */
