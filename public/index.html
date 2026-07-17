@@ -3,101 +3,47 @@
 <head>
     <title>Choose a Side</title>
     <link rel="stylesheet" href="/styles.css">
-
-    <style>
-        body {
-            background: #111;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-            margin: 0;
-        }
-
-        h1 {
-            margin-bottom: 10px;
-            font-size: 36px;
-        }
-
-        p {
-            margin-top: 0;
-            margin-bottom: 30px;
-            font-size: 18px;
-            color: #ccc;
-            max-width: 600px;
-        }
-
-        .button {
-            padding: 20px 40px;
-            margin: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            transition: transform 0.15s ease;
-        }
-
-        .button:hover {
-            transform: scale(1.05);
-        }
-
-        #red { background: #cc0000; }
-        #blue { background: #1e3cff; }
-
-        #admin {
-            background: gray;
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-        }
-
-        #spectatorWarning {
-            margin-top: 40px;
-            padding: 15px 25px;
-            background: #222;
-            border-left: 5px solid #ffcc00;
-            border-radius: 6px;
-            font-size: 16px;
-            color: #f0e68c;
-            max-width: 600px;
-        }
-
-        /* Responsive scaling for small screens */
-        @media (max-height: 700px) {
-            h1 { font-size: 30px; }
-            p { font-size: 16px; }
-            .button { padding: 15px 30px; font-size: 20px; }
-            #spectatorWarning { font-size: 14px; }
-        }
-
-        @media (max-height: 550px) {
-            h1 { font-size: 26px; }
-            p { font-size: 14px; }
-            .button { padding: 12px 25px; font-size: 18px; }
-            #spectatorWarning { font-size: 12px; }
-        }
-    </style>
 </head>
 
 <body>
 
-    <h1>Select Your Role</h1>
-    <p>Choose Red or Blue to play. If you stay here, you are in spectator mode and cannot submit moves.</p>
+    <div id="layout" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh;">
 
-    <button id="red" class="button" onclick="location.href='red.html?mode=red'">Red Team</button>
-    <button id="blue" class="button" onclick="location.href='blue.html?mode=blue'">Blue Team</button>
+        <h1 style="color:white; font-size:48px; margin-bottom:40px;">
+            Choose Your Side
+        </h1>
 
-    <div id="spectatorWarning">
-        <strong>Spectator Mode:</strong><br>
-        You can view the map from this page, but <em>Submit Moves</em> and <em>Continue Turn</em> buttons will not work.<br>
-        Select Red or Blue to play, or Admin to control turn flow.
+        <button id="blueBtn" class="menuBtn" style="font-size:28px; padding:20px 40px; margin:20px;">
+            Blue Forces
+        </button>
+
+        <button id="redBtn" class="menuBtn" style="font-size:28px; padding:20px 40px; margin:20px;">
+            Red Forces
+        </button>
+
+        <button id="adminBtn" class="menuBtn" style="font-size:22px; padding:15px 30px; margin-top:60px; background:#555;">
+            Admin Control
+        </button>
+
+        <div id="spectatorWarning" style="margin-top:40px; color:#aaa; font-size:16px;">
+            Spectators may view either side but cannot submit moves.
+        </div>
+
     </div>
 
-    <button id="admin" class="button" onclick="location.href='admin.html?mode=all'">Admin</button>
+    <script>
+        document.getElementById("blueBtn").onclick = () => {
+            window.location.href = "blue.html?mode=blue";
+        };
+
+        document.getElementById("redBtn").onclick = () => {
+            window.location.href = "red.html?mode=red";
+        };
+
+        document.getElementById("adminBtn").onclick = () => {
+            window.location.href = "admin.html?mode=all";
+        };
+    </script>
 
 </body>
 </html>
