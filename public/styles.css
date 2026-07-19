@@ -211,33 +211,32 @@ body {
 }
 
 /* ============================
-   TERRITORY OUTLINES
+   TERRITORY OUTLINES (HEX SHAPE)
    ============================ */
 
-/* Natuna Besar — single purple hex */
-.territory-natuna {
-    outline: 5px solid rgba(180, 0, 255, 0.9);
-    outline-offset: -5px;
-    border-radius: 6px;
+/* Shared hex border pseudo-element */
+.hex::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(
+        25% 0%, 75% 0%,
+        100% 50%, 75% 100%,
+        25% 100%, 0% 50%
+    );
+    border: 5px solid transparent;
+    border-radius: 4px;
+    pointer-events: none;
 }
 
-/* Palawan — three purple hexes */
-.territory-palawan {
-    outline: 5px solid rgba(180, 0, 255, 0.9);
-    outline-offset: -5px;
-    border-radius: 6px;
+/* Purple territories */
+.territory-natuna::after,
+.territory-palawan::after {
+    border-color: rgba(180, 0, 255, 0.9);
 }
 
-/* Taiwan — four red hexes */
-.territory-taiwan {
-    outline: 5px solid rgba(255, 0, 0, 0.9);
-    outline-offset: -5px;
-    border-radius: 6px;
-}
-
-/* Single red hex (unnamed) */
-.territory-redsingle {
-    outline: 5px solid rgba(255, 0, 0, 0.9);
-    outline-offset: -5px;
-    border-radius: 6px;
+/* Red territories */
+.territory-taiwan::after,
+.territory-redsingle::after {
+    border-color: rgba(255, 0, 0, 0.9);
 }
