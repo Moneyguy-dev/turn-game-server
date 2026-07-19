@@ -209,3 +209,35 @@ body {
 #diagOverlay {
     user-select: none;
 }
+
+/* ============================
+   TERRITORY OUTLINES
+   ============================ */
+
+/* Natuna Besar — single purple hex */
+.territory-natuna {
+    outline: 5px solid rgba(180, 0, 255, 0.9);
+    outline-offset: -5px;
+    border-radius: 6px;
+}
+
+/* Palawan — three purple hexes */
+.territory-palawan {
+    outline: 5px solid rgba(180, 0, 255, 0.9);
+    outline-offset: -5px;
+    border-radius: 6px;
+}
+
+/* Taiwan — four red hexes */
+.territory-taiwan {
+    outline: 5px solid rgba(255, 0, 0, 0.9);
+    outline-offset: -5px;
+    border-radius: 6px;
+}
+
+/* Single red hex (unnamed) */
+.territory-redsingle {
+    outline: 5px solid rgba(255, 0, 0, 0.9);
+    outline-offset: -5px;
+    border-radius: 6px;
+}

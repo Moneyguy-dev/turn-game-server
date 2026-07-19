@@ -1,4 +1,4 @@
-import { initGrid, rebuildGrid } from "./js/grid.js";
+import { initGrid, rebuildGrid, renderTerritories } from "./js/grid.js";
 import { initUnits, updateBoard } from "./js/units.js";
 import { initFOB } from "./js/fob.js";
 import { loadGameStateFromServer } from "./js/server.js";
@@ -10,11 +10,17 @@ document.addEventListener("DOMContentLoaded", () => {
     initFOB();
     initUI();
 
+    // ⭐ Render territory outlines after grid is built
+    renderTerritories();
+
     loadGameStateFromServer();
     setInterval(loadGameStateFromServer, 10000);
 
     window.addEventListener("resize", () => {
         rebuildGrid();
         updateBoard();
+
+        // ⭐ Re-apply territory outlines after rebuild
+        renderTerritories();
     });
 });

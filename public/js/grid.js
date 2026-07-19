@@ -17,6 +17,9 @@ export function initGrid() {
     initBoard();
 }
 
+/* ============================
+   HEX SIZE CALCULATION
+   ============================ */
 export function computeHexSize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -29,6 +32,9 @@ export function computeHexSize() {
     verticalSpacing = hexSize * Math.sqrt(3) / 2;
 }
 
+/* ============================
+   BUILD HEX GRID
+   ============================ */
 export function buildHexGrid() {
     gameBoard.innerHTML = "";
 
@@ -54,6 +60,9 @@ export function buildHexGrid() {
             cell.dataset.row = r;
             cell.dataset.col = c;
 
+            // ⭐ ADD HEX ID
+            cell.id = `hex-${r}-${c}`;
+
             gameBoard.appendChild(cell);
 
             if (x > maxX) maxX = x;
@@ -65,6 +74,9 @@ export function buildHexGrid() {
     gameBoard.style.height = (maxY + hexSize) + "px";
 }
 
+/* ============================
+   INIT BOARD DATA
+   ============================ */
 export function initBoard() {
     board = [];
     for (let r = 0; r < rows; r++) {
@@ -75,7 +87,54 @@ export function initBoard() {
     }
 }
 
+/* ============================
+   REBUILD GRID
+   ============================ */
 export function rebuildGrid() {
     computeHexSize();
     buildHexGrid();
+}
+
+/* ============================
+   TERRITORY DEFINITIONS
+   ============================ */
+export const territories = {
+
+    // ⭐ NATUNA BESAR — single purple hex
+    natuna: [
+        { r: 14, c: 2 }
+    ],
+
+    // ⭐ PALAWAN — three connected purple hexes
+    palawan: [
+        { r: 11, c: 8 },
+        { r: 10, c: 9 },
+        { r: 10, c: 10 }
+    ],
+
+    // ⭐ TAIWAN — four red hexes
+    taiwan: [
+        { r: 2, c: 10 },
+        { r: 3, c: 10 },
+        { r: 1, c: 11 },
+        { r: 2, c: 11 }
+    ],
+
+    // ⭐ SINGLE RED HEX (unnamed)
+    redsingle: [
+        { r: 6, c: 5 }
+    ]
+};
+
+/* ============================
+   TERRITORY RENDERER
+   ============================ */
+export function renderTerritories() {
+    Object.entries(territories).forEach(([name, hexes]) => {
+        hexes.forEach(({ r, c }) => {
+            const id = `hex-${r}-${c}`;
+            const el = document.getElementById(id);
+            if (el) el.classList.add(`territory-${name}`);
+        });
+    });
 }
