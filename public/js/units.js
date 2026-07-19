@@ -20,7 +20,10 @@ export function updateBoard() {
             const cell = cells[i++];
             if (!cell) return;
 
-            cell.className = "hex";
+            // ⭐ FIX: Do NOT wipe territory classes
+            cell.classList.add("hex");
+
+            // Clear dynamic content only
             cell.innerHTML = "";
             cell.style.background = "";
 
