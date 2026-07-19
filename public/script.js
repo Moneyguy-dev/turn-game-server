@@ -5,22 +5,33 @@ import { loadGameStateFromServer } from "./js/server.js";
 import { initUI } from "./js/ui.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Build grid + UI
     initGrid();
     initUnits();
     initFOB();
     initUI();
 
-    // ⭐ Render territory outlines after grid is built
+    // Initial territory render
     renderTerritories();
 
+    // Load game state from server
     loadGameStateFromServer();
-    setInterval(loadGameStateFromServer, 10000);
 
+    // ⭐ Re-apply territory outlines AFTER units update the board
+    updateBoard();
+    renderTerritories();
+
+    // Auto-refresh every 10 seconds
+    setInterval(() => {
+        loadGameStateFromServer();
+        updateBoard();
+        renderTerritories();   // ⭐ critical to prevent outlines disappearing
+    }, 10000);
+
+    // Handle window resizing
     window.addEventListener("resize", () => {
         rebuildGrid();
         updateBoard();
-
-        // ⭐ Re-apply territory outlines after rebuild
-        renderTerritories();
+        renderTerritories();   // outlines restored after rebuild
     });
 });
