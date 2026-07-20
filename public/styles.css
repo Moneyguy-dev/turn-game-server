@@ -61,7 +61,7 @@ body {
     background: #333;
 
     display: flex;
-    align-items: center;
+    align-items: flex-start;   /* ⭐ FIXED — prevents border flattening */
     justify-content: center;
     text-align: center;
     font-size: 12px;
