@@ -42,15 +42,25 @@ body {
     transform-origin: center center;
 }
 
-/* HEX CELLS */
-.hex {
+/* HEX WRAPPER (positioned by JS) */
+.hex-wrapper {
     position: absolute;
+}
+
+/* HEX CELLS (fill wrapper, keep layout clean) */
+.hex {
+    position: relative;
+    width: 100%;
+    height: 100%;
     background: #333;
     clip-path: polygon(
         25% 0%, 75% 0%,
         100% 50%, 75% 100%,
         25% 100%, 0% 50%
     );
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     font-size: 12px;
 }
@@ -214,23 +224,16 @@ body {
    TERRITORY OUTLINES (HEX SHAPE)
    ============================ */
 
-/* ⭐ Correct hex-shaped border */
-.hex::after {
+/* Borders applied to wrapper, matching hex shape */
+.hex-wrapper::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%;
-
-    /* ⭐ This is the key: border follows the hex shape */
+    inset: 0;
     clip-path: polygon(
         25% 0%, 75% 0%,
         100% 50%, 75% 100%,
         25% 100%, 0% 50%
     );
-
     border: 5px solid transparent;
     pointer-events: none;
 }
