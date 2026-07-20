@@ -11,24 +11,23 @@ export function initUnits() {
 }
 
 export function updateBoard() {
-    const cells = gameBoard.children;
+    const wrappers = gameBoard.children;
     let i = 0;
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
 
-            const cell = cells[i++];
-            if (!cell) return;
+            const wrapper = wrappers[i++];
+            if (!wrapper) return;
 
-            // ⭐ FIX: Do NOT wipe territory classes
-            cell.classList.add("hex");
+            const hex = wrapper.querySelector(".hex");
 
             // Clear dynamic content only
-            cell.innerHTML = "";
-            cell.style.background = "";
+            hex.innerHTML = "";
+            hex.style.background = "";
 
             if (validMoves.some(([vr, vc]) => vr === r && vc === c)) {
-                cell.style.background = "#555";
+                hex.style.background = "#555";
             }
 
             const stack = board[r][c];
@@ -54,9 +53,9 @@ export function updateBoard() {
                     wrap.appendChild(d);
                 });
 
-                cell.appendChild(wrap);
+                hex.appendChild(wrap);
             } else {
-                cell.textContent = `${r},${c}`;
+                hex.textContent = `${r},${c}`;
             }
         }
     }

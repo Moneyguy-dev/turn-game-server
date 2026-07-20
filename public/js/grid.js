@@ -44,26 +44,34 @@ export function buildHexGrid() {
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
 
-            const cell = document.createElement("div");
-            cell.classList.add("hex");
+            // ⭐ wrapper
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("hex-wrapper");
+
+            // ⭐ actual hex
+            const hex = document.createElement("div");
+            hex.classList.add("hex");
+            hex.id = `hex-${r}-${c}`;
+
+            wrapper.appendChild(hex);
 
             let x = c * horizontalSpacing;
             let y = r * verticalSpacing;
             if (c % 2 !== 0) y += verticalSpacing / 2;
 
-            cell.style.left = `${x}px`;
-            cell.style.top = `${y}px`;
-            cell.style.width = `${hexSize}px`;
-            cell.style.height = `${hexSize * 0.866}px`;
-            cell.style.lineHeight = `${hexSize * 0.866}px`;
+            wrapper.style.left = `${x}px`;
+            wrapper.style.top = `${y}px`;
+            wrapper.style.width = `${hexSize}px`;
+            wrapper.style.height = `${hexSize * 0.866}px`;
 
-            cell.dataset.row = r;
-            cell.dataset.col = c;
+            hex.style.width = "100%";
+            hex.style.height = "100%";
+            hex.style.lineHeight = `${hexSize * 0.866}px`;
 
-            // ⭐ ADD HEX ID
-            cell.id = `hex-${r}-${c}`;
+            wrapper.dataset.row = r;
+            wrapper.dataset.col = c;
 
-            gameBoard.appendChild(cell);
+            gameBoard.appendChild(wrapper);
 
             if (x > maxX) maxX = x;
             if (y > maxY) maxY = y;
@@ -100,19 +108,16 @@ export function rebuildGrid() {
    ============================ */
 export const territories = {
 
-    // ⭐ NATUNA BESAR — single purple hex
     natuna: [
         { r: 14, c: 2 }
     ],
 
-    // ⭐ PALAWAN — three connected purple hexes
     palawan: [
         { r: 11, c: 8 },
         { r: 10, c: 9 },
         { r: 10, c: 10 }
     ],
 
-    // ⭐ TAIWAN — four red hexes
     taiwan: [
         { r: 2, c: 10 },
         { r: 3, c: 10 },
@@ -120,7 +125,6 @@ export const territories = {
         { r: 2, c: 11 }
     ],
 
-    // ⭐ SINGLE RED HEX (unnamed)
     redsingle: [
         { r: 6, c: 5 }
     ]
@@ -132,9 +136,8 @@ export const territories = {
 export function renderTerritories() {
     Object.entries(territories).forEach(([name, hexes]) => {
         hexes.forEach(({ r, c }) => {
-            const id = `hex-${r}-${c}`;
-            const el = document.getElementById(id);
-            if (el) el.classList.add(`territory-${name}`);
+            const wrapper = document.querySelector(`.hex-wrapper[data-row="${r}"][data-col="${c}"]`);
+            if (wrapper) wrapper.classList.add(`territory-${name}`);
         });
     });
 }

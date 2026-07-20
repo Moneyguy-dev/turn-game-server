@@ -214,18 +214,24 @@ body {
    TERRITORY OUTLINES (HEX SHAPE)
    ============================ */
 
-/* Shared hex border pseudo-element */
+/* ⭐ Correct hex-shaped border */
 .hex::after {
     content: "";
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    /* ⭐ This is the key: border follows the hex shape */
     clip-path: polygon(
         25% 0%, 75% 0%,
         100% 50%, 75% 100%,
         25% 100%, 0% 50%
     );
+
     border: 5px solid transparent;
-    border-radius: 4px;
     pointer-events: none;
 }
 
