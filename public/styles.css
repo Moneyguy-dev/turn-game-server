@@ -47,7 +47,7 @@ body {
     position: absolute;
 }
 
-/* HEX CELLS (fill wrapper, keep layout clean) */
+/* HEX CELLS */
 .hex {
     position: relative;
     width: 100%;
@@ -224,16 +224,21 @@ body {
    TERRITORY OUTLINES (HEX SHAPE)
    ============================ */
 
-/* Borders applied to wrapper, matching hex shape */
-.hex-wrapper::after {
+/* ⭐ Expanded hex border so text never covers the tips */
+.hex::after {
     content: "";
     position: absolute;
-    inset: 0;
+    top: -5px;
+    left: -5px;
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
+
     clip-path: polygon(
         25% 0%, 75% 0%,
         100% 50%, 75% 100%,
         25% 100%, 0% 50%
     );
+
     border: 5px solid transparent;
     pointer-events: none;
 }
