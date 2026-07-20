@@ -15,7 +15,7 @@ body {
     overflow: hidden;
 }
 
-/* MAP CONTAINER (UPDATED WITH BORDER + ROUNDED CORNERS) */
+/* MAP CONTAINER */
 #mapContainer {
     position: absolute;
     left: 0;
@@ -42,33 +42,57 @@ body {
     transform-origin: center center;
 }
 
-/* HEX WRAPPER (positioned by JS) */
+/* HEX WRAPPER — MUST BE HEX-SHAPED */
 .hex-wrapper {
     position: absolute;
-}
-
-/* HEX CELLS */
-.hex {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: #333;
 
     clip-path: polygon(
         25% 0%, 75% 0%,
         100% 50%, 75% 100%,
         25% 100%, 0% 50%
     );
+}
 
-    /* Padding so text doesn't cover border tips */
-    padding-top: 6px;
-    padding-bottom: 6px;
+/* HEX CONTENT */
+.hex {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #333;
 
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     font-size: 12px;
+}
+
+/* ============================
+   TERRITORY OUTLINES (HEX SHAPE)
+   ============================ */
+
+/* Border drawn on wrapper */
+.hex-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    clip-path: inherit;
+
+    border: 5px solid transparent;
+    pointer-events: none;
+}
+
+/* Purple territories */
+.hex-wrapper.territory-natuna::after,
+.hex-wrapper.territory-palawan::after {
+    border-color: rgba(180, 0, 255, 0.9);
+}
+
+/* Red territories */
+.hex-wrapper.territory-taiwan::after,
+.hex-wrapper.territory-redsingle::after {
+    border-color: rgba(255, 0, 0, 0.9);
 }
 
 /* ============================
@@ -149,9 +173,7 @@ body {
 .fob-unit.blue { background: #1e3cff; }
 .fob-unit.red { background: #cc0000; }
 
-/* ============================
-   ZOOM TOOL STRIP (CENTERED)
-   ============================ */
+/* ZOOM TOOL STRIP */
 #mapToolsStrip {
     width: 100%;
     display: flex;
@@ -180,9 +202,7 @@ body {
     background: #555;
 }
 
-/* ============================
-   BOTTOM MENU
-   ============================ */
+/* BOTTOM MENU */
 #bottomMenu {
     height: 50px;
     background: #111;
@@ -224,39 +244,4 @@ body {
 /* Diagnostic overlay */
 #diagOverlay {
     user-select: none;
-}
-
-/* ============================
-   TERRITORY OUTLINES (HEX SHAPE)
-   ============================ */
-
-/* Hex-shaped border drawn on the hex */
-.hex::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%;
-
-    clip-path: polygon(
-        25% 0%, 75% 0%,
-        100% 50%, 75% 100%,
-        25% 100%, 0% 50%
-    );
-
-    border: 5px solid transparent;
-    pointer-events: none;
-}
-
-/* ⭐ Correct targeting: wrapper class → hex::after */
-.hex-wrapper.territory-natuna .hex::after,
-.hex-wrapper.territory-palawan .hex::after {
-    border-color: rgba(180, 0, 255, 0.9);
-}
-
-.hex-wrapper.territory-taiwan .hex::after,
-.hex-wrapper.territory-redsingle .hex::after {
-    border-color: rgba(255, 0, 0, 0.9);
 }
