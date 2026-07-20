@@ -65,6 +65,8 @@ body {
     justify-content: center;
     text-align: center;
     font-size: 12px;
+
+    /* dynamic padding applied in grid.js */
 }
 
 /* ============================

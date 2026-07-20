@@ -44,11 +44,9 @@ export function buildHexGrid() {
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
 
-            // ⭐ wrapper
             const wrapper = document.createElement("div");
             wrapper.classList.add("hex-wrapper");
 
-            // ⭐ actual hex
             const hex = document.createElement("div");
             hex.classList.add("hex");
             hex.id = `hex-${r}-${c}`;
@@ -67,6 +65,11 @@ export function buildHexGrid() {
             hex.style.width = "100%";
             hex.style.height = "100%";
             hex.style.lineHeight = `${hexSize * 0.866}px`;
+
+            // ⭐ Dynamic padding to prevent text overlapping border
+            const pad = hexSize * 0.866 * 0.12;
+            hex.style.paddingTop = `${pad}px`;
+            hex.style.paddingBottom = `${pad}px`;
 
             wrapper.dataset.row = r;
             wrapper.dataset.col = c;

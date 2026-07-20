@@ -22,7 +22,6 @@ export function updateBoard() {
 
             const hex = wrapper.querySelector(".hex");
 
-            // Clear dynamic content only
             hex.innerHTML = "";
             hex.style.background = "";
 
