@@ -54,14 +54,13 @@ body {
     height: 100%;
     background: #333;
 
-    /* Hex shape */
     clip-path: polygon(
         25% 0%, 75% 0%,
         100% 50%, 75% 100%,
         25% 100%, 0% 50%
     );
 
-    /* ⭐ Padding fix so text doesn't cover border tips */
+    /* Padding so text doesn't cover border tips */
     padding-top: 6px;
     padding-bottom: 6px;
 
@@ -231,7 +230,7 @@ body {
    TERRITORY OUTLINES (HEX SHAPE)
    ============================ */
 
-/* ⭐ Correct hex-shaped border (inside hex, not clipped off) */
+/* Hex-shaped border drawn on the hex */
 .hex::after {
     content: "";
     position: absolute;
@@ -251,14 +250,13 @@ body {
     pointer-events: none;
 }
 
-/* Purple territories */
-.territory-natuna::after,
-.territory-palawan::after {
+/* ⭐ Correct targeting: wrapper class → hex::after */
+.hex-wrapper.territory-natuna .hex::after,
+.hex-wrapper.territory-palawan .hex::after {
     border-color: rgba(180, 0, 255, 0.9);
 }
 
-/* Red territories */
-.territory-taiwan::after,
-.territory-redsingle::after {
+.hex-wrapper.territory-taiwan .hex::after,
+.hex-wrapper.territory-redsingle .hex::after {
     border-color: rgba(255, 0, 0, 0.9);
 }
