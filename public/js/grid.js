@@ -145,7 +145,9 @@ export const territories = {
     bluesingle: [
         { r: 11, c: 12 },
         { r: 10, c: 13 },
-        { r: 10, c: 14 }
+        { r: 10, c: 14 },
+        { r: 15, c: 15 },
+        { r: 16, c: 16 }
     ]
 };
 
