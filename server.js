@@ -86,10 +86,14 @@ function getGame(gameId) {
             moveHistory: [],
             currentTurnPlayer: "red",
             unlockTime: null,
-            turnLocked: { red: false, blue: false },
+            turnLocked: {
+                red: false,
+                blue: false
+            },
             pendingMoves: []
         };
     }
+
     return games[gameId];
 }
 
@@ -108,6 +112,7 @@ const units = {
         DDG80: { move: 6 },
         ARG:   { move: 3 }
     },
+
     red: {
         J10:      { move: 7 },
         J11:      { move: 7 },
@@ -121,9 +126,12 @@ const units = {
     }
 };
 
+/* =========================
+   FOB / START LOCATIONS
+========================= */
 const startHexes = {
-    blue: { r: 0, c: 0 },
-    red: { r: 16, c: 18 }
+    blue: { r: 15, c: 15 },
+    red: { r: 3, c: 10 }
 };
 
 /* =========================
@@ -142,11 +150,23 @@ function spawnAllUnits(board) {
     const redStart = startHexes.red;
 
     Object.keys(units.blue).forEach(type => {
-        addUnit(board, blueStart.r, blueStart.c, type, "blue");
+        addUnit(
+            board,
+            blueStart.r,
+            blueStart.c,
+            type,
+            "blue"
+        );
     });
 
     Object.keys(units.red).forEach(type => {
-        addUnit(board, redStart.r, redStart.c, type, "red");
+        addUnit(
+            board,
+            redStart.r,
+            redStart.c,
+            type,
+            "red"
+        );
     });
 }
 
@@ -158,12 +178,15 @@ function generateEmptyBoard() {
     const cols = 19;
 
     const board = [];
+
     for (let r = 0; r < rows; r++) {
         board[r] = [];
+
         for (let c = 0; c < cols; c++) {
             board[r][c] = [];
         }
     }
+
     return board;
 }
 
@@ -178,19 +201,25 @@ function applyMoveToBoard(board, move) {
     const fromStack = board[from.r][from.c];
     const toStack = board[to.r][to.c];
 
-    const idx = fromStack.findIndex(u => u.type === unit && u.team === team);
+    const idx = fromStack.findIndex(
+        u => u.type === unit && u.team === team
+    );
+
     if (idx === -1) return;
 
     const u = fromStack[idx];
+
     fromStack.splice(idx, 1);
     toStack.push(u);
 }
 
 /* =========================
-   SUBMIT MOVE (STORE ONLY, SAVE TO GITHUB)
+   SUBMIT MOVE
+   STORE ONLY + SAVE TO GITHUB
 ========================= */
 app.post("/submitMove", async (req, res) => {
     const { gameId, playerId, move } = req.body;
+
     const game = getGame(gameId);
 
     if (!game.board) {
@@ -198,41 +227,73 @@ app.post("/submitMove", async (req, res) => {
         spawnAllUnits(game.board);
     }
 
-    if (!game.pendingMoves) game.pendingMoves = [];
+    if (!game.pendingMoves) {
+        game.pendingMoves = [];
+    }
 
-    game.pendingMoves.push({ playerId, move });
-    game.moveHistory.push({ playerId, move });
+    game.pendingMoves.push({
+        playerId,
+        move
+    });
 
-    if (playerId === "red") game.turnLocked.red = true;
-    if (playerId === "blue") game.turnLocked.blue = true;
+    game.moveHistory.push({
+        playerId,
+        move
+    });
+
+    if (playerId === "red") {
+        game.turnLocked.red = true;
+    }
+
+    if (playerId === "blue") {
+        game.turnLocked.blue = true;
+    }
 
     try {
         await saveGameStateToGitHub(games);
     } catch (err) {
-        console.log("⚠ Failed to save game state to GitHub on submitMove:", err.message);
+        console.log(
+            "⚠ Failed to save game state to GitHub on submitMove:",
+            err.message
+        );
     }
 
-    res.json({ status: "ok", message: "Move stored and saved" });
+    res.json({
+        status: "ok",
+        message: "Move stored and saved"
+    });
 });
 
 /* =========================
-   SUBMIT TURN (LOCK ONLY)
+   SUBMIT TURN
+   LOCK ONLY
 ========================= */
 app.post("/submitTurn", (req, res) => {
     const { gameId, playerId } = req.body;
+
     const game = getGame(gameId);
 
-    if (playerId === "red") game.turnLocked.red = true;
-    if (playerId === "blue") game.turnLocked.blue = true;
+    if (playerId === "red") {
+        game.turnLocked.red = true;
+    }
 
-    res.json({ status: "ok", turnLocked: game.turnLocked });
+    if (playerId === "blue") {
+        game.turnLocked.blue = true;
+    }
+
+    res.json({
+        status: "ok",
+        turnLocked: game.turnLocked
+    });
 });
 
 /* =========================
-   CONTINUE TURN (RESOLVE ALL PENDING MOVES)
+   CONTINUE TURN
+   RESOLVE ALL PENDING MOVES
 ========================= */
 app.post("/continueTurn", async (req, res) => {
     const { gameId } = req.body;
+
     const game = getGame(gameId);
 
     if (!game.board) {
@@ -240,24 +301,38 @@ app.post("/continueTurn", async (req, res) => {
         spawnAllUnits(game.board);
     }
 
-    if (game.pendingMoves && game.pendingMoves.length > 0) {
+    if (
+        game.pendingMoves &&
+        game.pendingMoves.length > 0
+    ) {
         for (const entry of game.pendingMoves) {
-            applyMoveToBoard(game.board, entry.move);
+            applyMoveToBoard(
+                game.board,
+                entry.move
+            );
         }
     }
 
     game.pendingMoves = [];
+
     game.turnLocked.red = false;
     game.turnLocked.blue = false;
+
     game.currentTurnPlayer = "red";
 
     try {
         await saveGameStateToGitHub(games);
     } catch (err) {
-        console.log("⚠ Failed to save game state to GitHub on continueTurn:", err.message);
+        console.log(
+            "⚠ Failed to save game state to GitHub on continueTurn:",
+            err.message
+        );
     }
 
-    res.json({ status: "ok", message: "Turn resolved" });
+    res.json({
+        status: "ok",
+        message: "Turn resolved"
+    });
 });
 
 /* =========================
@@ -267,31 +342,49 @@ app.post("/resetGame", async (req, res) => {
     const { gameId } = req.body;
 
     delete games[gameId];
+
     const game = getGame(gameId);
 
     game.board = generateEmptyBoard();
+
+    // Units now spawn at:
+    // Blue = 15,15
+    // Red  = 3,10
     spawnAllUnits(game.board);
 
     game.lastMove = null;
     game.moveHistory = [];
-    game.turnLocked = { red: false, blue: false };
+
+    game.turnLocked = {
+        red: false,
+        blue: false
+    };
+
     game.currentTurnPlayer = "red";
     game.pendingMoves = [];
 
     try {
         await saveGameStateToGitHub(games);
     } catch (err) {
-        console.log("⚠ Failed to save game state to GitHub on resetGame:", err.message);
+        console.log(
+            "⚠ Failed to save game state to GitHub on resetGame:",
+            err.message
+        );
     }
 
-    res.json({ status: "ok", message: "Game reset with units" });
+    res.json({
+        status: "ok",
+        message: "Game reset with units"
+    });
 });
 
 /* =========================
-   GET GAME STATE — HIDE PENDING MOVES
+   GET GAME STATE
+   HIDE PENDING MOVES
 ========================= */
 app.get("/gameState", (req, res) => {
     const gameId = req.query.gameId;
+
     const game = getGame(gameId);
 
     if (!game.board) {
@@ -312,6 +405,9 @@ app.get("/gameState", (req, res) => {
 /* =========================
    START SERVER
 ========================= */
-app.listen(process.env.PORT || 3000, () => {
-    console.log("HTTP server running");
-});
+app.listen(
+    process.env.PORT || 3000,
+    () => {
+        console.log("HTTP server running");
+    }
+);
