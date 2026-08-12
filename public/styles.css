@@ -61,7 +61,7 @@ body {
     background: #333;
 
     display: flex;
-    align-items: flex-start;   /* ⭐ FIXED — prevents border flattening */
+    align-items: flex-start;
     justify-content: center;
     text-align: center;
     font-size: 12px;
@@ -95,6 +95,11 @@ body {
 .hex-wrapper.territory-taiwan::after,
 .hex-wrapper.territory-redsingle::after {
     border-color: rgba(255, 0, 0, 0.9);
+}
+
+/* Blue territories */
+.hex-wrapper.territory-bluesingle::after {
+    border-color: rgba(0, 80, 255, 0.9);
 }
 
 /* ============================
