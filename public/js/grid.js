@@ -55,7 +55,10 @@ export function buildHexGrid() {
 
             let x = c * horizontalSpacing;
             let y = r * verticalSpacing;
-            if (c % 2 !== 0) y += verticalSpacing / 2;
+
+            if (c % 2 !== 0) {
+                y += verticalSpacing / 2;
+            }
 
             wrapper.style.left = `${x}px`;
             wrapper.style.top = `${y}px`;
@@ -66,7 +69,7 @@ export function buildHexGrid() {
             hex.style.height = "100%";
             hex.style.lineHeight = `${hexSize * 0.866}px`;
 
-            // ⭐ Dynamic padding to prevent text overlapping border
+            // Dynamic padding to prevent text overlapping border
             const pad = hexSize * 0.866 * 0.12;
             hex.style.paddingTop = `${pad}px`;
             hex.style.paddingBottom = `${pad}px`;
@@ -90,8 +93,10 @@ export function buildHexGrid() {
    ============================ */
 export function initBoard() {
     board = [];
+
     for (let r = 0; r < rows; r++) {
         board[r] = [];
+
         for (let c = 0; c < cols; c++) {
             board[r][c] = [];
         }
@@ -111,16 +116,19 @@ export function rebuildGrid() {
    ============================ */
 export const territories = {
 
+    // Blue territory
     natuna: [
         { r: 14, c: 2 }
     ],
 
+    // Blue territory
     palawan: [
         { r: 11, c: 8 },
         { r: 10, c: 9 },
         { r: 10, c: 10 }
     ],
 
+    // Red territory
     taiwan: [
         { r: 2, c: 10 },
         { r: 3, c: 10 },
@@ -128,8 +136,16 @@ export const territories = {
         { r: 2, c: 11 }
     ],
 
+    // Red territory
     redsingle: [
         { r: 6, c: 5 }
+    ],
+
+    // Blue territory
+    bluesingle: [
+        { r: 11, c: 12 },
+        { r: 10, c: 13 },
+        { r: 10, c: 14 }
     ]
 };
 
@@ -138,9 +154,16 @@ export const territories = {
    ============================ */
 export function renderTerritories() {
     Object.entries(territories).forEach(([name, hexes]) => {
+
         hexes.forEach(({ r, c }) => {
-            const wrapper = document.querySelector(`.hex-wrapper[data-row="${r}"][data-col="${c}"]`);
-            if (wrapper) wrapper.classList.add(`territory-${name}`);
+
+            const wrapper = document.querySelector(
+                `.hex-wrapper[data-row="${r}"][data-col="${c}"]`
+            );
+
+            if (wrapper) {
+                wrapper.classList.add(`territory-${name}`);
+            }
         });
     });
 }
