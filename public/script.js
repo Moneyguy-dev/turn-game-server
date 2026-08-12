@@ -1,37 +1,96 @@
-import { initGrid, rebuildGrid, renderTerritories } from "./js/grid.js";
-import { initUnits, updateBoard } from "./js/units.js";
-import { initFOB } from "./js/fob.js";
-import { loadGameStateFromServer } from "./js/server.js";
-import { initUI } from "./js/ui.js";
+import {
+    initGrid,
+    rebuildGrid,
+    renderTerritories
+} from "./js/grid.js";
+
+import {
+    initUnits,
+    updateBoard
+} from "./js/units.js";
+
+import {
+    loadGameStateFromServer
+} from "./js/server.js";
+
+import {
+    initUI
+} from "./js/ui.js";
+
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Build grid + UI
+
+    /* ============================
+       BUILD GRID
+       ============================ */
+
     initGrid();
+
+
+    /* ============================
+       INITIALIZE UNITS
+       ============================ */
+
     initUnits();
-    initFOB();
+
+
+    /* ============================
+       INITIALIZE UI
+       ============================ */
+
     initUI();
 
-    // Initial territory render
+
+    /* ============================
+       INITIAL TERRITORY RENDER
+       ============================ */
+
     renderTerritories();
 
-    // Load game state from server
+
+    /* ============================
+       LOAD GAME STATE
+       ============================ */
+
     loadGameStateFromServer();
 
-    // ⭐ Re-apply territory outlines AFTER units update the board
+
+    /* ============================
+       INITIAL BOARD UPDATE
+       ============================ */
+
     updateBoard();
+
     renderTerritories();
 
-    // Auto-refresh every 10 seconds
+
+    /* ============================
+       AUTO REFRESH
+       ============================ */
+
     setInterval(() => {
+
         loadGameStateFromServer();
+
         updateBoard();
-        renderTerritories();   // ⭐ critical to prevent outlines disappearing
+
+        renderTerritories();
+
     }, 10000);
 
-    // Handle window resizing
+
+    /* ============================
+       WINDOW RESIZE
+       ============================ */
+
     window.addEventListener("resize", () => {
+
         rebuildGrid();
+
         updateBoard();
-        renderTerritories();   // outlines restored after rebuild
+
+        renderTerritories();
+
     });
+
 });

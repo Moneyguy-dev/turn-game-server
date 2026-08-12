@@ -10,110 +10,183 @@ export let verticalSpacing;
 export let gameBoard = null;
 export let board = [];
 
+
 export function initGrid() {
-    gameBoard = document.getElementById("gameBoard");
+
+    gameBoard =
+        document.getElementById("gameBoard");
+
     computeHexSize();
+
     buildHexGrid();
+
     initBoard();
 }
 
+
 /* ============================
    HEX SIZE CALCULATION
-   ============================ */
+============================ */
+
 export function computeHexSize() {
+
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    const maxHexWidth = w / (cols * 0.85);
-    const maxHexHeight = h / (rows * 1.00);
+    const maxHexWidth =
+        w / (cols * 0.85);
 
-    hexSize = Math.floor(Math.min(maxHexWidth, maxHexHeight));
-    horizontalSpacing = hexSize * 0.75;
-    verticalSpacing = hexSize * Math.sqrt(3) / 2;
+    const maxHexHeight =
+        h / (rows * 1.00);
+
+    hexSize =
+        Math.floor(
+            Math.min(
+                maxHexWidth,
+                maxHexHeight
+            )
+        );
+
+    horizontalSpacing =
+        hexSize * 0.75;
+
+    verticalSpacing =
+        hexSize * Math.sqrt(3) / 2;
 }
+
 
 /* ============================
    BUILD HEX GRID
-   ============================ */
+============================ */
+
 export function buildHexGrid() {
+
     gameBoard.innerHTML = "";
 
     let maxX = 0;
     let maxY = 0;
 
     for (let r = 0; r < rows; r++) {
+
         for (let c = 0; c < cols; c++) {
 
-            const wrapper = document.createElement("div");
-            wrapper.classList.add("hex-wrapper");
+            const wrapper =
+                document.createElement("div");
 
-            const hex = document.createElement("div");
+            wrapper.classList.add(
+                "hex-wrapper"
+            );
+
+            const hex =
+                document.createElement("div");
+
             hex.classList.add("hex");
-            hex.id = `hex-${r}-${c}`;
+
+            hex.id =
+                `hex-${r}-${c}`;
 
             wrapper.appendChild(hex);
 
-            let x = c * horizontalSpacing;
-            let y = r * verticalSpacing;
+            let x =
+                c * horizontalSpacing;
+
+            let y =
+                r * verticalSpacing;
 
             if (c % 2 !== 0) {
-                y += verticalSpacing / 2;
+                y +=
+                    verticalSpacing / 2;
             }
 
-            wrapper.style.left = `${x}px`;
-            wrapper.style.top = `${y}px`;
-            wrapper.style.width = `${hexSize}px`;
-            wrapper.style.height = `${hexSize * 0.866}px`;
+            wrapper.style.left =
+                `${x}px`;
 
-            hex.style.width = "100%";
-            hex.style.height = "100%";
-            hex.style.lineHeight = `${hexSize * 0.866}px`;
+            wrapper.style.top =
+                `${y}px`;
 
-            // Dynamic padding to prevent text overlapping border
-            const pad = hexSize * 0.866 * 0.12;
-            hex.style.paddingTop = `${pad}px`;
-            hex.style.paddingBottom = `${pad}px`;
+            wrapper.style.width =
+                `${hexSize}px`;
+
+            wrapper.style.height =
+                `${hexSize * 0.866}px`;
+
+            hex.style.width =
+                "100%";
+
+            hex.style.height =
+                "100%";
+
+            hex.style.lineHeight =
+                `${hexSize * 0.866}px`;
+
+            const pad =
+                hexSize * 0.866 * 0.12;
+
+            hex.style.paddingTop =
+                `${pad}px`;
+
+            hex.style.paddingBottom =
+                `${pad}px`;
 
             wrapper.dataset.row = r;
             wrapper.dataset.col = c;
 
             gameBoard.appendChild(wrapper);
 
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
+            if (x > maxX) {
+                maxX = x;
+            }
+
+            if (y > maxY) {
+                maxY = y;
+            }
         }
     }
 
-    gameBoard.style.width = (maxX + hexSize) + "px";
-    gameBoard.style.height = (maxY + hexSize) + "px";
+    gameBoard.style.width =
+        (maxX + hexSize) + "px";
+
+    gameBoard.style.height =
+        (maxY + hexSize) + "px";
 }
+
 
 /* ============================
    INIT BOARD DATA
-   ============================ */
+============================ */
+
 export function initBoard() {
+
     board = [];
 
     for (let r = 0; r < rows; r++) {
+
         board[r] = [];
 
         for (let c = 0; c < cols; c++) {
+
             board[r][c] = [];
         }
     }
 }
 
+
 /* ============================
    REBUILD GRID
-   ============================ */
+============================ */
+
 export function rebuildGrid() {
+
     computeHexSize();
+
     buildHexGrid();
 }
 
+
 /* ============================
    TERRITORY DEFINITIONS
-   ============================ */
+============================ */
+
 export const territories = {
 
     // Blue territory
@@ -141,7 +214,7 @@ export const territories = {
         { r: 6, c: 5 }
     ],
 
-    // Blue territory
+    // Blue territory / Blue FOB area
     bluesingle: [
         { r: 11, c: 12 },
         { r: 10, c: 13 },
@@ -151,21 +224,29 @@ export const territories = {
     ]
 };
 
+
 /* ============================
    TERRITORY RENDERER
-   ============================ */
+============================ */
+
 export function renderTerritories() {
-    Object.entries(territories).forEach(([name, hexes]) => {
 
-        hexes.forEach(({ r, c }) => {
+    Object.entries(territories)
+        .forEach(([name, hexes]) => {
 
-            const wrapper = document.querySelector(
-                `.hex-wrapper[data-row="${r}"][data-col="${c}"]`
-            );
+            hexes.forEach(({ r, c }) => {
 
-            if (wrapper) {
-                wrapper.classList.add(`territory-${name}`);
-            }
+                const wrapper =
+                    document.querySelector(
+                        `.hex-wrapper[data-row="${r}"][data-col="${c}"]`
+                    );
+
+                if (wrapper) {
+
+                    wrapper.classList.add(
+                        `territory-${name}`
+                    );
+                }
+            });
         });
-    });
 }
