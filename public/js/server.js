@@ -2,7 +2,16 @@
 // SERVER COMMUNICATION
 // ============================================================
 
-import { board } from "./grid.js";
+import {
+    board,
+    rows,
+    cols
+} from "./grid.js";
+
+
+// ============================================================
+// SERVER URL
+// ============================================================
 
 const SERVER_URL =
     "https://turn-game-server.onrender.com";
@@ -27,7 +36,7 @@ export function getGameId() {
 
 
 // ============================================================
-// GET PLAYER ID
+// GET PLAYER / SIDE
 // ============================================================
 
 export function getPlayerId() {
@@ -45,67 +54,237 @@ export function getPlayerId() {
 
 
 // ============================================================
+// GET JSON HELPER
+// ============================================================
+
+async function getJson(
+    url
+) {
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "GET",
+
+                headers: {
+                    "Accept":
+                        "application/json"
+                },
+
+                cache: "no-store"
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Server returned ${response.status}`
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+// ============================================================
+// POST JSON HELPER
+// ============================================================
+
+async function postJson(
+    url,
+    data
+) {
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    "Accept":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(data)
+            }
+        );
+
+
+    if (!response.ok) {
+
+        let message =
+            `Server returned ${response.status}`;
+
+        try {
+
+            const errorData =
+                await response.json();
+
+            if (
+                errorData &&
+                errorData.error
+            ) {
+
+                message =
+                    errorData.error;
+            }
+
+            else if (
+                errorData &&
+                errorData.message
+            ) {
+
+                message =
+                    errorData.message;
+            }
+
+        } catch {
+            // Ignore invalid error JSON.
+        }
+
+
+        throw new Error(
+            message
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+// ============================================================
+// NORMALIZE BOARD
+// ============================================================
+
+function normalizeBoard(
+    serverBoard
+) {
+
+    /*
+     * Always keep the client board exactly
+     * rows x cols.
+     *
+     * Every hex gets an array.
+     */
+
+    for (
+        let r = 0;
+        r < rows;
+        r++
+    ) {
+
+        if (
+            !Array.isArray(
+                board[r]
+            )
+        ) {
+
+            board[r] = [];
+        }
+
+
+        for (
+            let c = 0;
+            c < cols;
+            c++
+        ) {
+
+            const value =
+                serverBoard?.[r]?.[c];
+
+
+            board[r][c] =
+                Array.isArray(value)
+                    ? value
+                    : [];
+        }
+    }
+
+
+    /*
+     * Remove extra rows if the server
+     * returned more than our local grid.
+     */
+
+    board.length =
+        rows;
+}
+
+
+// ============================================================
 // LOAD GAME STATE
 // ============================================================
 
 export async function loadGameStateFromServer() {
 
+    const gameId =
+        getGameId();
+
+
     try {
 
-        const gameId =
-            getGameId();
-
-
-        const res =
-            await fetch(
+        const state =
+            await getJson(
                 `${SERVER_URL}/gameState?gameId=${encodeURIComponent(gameId)}`
             );
 
 
-        if (!res.ok) {
-
-            throw new Error(
-                `Server returned ${res.status}`
-            );
-        }
-
-
-        const state =
-            await res.json();
-
-
         // ----------------------------------------------------
-        // COPY SERVER BOARD INTO GRID BOARD
+        // BOARD
         // ----------------------------------------------------
 
-        if (state.board) {
+        if (
+            state &&
+            state.board
+        ) {
 
-            board.length = 0;
-
-
-            state.board.forEach(
-                row => {
-
-                    board.push(row);
-                }
+            normalizeBoard(
+                state.board
             );
         }
 
 
         // ----------------------------------------------------
-        // STORE SERVER STATE
+        // TURN LOCKS
         // ----------------------------------------------------
 
         window.turnLocked =
-            state.turnLocked || {
+            state?.turnLocked || {
                 red: false,
                 blue: false
             };
 
 
+        // ----------------------------------------------------
+        // CURRENT TURN
+        // ----------------------------------------------------
+
         window.currentTurnPlayer =
-            state.currentTurnPlayer ||
+            state?.currentTurnPlayer ||
             "red";
+
+
+        // ----------------------------------------------------
+        // STORE COMPLETE STATE
+        // ----------------------------------------------------
+
+        window.gameState =
+            state;
+
+
+        console.log(
+            "Game state loaded:",
+            state
+        );
 
 
         return state;
@@ -116,6 +295,7 @@ export async function loadGameStateFromServer() {
             "Failed to load game state:",
             error
         );
+
 
         throw error;
     }
@@ -137,37 +317,51 @@ export async function sendMoveToServer(
         getPlayerId();
 
 
-    const response =
-        await fetch(
-            `${SERVER_URL}/submitMove`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        gameId,
-                        playerId,
-                        move:
-                            movePayload
-                    })
-            }
-        );
-
-
-    if (!response.ok) {
+    if (!movePayload) {
 
         throw new Error(
-            `Move submission failed: ${response.status}`
+            "No move payload was provided."
         );
     }
 
 
-    return await response.json();
+    const result =
+        await postJson(
+            `${SERVER_URL}/submitMove`,
+            {
+                gameId,
+
+                playerId,
+
+                move:
+                    movePayload
+            }
+        );
+
+
+    console.log(
+        "Move sent to server:",
+        result
+    );
+
+
+    /*
+     * If the server returned a new board,
+     * immediately synchronize it.
+     */
+
+    if (
+        result &&
+        result.board
+    ) {
+
+        normalizeBoard(
+            result.board
+        );
+    }
+
+
+    return result;
 }
 
 
@@ -184,35 +378,73 @@ export async function submitTurnToServer() {
         getPlayerId();
 
 
-    const response =
-        await fetch(
+    console.log(
+        "Submitting turn:",
+        {
+            gameId,
+            playerId
+        }
+    );
+
+
+    const result =
+        await postJson(
             `${SERVER_URL}/submitTurn`,
             {
-                method: "POST",
+                gameId,
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        gameId,
-                        playerId
-                    })
+                playerId
             }
         );
 
 
-    if (!response.ok) {
+    console.log(
+        "Turn submitted:",
+        result
+    );
 
-        throw new Error(
-            `Submit turn failed: ${response.status}`
+
+    /*
+     * Synchronize board if the server
+     * returned one.
+     */
+
+    if (
+        result &&
+        result.board
+    ) {
+
+        normalizeBoard(
+            result.board
         );
     }
 
 
-    return await response.json();
+    /*
+     * Update turn information if supplied.
+     */
+
+    if (
+        result &&
+        result.turnLocked
+    ) {
+
+        window.turnLocked =
+            result.turnLocked;
+    }
+
+
+    if (
+        result &&
+        result.currentTurnPlayer
+    ) {
+
+        window.currentTurnPlayer =
+            result.currentTurnPlayer;
+    }
+
+
+    return result;
 }
 
 
@@ -226,34 +458,67 @@ export async function continueTurnOnServer() {
         getGameId();
 
 
-    const response =
-        await fetch(
+    console.log(
+        "Continuing turn:",
+        gameId
+    );
+
+
+    const result =
+        await postJson(
             `${SERVER_URL}/continueTurn`,
             {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        gameId
-                    })
+                gameId
             }
         );
 
 
-    if (!response.ok) {
+    console.log(
+        "Turn continued:",
+        result
+    );
 
-        throw new Error(
-            `Continue turn failed: ${response.status}`
+
+    /*
+     * Synchronize returned board.
+     */
+
+    if (
+        result &&
+        result.board
+    ) {
+
+        normalizeBoard(
+            result.board
         );
     }
 
 
-    return await response.json();
+    /*
+     * Synchronize turn information.
+     */
+
+    if (
+        result &&
+        result.turnLocked
+    ) {
+
+        window.turnLocked =
+            result.turnLocked;
+    }
+
+
+    if (
+        result &&
+        result.currentTurnPlayer
+    ) {
+
+        window.currentTurnPlayer =
+            result.currentTurnPlayer;
+    }
+
+
+    return result;
 }
 
 
@@ -267,32 +532,100 @@ export async function resetGameOnServer() {
         getGameId();
 
 
-    const response =
-        await fetch(
+    console.log(
+        "Resetting game:",
+        gameId
+    );
+
+
+    const result =
+        await postJson(
             `${SERVER_URL}/resetGame`,
             {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        gameId
-                    })
+                gameId
             }
         );
 
 
-    if (!response.ok) {
+    console.log(
+        "Game reset:",
+        result
+    );
 
-        throw new Error(
-            `Reset failed: ${response.status}`
+
+    /*
+     * If reset returned a board,
+     * synchronize it immediately.
+     */
+
+    if (
+        result &&
+        result.board
+    ) {
+
+        normalizeBoard(
+            result.board
         );
     }
 
 
-    return await response.json();
+    /*
+     * Reset turn state.
+     */
+
+    window.turnLocked = {
+        red: false,
+        blue: false
+    };
+
+
+    if (
+        result &&
+        result.turnLocked
+    ) {
+
+        window.turnLocked =
+            result.turnLocked;
+    }
+
+
+    window.currentTurnPlayer =
+        result?.currentTurnPlayer ||
+        "red";
+
+
+    return result;
+}
+
+
+// ============================================================
+// CHECK SERVER CONNECTION
+// ============================================================
+
+export async function checkServerConnection() {
+
+    try {
+
+        const state =
+            await loadGameStateFromServer();
+
+
+        return {
+            connected: true,
+            state
+        };
+
+    } catch (error) {
+
+        console.error(
+            "Server connection check failed:",
+            error
+        );
+
+
+        return {
+            connected: false,
+            error
+        };
+    }
 }
