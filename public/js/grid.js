@@ -33,6 +33,44 @@ export const startHexes = {
 
 
 // ============================================================
+// TERRITORIES
+// ============================================================
+
+export const territories = {
+
+    natuna: [
+        { r: 14, c: 2 }
+    ],
+
+    palawan: [
+        { r: 11, c: 8 },
+        { r: 10, c: 9 },
+        { r: 10, c: 10 }
+    ],
+
+    taiwan: [
+        { r: 2, c: 10 },
+        { r: 3, c: 10 },
+        { r: 1, c: 11 },
+        { r: 2, c: 11 }
+    ],
+
+    redsingle: [
+        { r: 6, c: 5 }
+    ],
+
+    bluesingle: [
+        { r: 11, c: 12 },
+        { r: 10, c: 13 },
+        { r: 10, c: 14 },
+        { r: 15, c: 15 },
+        { r: 16, c: 16 }
+    ]
+
+};
+
+
+// ============================================================
 // INITIALIZE GRID
 // ============================================================
 
@@ -68,15 +106,8 @@ export function initGrid() {
 
 export function computeHexSize() {
 
-    if (!gameBoard) {
-
-        gameBoard =
-            document.getElementById("gameBoard");
-    }
-
     const mapContainer =
         document.getElementById("mapContainer");
-
 
     let availableWidth =
         window.innerWidth;
@@ -85,59 +116,30 @@ export function computeHexSize() {
         window.innerHeight;
 
 
-    /*
-     * Prefer the actual map container.
-     * This prevents the grid from becoming
-     * too large or too small because of the
-     * browser window dimensions.
-     */
-
     if (mapContainer) {
 
         const rect =
             mapContainer.getBoundingClientRect();
 
         if (rect.width > 0) {
-
             availableWidth =
-                rect.width - 20;
+                rect.width - 30;
         }
 
         if (rect.height > 0) {
-
             availableHeight =
-                rect.height - 20;
+                rect.height - 30;
         }
     }
 
-
-    /*
-     * Hex dimensions.
-     *
-     * Flat-top hex:
-     *
-     * width  = hexSize
-     * height = hexSize * sqrt(3) / 2
-     */
 
     const hexHeightRatio =
         Math.sqrt(3) / 2;
 
 
-    /*
-     * Total horizontal board size.
-     */
-
     const requiredWidthUnits =
         ((cols - 1) * 0.75) + 1;
 
-
-    /*
-     * Total vertical board size.
-     *
-     * Odd columns are shifted down
-     * by half a hex height.
-     */
 
     const requiredHeightUnits =
         (rows - 1) +
@@ -164,10 +166,6 @@ export function computeHexSize() {
         );
 
 
-    /*
-     * Prevent extremely tiny hexes.
-     */
-
     hexSize =
         Math.max(
             hexSize,
@@ -180,8 +178,7 @@ export function computeHexSize() {
 
 
     verticalSpacing =
-        hexSize *
-        hexHeightRatio;
+        hexSize * hexHeightRatio;
 }
 
 
@@ -201,7 +198,7 @@ export function buildHexGrid() {
     if (!gameBoard) {
 
         console.error(
-            "GRID ERROR: Cannot build grid because #gameBoard is missing."
+            "GRID ERROR: Cannot build grid."
         );
 
         return;
@@ -209,13 +206,10 @@ export function buildHexGrid() {
 
 
     /*
-     * Clear only the visual grid.
-     *
      * IMPORTANT:
-     * Do NOT call initBoard() here.
      *
-     * Rebuilding the visual grid should not
-     * erase the units currently on the board.
+     * This only rebuilds the visual grid.
+     * It does NOT erase board data.
      */
 
     gameBoard.innerHTML = "";
@@ -225,10 +219,6 @@ export function buildHexGrid() {
         hexSize *
         (Math.sqrt(3) / 2);
 
-
-    /*
-     * Calculate total board dimensions.
-     */
 
     const boardWidth =
         ((cols - 1) *
@@ -246,18 +236,16 @@ export function buildHexGrid() {
     gameBoard.style.position =
         "relative";
 
-
     gameBoard.style.width =
         `${boardWidth}px`;
-
 
     gameBoard.style.height =
         `${boardHeight}px`;
 
 
-    /*
-     * Create every hex.
-     */
+    // ========================================================
+    // CREATE HEXES
+    // ========================================================
 
     for (
         let r = 0;
@@ -282,14 +270,9 @@ export function buildHexGrid() {
             wrapper.dataset.row =
                 String(r);
 
-
             wrapper.dataset.col =
                 String(c);
 
-
-            /*
-             * Create actual hex.
-             */
 
             const hex =
                 document.createElement("div");
@@ -303,18 +286,17 @@ export function buildHexGrid() {
                 `hex-${r}-${c}`;
 
 
-            /*
-             * Horizontal position.
-             */
+            hex.dataset.row =
+                String(r);
+
+            hex.dataset.col =
+                String(c);
+
 
             const x =
                 c *
                 horizontalSpacing;
 
-
-            /*
-             * Vertical position.
-             */
 
             let y =
                 r *
@@ -322,7 +304,7 @@ export function buildHexGrid() {
 
 
             /*
-             * Offset every odd column.
+             * Offset odd columns.
              */
 
             if (
@@ -334,67 +316,23 @@ export function buildHexGrid() {
             }
 
 
-            /*
-             * Wrapper positioning.
-             */
-
-            wrapper.style.position =
-                "absolute";
-
-
             wrapper.style.left =
                 `${x}px`;
-
 
             wrapper.style.top =
                 `${y}px`;
 
-
             wrapper.style.width =
                 `${hexSize}px`;
-
 
             wrapper.style.height =
                 `${hexHeight}px`;
 
 
-            /*
-             * Hex dimensions.
-             */
-
-            hex.style.width =
-                "100%";
-
-
-            hex.style.height =
-                "100%";
-
-
-            /*
-             * Store coordinates directly
-             * on the hex as well.
-             */
-
-            hex.dataset.row =
-                String(r);
-
-
-            hex.dataset.col =
-                String(c);
-
-
-            /*
-             * Put hex inside wrapper.
-             */
-
             wrapper.appendChild(
                 hex
             );
 
-
-            /*
-             * Put wrapper on board.
-             */
 
             gameBoard.appendChild(
                 wrapper
@@ -402,11 +340,6 @@ export function buildHexGrid() {
         }
     }
 
-
-    /*
-     * Reapply territory markings after
-     * rebuilding the visual grid.
-     */
 
     renderTerritories();
 }
@@ -436,17 +369,6 @@ export function initBoard() {
             c++
         ) {
 
-            /*
-             * Every hex contains an array.
-             *
-             * Example:
-             *
-             * board[5][7] = [
-             *     unit1,
-             *     unit2
-             * ];
-             */
-
             board[r][c] = [];
         }
     }
@@ -458,14 +380,6 @@ export function initBoard() {
 // ============================================================
 
 export function rebuildGrid() {
-
-    /*
-     * IMPORTANT:
-     * Do not initialize the board here.
-     *
-     * This function only rebuilds the visual
-     * hex grid.
-     */
 
     computeHexSize();
 
@@ -494,7 +408,7 @@ export function getHexWrapper(
 
 
 // ============================================================
-// GET HEX ELEMENT
+// GET HEX
 // ============================================================
 
 export function getHex(
@@ -503,10 +417,7 @@ export function getHex(
 ) {
 
     const wrapper =
-        getHexWrapper(
-            r,
-            c
-        );
+        getHexWrapper(r, c);
 
 
     if (!wrapper) {
@@ -521,129 +432,6 @@ export function getHex(
 
 
 // ============================================================
-// TERRITORIES
-// ============================================================
-
-export const territories = {
-
-    /*
-     * BLUE
-     */
-
-    natuna: [
-
-        {
-            r: 14,
-            c: 2
-        }
-
-    ],
-
-
-    /*
-     * BLUE
-     */
-
-    palawan: [
-
-        {
-            r: 11,
-            c: 8
-        },
-
-        {
-            r: 10,
-            c: 9
-        },
-
-        {
-            r: 10,
-            c: 10
-        }
-
-    ],
-
-
-    /*
-     * RED
-     */
-
-    taiwan: [
-
-        {
-            r: 2,
-            c: 10
-        },
-
-        {
-            r: 3,
-            c: 10
-        },
-
-        {
-            r: 1,
-            c: 11
-        },
-
-        {
-            r: 2,
-            c: 11
-        }
-
-    ],
-
-
-    /*
-     * RED
-     */
-
-    redsingle: [
-
-        {
-            r: 6,
-            c: 5
-        }
-
-    ],
-
-
-    /*
-     * BLUE
-     */
-
-    bluesingle: [
-
-        {
-            r: 11,
-            c: 12
-        },
-
-        {
-            r: 10,
-            c: 13
-        },
-
-        {
-            r: 10,
-            c: 14
-        },
-
-        {
-            r: 15,
-            c: 15
-        },
-
-        {
-            r: 16,
-            c: 16
-        }
-
-    ]
-
-};
-
-
-// ============================================================
 // RENDER TERRITORIES
 // ============================================================
 
@@ -654,36 +442,35 @@ export function renderTerritories() {
     }
 
 
-    /*
-     * Remove old territory classes first.
-     *
-     * This is important when the grid is rebuilt.
-     */
-
     const wrappers =
         gameBoard.querySelectorAll(
             ".hex-wrapper"
         );
 
 
+    /*
+     * Remove existing territory classes.
+     */
+
     wrappers.forEach(
         wrapper => {
 
-            wrapper.classList.forEach(
-                className => {
+            [...wrapper.classList]
+                .forEach(
+                    className => {
 
-                    if (
-                        className.startsWith(
-                            "territory-"
-                        )
-                    ) {
+                        if (
+                            className.startsWith(
+                                "territory-"
+                            )
+                        ) {
 
-                        wrapper.classList.remove(
-                            className
-                        );
+                            wrapper.classList.remove(
+                                className
+                            );
+                        }
                     }
-                }
-            );
+                );
         }
     );
 
@@ -707,9 +494,7 @@ export function renderTerritories() {
                         );
 
 
-                    if (
-                        wrapper
-                    ) {
+                    if (wrapper) {
 
                         wrapper.classList.add(
                             `territory-${name}`
@@ -720,54 +505,3 @@ export function renderTerritories() {
         }
     );
 }
-
-
-// ============================================================
-// WINDOW RESIZE
-// ============================================================
-
-let resizeTimer = null;
-
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        clearTimeout(
-            resizeTimer
-        );
-
-
-        resizeTimer =
-            setTimeout(
-                () => {
-
-                    /*
-                     * Recalculate the hex size
-                     * and rebuild only the visual
-                     * grid.
-                     *
-                     * The board array is preserved.
-                     */
-
-                    rebuildGrid();
-
-
-                    /*
-                     * If units.js is loaded,
-                     * ask it to redraw the units
-                     * and selection indicators.
-                     */
-
-                    if (
-                        typeof window.updateBoard === "function"
-                    ) {
-
-                        window.updateBoard();
-                    }
-
-                },
-                150
-            );
-    }
-);

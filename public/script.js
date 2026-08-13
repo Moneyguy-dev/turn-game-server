@@ -1,25 +1,25 @@
+// ============================================================
+// MAIN APPLICATION
+// ============================================================
+
 import {
     initGrid,
     rebuildGrid,
     renderTerritories
 } from "./js/grid.js";
 
-
 import {
     initUnits,
     updateBoard
 } from "./js/units.js";
 
-
 import {
     initFOB
 } from "./js/fob.js";
 
-
 import {
     loadGameStateFromServer
 } from "./js/server.js";
-
 
 import {
     initUI
@@ -30,44 +30,48 @@ document.addEventListener(
     "DOMContentLoaded",
     async () => {
 
-        /* ============================
-           BUILD GRID
-        ============================ */
+        // ====================================================
+        // GRID
+        // ====================================================
 
-        initGrid();
+        const gridReady =
+            initGrid();
 
 
-        /* ============================
-           INITIALIZE FOB SYSTEM
-        ============================ */
+        if (!gridReady) {
+
+            console.error(
+                "Grid initialization failed."
+            );
+
+            return;
+        }
+
+
+        // ====================================================
+        // FOB
+        // ====================================================
 
         initFOB();
 
 
-        /* ============================
-           INITIALIZE UNITS
-        ============================ */
+        // ====================================================
+        // UNITS
+        // ====================================================
 
         initUnits();
 
 
-        /* ============================
-           INITIALIZE UI
-        ============================ */
+        // ====================================================
+        // UI
+        // ====================================================
 
         initUI();
 
 
-        /* ============================
-           TERRITORIES
-        ============================ */
-
-        renderTerritories();
-
-
-        /* ============================
-           LOAD SERVER STATE
-        ============================ */
+        // ====================================================
+        // SERVER STATE
+        // ====================================================
 
         try {
 
@@ -76,24 +80,24 @@ document.addEventListener(
         } catch (error) {
 
             console.error(
-                "Initial game state load failed:",
+                "Initial server state load failed:",
                 error
             );
         }
 
 
-        /* ============================
-           UPDATE BOARD
-        ============================ */
+        // ====================================================
+        // DRAW
+        // ====================================================
 
         updateBoard();
 
         renderTerritories();
 
 
-        /* ============================
-           RESET GAME
-        ============================ */
+        // ====================================================
+        // RESET
+        // ====================================================
 
         const resetButton =
             document.getElementById(
@@ -134,9 +138,7 @@ document.addEventListener(
 
 
                         const gameId =
-                            params.get(
-                                "gameId"
-                            ) ||
+                            params.get("gameId") ||
                             "default";
 
 
@@ -144,8 +146,7 @@ document.addEventListener(
                             await fetch(
                                 "/resetGame",
                                 {
-                                    method:
-                                        "POST",
+                                    method: "POST",
 
                                     headers: {
                                         "Content-Type":
@@ -160,9 +161,7 @@ document.addEventListener(
                             );
 
 
-                        if (
-                            !response.ok
-                        ) {
+                        if (!response.ok) {
 
                             throw new Error(
                                 `Server returned ${response.status}`
@@ -182,15 +181,11 @@ document.addEventListener(
 
                         await loadGameStateFromServer();
 
-
                         updateBoard();
 
                         renderTerritories();
 
-
-                    } catch (
-                        error
-                    ) {
+                    } catch (error) {
 
                         console.error(
                             "Reset failed:",
@@ -215,9 +210,9 @@ document.addEventListener(
         }
 
 
-        /* ============================
-           AUTO REFRESH
-        ============================ */
+        // ====================================================
+        // AUTO REFRESH
+        // ====================================================
 
         setInterval(
             async () => {
@@ -230,9 +225,7 @@ document.addEventListener(
 
                     renderTerritories();
 
-                } catch (
-                    error
-                ) {
+                } catch (error) {
 
                     console.error(
                         "Auto refresh failed:",
@@ -245,20 +238,38 @@ document.addEventListener(
         );
 
 
-        /* ============================
-           WINDOW RESIZE
-        ============================ */
+        // ====================================================
+        // RESIZE
+        // ====================================================
+
+        let resizeTimer =
+            null;
+
 
         window.addEventListener(
             "resize",
             () => {
 
-                rebuildGrid();
+                clearTimeout(
+                    resizeTimer
+                );
 
-                updateBoard();
 
-                renderTerritories();
+                resizeTimer =
+                    setTimeout(
+                        () => {
+
+                            rebuildGrid();
+
+                            updateBoard();
+
+                            renderTerritories();
+
+                        },
+                        150
+                    );
             }
         );
+
     }
 );
