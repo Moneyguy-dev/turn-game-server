@@ -6,7 +6,6 @@
     box-sizing: border-box;
 }
 
-
 html,
 body {
     width: 100%;
@@ -16,7 +15,6 @@ body {
     padding: 0;
 
     background: #111;
-
     color: white;
 
     font-family: Arial, sans-serif;
@@ -33,7 +31,6 @@ body {
     position: relative;
 
     width: 100%;
-
     height: calc(100vh - 50px);
 
     overflow: hidden;
@@ -55,19 +52,24 @@ body {
     display: flex;
 
     justify-content: center;
-
     align-items: center;
 
     border: 4px solid #444;
-
     border-radius: 18px;
 
     box-shadow:
-        0 0 20px rgba(0,0,0,0.6);
+        0 0 20px rgba(0, 0, 0, 0.6);
 
-    overflow: hidden;
+    /*
+     * IMPORTANT:
+     * Allow the board to be larger than the viewport.
+     * This prevents the hexes from being clipped.
+     */
+    overflow: auto;
 
     pointer-events: auto;
+
+    z-index: 1;
 }
 
 
@@ -82,8 +84,7 @@ body {
 
     overflow: visible;
 
-    transform-origin:
-        center center;
+    transform-origin: center center;
 
     pointer-events: auto;
 }
@@ -115,6 +116,13 @@ body {
 }
 
 
+/* Make the clicked/hovered hex appear above neighbors */
+
+.hex-wrapper:hover {
+    z-index: 10;
+}
+
+
 /* =========================================================
    HEX
 ========================================================= */
@@ -132,7 +140,6 @@ body {
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     text-align: center;
@@ -149,13 +156,20 @@ body {
 }
 
 
-.hex-wrapper:hover {
-    z-index: 10;
+.hex-wrapper:hover .hex {
+    filter: brightness(1.2);
 }
 
 
-.hex-wrapper:hover .hex {
-    filter: brightness(1.2);
+/* =========================================================
+   VALID MOVEMENT HEX
+========================================================= */
+
+.hex.valid-move {
+    background: #555 !important;
+
+    box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, 0.25);
 }
 
 
@@ -200,7 +214,9 @@ body {
 }
 
 
-/* Purple */
+/* =========================================================
+   PURPLE TERRITORIES
+========================================================= */
 
 .hex-wrapper.territory-natuna::after,
 .hex-wrapper.territory-palawan::after {
@@ -209,7 +225,9 @@ body {
 }
 
 
-/* Red */
+/* =========================================================
+   RED TERRITORIES
+========================================================= */
 
 .hex-wrapper.territory-taiwan::after,
 .hex-wrapper.territory-redsingle::after {
@@ -218,7 +236,9 @@ body {
 }
 
 
-/* Blue */
+/* =========================================================
+   BLUE TERRITORIES
+========================================================= */
 
 .hex-wrapper.territory-bluesingle::after {
     border-color:
@@ -248,7 +268,6 @@ body {
     display: flex;
 
     justify-content: center;
-
     align-items: center;
 
     border-radius: 50%;
@@ -269,7 +288,7 @@ body {
     pointer-events: none;
 
     box-shadow:
-        0 2px 5px rgba(0,0,0,0.5);
+        0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 
@@ -344,41 +363,51 @@ body {
 
 
 /* =========================================================
-   UNIT SELECTION PANEL
+   GENERAL SIDE PANEL
 ========================================================= */
 
-#unitPanel {
+#unitPanel,
+#fobPanel,
+#hexUnitPanel {
     position: absolute;
 
     top: 0;
-    left: 0;
 
     width: 280px;
 
     height: calc(100vh - 50px);
 
     background:
-        rgba(25,25,25,0.98);
+        rgba(25, 25, 25, 0.98);
 
     border-right:
         2px solid #555;
 
     box-shadow:
-        5px 0 20px rgba(0,0,0,0.5);
+        5px 0 20px rgba(0, 0, 0, 0.5);
+
+    overflow-y: auto;
+
+    box-sizing: border-box;
+
+    padding: 0;
+
+    z-index: 200;
+}
+
+
+/* =========================================================
+   UNIT PANEL
+========================================================= */
+
+#unitPanel {
+    left: 0;
 
     transform:
         translateX(-100%);
 
     transition:
         transform 0.25s ease;
-
-    overflow-y: auto;
-
-    padding: 0;
-
-    box-sizing: border-box;
-
-    z-index: 200;
 }
 
 
@@ -389,29 +418,88 @@ body {
 
 
 /* =========================================================
-   PANEL HEADER
+   FOB PANEL
 ========================================================= */
 
-#unitPanelHeader {
+#fobPanel {
+    left: 0;
+
+    transform:
+        translateX(-100%);
+
+    transition:
+        transform 0.25s ease;
+
+    z-index: 210;
+}
+
+
+#fobPanel.open {
+    transform:
+        translateX(0);
+}
+
+
+/* =========================================================
+   HEX UNIT PANEL
+========================================================= */
+
+#hexUnitPanel {
+    left: 0;
+
+    transform:
+        translateX(-100%);
+
+    transition:
+        transform 0.25s ease;
+
+    z-index: 220;
+}
+
+
+#hexUnitPanel.open {
+    transform:
+        translateX(0);
+}
+
+
+/* =========================================================
+   SIDE PANEL HEADER
+========================================================= */
+
+.sidePanelHeader {
+    width: 100%;
+
+    min-height: 55px;
+
     display: flex;
 
     justify-content: space-between;
-
     align-items: center;
 
     padding:
-        15px;
+        12px 15px;
 
     background: #222;
 
     border-bottom:
         2px solid #444;
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 10;
 }
 
 
-#unitPanelTitle {
-    margin: 0;
+/* =========================================================
+   PANEL TITLE
+========================================================= */
 
+#unitPanelTitle,
+#fobPanelTitle,
+#hexUnitPanelTitle {
     font-size: 18px;
 
     font-weight: bold;
@@ -419,10 +507,49 @@ body {
 
 
 /* =========================================================
-   PANEL UNIT LIST
+   CLOSE PANEL BUTTON
 ========================================================= */
 
-#unitList {
+.closePanelBtn {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 0;
+
+    background: #444;
+
+    color: white;
+
+    border:
+        1px solid #666;
+
+    border-radius: 6px;
+
+    font-size: 24px;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+.closePanelBtn:hover {
+    background: #666;
+}
+
+
+/* =========================================================
+   UNIT LIST
+========================================================= */
+
+#unitList,
+#fobList,
+#hexUnitList {
     display: flex;
 
     flex-direction: column;
@@ -445,7 +572,6 @@ body {
     display: flex;
 
     justify-content: space-between;
-
     align-items: center;
 
     padding:
@@ -500,7 +626,7 @@ body {
         yellow;
 
     box-shadow:
-        0 0 8px rgba(255,255,0,0.4);
+        0 0 8px rgba(255, 255, 0, 0.4);
 }
 
 
@@ -510,6 +636,71 @@ body {
     font-size: 11px;
 
     font-weight: normal;
+}
+
+
+/* =========================================================
+   FOB UNIT BUTTON
+========================================================= */
+
+.fob-unit {
+    width: 100%;
+
+    min-height: 52px;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    padding:
+        10px;
+
+    background: #333;
+
+    color: white;
+
+    border:
+        2px solid #555;
+
+    border-radius: 7px;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    transition:
+        background 0.15s ease,
+        transform 0.12s ease,
+        border-color 0.12s ease;
+}
+
+
+.fob-unit:hover {
+    background: #555;
+
+    transform:
+        translateX(3px);
+}
+
+
+.fob-unit.blue {
+    background: #1e3cff;
+
+    border-color:
+        #6f80ff;
+}
+
+
+.fob-unit.red {
+    background: #cc0000;
+
+    border-color:
+        #ff6666;
 }
 
 
@@ -527,11 +718,135 @@ body {
 
 
 /* =========================================================
-   FOB PANEL COMPATIBILITY
+   FOB PANEL LIST
 ========================================================= */
 
-#fobPanel {
+#fobList {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    padding: 12px;
+}
+
+
+/* =========================================================
+   HEX UNIT LIST
+========================================================= */
+
+#hexUnitList {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    padding: 12px;
+}
+
+
+/* =========================================================
+   HEX UNIT SELECTION BUTTON
+========================================================= */
+
+.hex-unit-choice {
+    width: 100%;
+
+    min-height: 55px;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding:
+        10px 12px;
+
+    background: #333;
+
+    color: white;
+
+    border:
+        2px solid #555;
+
+    border-radius: 8px;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition:
+        background 0.15s ease,
+        transform 0.12s ease,
+        border-color 0.12s ease;
+}
+
+
+.hex-unit-choice:hover {
+    background: #555;
+
+    transform:
+        translateX(3px);
+}
+
+
+.hex-unit-choice.blue {
+    border-left:
+        6px solid #1e3cff;
+}
+
+
+.hex-unit-choice.red {
+    border-left:
+        6px solid #cc0000;
+}
+
+
+/* =========================================================
+   UNIT STACK
+========================================================= */
+
+/*
+ * Units are no longer displayed as a large stack
+ * on crowded hexes.
+ *
+ * The JavaScript should display a count instead.
+ */
+
+.unit-stack {
     display: none;
+}
+
+
+/* =========================================================
+   INDIVIDUAL UNIT
+========================================================= */
+
+.unit {
+    padding:
+        2px 4px;
+
+    border-radius: 4px;
+
+    font-size: 10px;
+
+    pointer-events: auto;
+}
+
+
+.unit.blue {
+    background: #1e3cff;
+}
+
+
+.unit.red {
+    background: #cc0000;
 }
 
 
@@ -540,17 +855,24 @@ body {
 ========================================================= */
 
 #mapToolsStrip {
-    width: 100%;
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    bottom: 0;
+
+    width: auto;
 
     display: flex;
 
     justify-content: center;
-
     align-items: center;
 
     gap: 20px;
 
-    padding: 12px 0;
+    padding:
+        12px 0;
 
     background: #111;
 
@@ -559,8 +881,6 @@ body {
 
     border-bottom:
         2px solid #333;
-
-    position: relative;
 
     z-index: 400;
 }
@@ -612,7 +932,6 @@ body {
     display: flex;
 
     justify-content: space-between;
-
     align-items: center;
 
     padding:
@@ -695,7 +1014,7 @@ body {
 
 
 /* =========================================================
-   DIAGNOSTIC
+   DIAGNOSTIC OVERLAY
 ========================================================= */
 
 #diagOverlay {
@@ -711,11 +1030,11 @@ body {
    RESPONSIVE
 ========================================================= */
 
-@media (
-    max-width: 800px
-) {
+@media (max-width: 800px) {
 
-    #unitPanel {
+    #unitPanel,
+    #fobPanel,
+    #hexUnitPanel {
         width: 240px;
     }
 
@@ -733,5 +1052,43 @@ body {
             8px 12px;
 
         font-size: 14px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 500px) {
+
+    #unitPanel,
+    #fobPanel,
+    #hexUnitPanel {
+        width: 220px;
+    }
+
+
+    #mapToolsStrip {
+        gap: 6px;
+
+        padding:
+            8px 4px;
+    }
+
+
+    .mapToolBtn {
+        padding:
+            7px 9px;
+
+        font-size: 12px;
+    }
+
+
+    .menuBtn {
+        padding:
+            7px 9px;
+
+        font-size: 12px;
     }
 }
