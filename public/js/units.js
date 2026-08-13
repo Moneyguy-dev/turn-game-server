@@ -5,8 +5,7 @@
 import {
     board,
     rows,
-    cols,
-    gameBoard
+    cols
 } from "./grid.js";
 
 import {
@@ -44,7 +43,7 @@ export function initUnits() {
 
 
 // ============================================================
-// CREATE PANEL IF NEEDED
+// CREATE / PREPARE UNIT PANEL
 // ============================================================
 
 function ensureUnitPanel() {
@@ -64,6 +63,10 @@ function ensureUnitPanel() {
         return null;
     }
 
+
+    // --------------------------------------------------------
+    // HEADER
+    // --------------------------------------------------------
 
     let header =
         document.getElementById(
@@ -87,6 +90,10 @@ function ensureUnitPanel() {
     }
 
 
+    // --------------------------------------------------------
+    // TITLE
+    // --------------------------------------------------------
+
     let title =
         document.getElementById(
             "unitPanelTitle"
@@ -97,7 +104,7 @@ function ensureUnitPanel() {
 
         title =
             document.createElement(
-                "h3"
+                "span"
             );
 
         title.id =
@@ -112,9 +119,16 @@ function ensureUnitPanel() {
     }
 
 
+    // --------------------------------------------------------
+    // CLOSE BUTTON
+    //
+    // IMPORTANT:
+    // Your HTML already has #closeUnitPanel.
+    // --------------------------------------------------------
+
     let close =
         document.getElementById(
-            "unitPanelClose"
+            "closeUnitPanel"
         );
 
 
@@ -126,7 +140,7 @@ function ensureUnitPanel() {
             );
 
         close.id =
-            "unitPanelClose";
+            "closeUnitPanel";
 
         close.type =
             "button";
@@ -137,16 +151,20 @@ function ensureUnitPanel() {
         close.textContent =
             "×";
 
-        close.addEventListener(
-            "click",
-            closeUnitPanel
-        );
-
         header.appendChild(
             close
         );
     }
 
+
+    // Prevent duplicate listeners.
+    close.onclick =
+        closeUnitPanel;
+
+
+    // --------------------------------------------------------
+    // LIST
+    // --------------------------------------------------------
 
     let list =
         document.getElementById(
@@ -184,18 +202,15 @@ export function openUnitPanel(
     mode = "hex"
 ) {
 
-    ensureUnitPanel();
-
-
     const panel =
-        document.getElementById(
-            "unitPanel"
-        );
+        ensureUnitPanel();
+
 
     const titleElement =
         document.getElementById(
             "unitPanelTitle"
         );
+
 
     const list =
         document.getElementById(
@@ -209,6 +224,10 @@ export function openUnitPanel(
         !list
     ) {
 
+        console.error(
+            "UNIT ERROR: Could not open unit panel."
+        );
+
         return;
     }
 
@@ -217,8 +236,13 @@ export function openUnitPanel(
         title;
 
 
-    list.innerHTML = "";
+    list.innerHTML =
+        "";
 
+
+    // --------------------------------------------------------
+    // EMPTY
+    // --------------------------------------------------------
 
     if (
         !units ||
@@ -230,17 +254,27 @@ export function openUnitPanel(
                 "div"
             );
 
+
         empty.className =
             "unitPanelEmpty";
 
+
         empty.textContent =
             "No units.";
+
 
         list.appendChild(
             empty
         );
 
-    } else {
+    }
+
+
+    // --------------------------------------------------------
+    // UNITS
+    // --------------------------------------------------------
+
+    else {
 
         units.forEach(
             unit => {
@@ -254,6 +288,7 @@ export function openUnitPanel(
                 button.type =
                     "button";
 
+
                 button.className =
                     `panel-unit ${unit.team || ""}`;
 
@@ -263,8 +298,10 @@ export function openUnitPanel(
                         "span"
                     );
 
+
                 name.className =
                     "panel-unit-name";
+
 
                 name.textContent =
                     unit.type ||
@@ -276,8 +313,10 @@ export function openUnitPanel(
                         "span"
                     );
 
+
                 movement.className =
                     "panel-unit-move";
+
 
                 movement.textContent =
                     `Move ${unit.move ?? 0}`;
@@ -286,6 +325,7 @@ export function openUnitPanel(
                 button.appendChild(
                     name
                 );
+
 
                 button.appendChild(
                     movement
@@ -446,7 +486,21 @@ function selectUnitFromPanel(
 
 export function updateBoard() {
 
+    // Get the element directly.
+    // This avoids module initialization problems.
+
+    const gameBoard =
+        document.getElementById(
+            "gameBoard"
+        );
+
+
     if (!gameBoard) {
+
+        console.error(
+            "UNIT ERROR: #gameBoard was not found."
+        );
+
         return;
     }
 
@@ -457,7 +511,8 @@ export function updateBoard() {
         );
 
 
-    let index = 0;
+    let index =
+        0;
 
 
     for (
@@ -497,15 +552,17 @@ export function updateBoard() {
             );
 
 
-            hex.innerHTML = "";
+            hex.innerHTML =
+                "";
+
 
             hex.style.background =
                 "#333";
 
 
-            /*
-             * Valid movement locations.
-             */
+            // ------------------------------------------------
+            // VALID MOVES
+            // ------------------------------------------------
 
             if (
                 isValidMove(r, c)
@@ -516,9 +573,9 @@ export function updateBoard() {
             }
 
 
-            /*
-             * Hex click.
-             */
+            // ------------------------------------------------
+            // HEX CLICK
+            // ------------------------------------------------
 
             wrapper.onclick =
                 () => {
@@ -530,19 +587,13 @@ export function updateBoard() {
                 };
 
 
-            /*
-             * Units at this hex.
-             */
+            // ------------------------------------------------
+            // UNITS AT HEX
+            // ------------------------------------------------
 
             const stack =
                 board[r][c] || [];
 
-
-            /*
-             * Do NOT render the pieces.
-             *
-             * Only render a count.
-             */
 
             if (
                 stack.length > 0
@@ -570,7 +621,9 @@ export function updateBoard() {
                                     unit =>
                                         unit.team
                                 )
-                                .filter(Boolean)
+                                .filter(
+                                    Boolean
+                                )
                         )
                     ];
 
@@ -583,7 +636,9 @@ export function updateBoard() {
                         teams[0]
                     );
 
-                } else if (
+                }
+
+                else if (
                     teams.length > 1
                 ) {
 
@@ -609,9 +664,9 @@ export function updateBoard() {
             }
 
 
-            /*
-             * FOB label.
-             */
+            // ------------------------------------------------
+            // FOB LABEL
+            // ------------------------------------------------
 
             if (
                 isFobHex(r, c)
@@ -680,16 +735,13 @@ export function onHexClick(
         board[r][c] || [];
 
 
-    /*
-     * Unit selected.
-     */
+    // --------------------------------------------------------
+    // UNIT ALREADY SELECTED
+    // --------------------------------------------------------
 
     if (selectedUnit) {
 
-        /*
-         * Valid destination.
-         */
-
+        // Valid destination
         if (
             isValidMove(r, c)
         ) {
@@ -703,11 +755,7 @@ export function onHexClick(
         }
 
 
-        /*
-         * Click selected hex
-         * to cancel.
-         */
-
+        // Click selected hex = cancel
         if (
             selectedUnit.r === r &&
             selectedUnit.c === c
@@ -719,11 +767,7 @@ export function onHexClick(
         }
 
 
-        /*
-         * Clicking another occupied
-         * hex opens that stack.
-         */
-
+        // Click another occupied hex
         if (
             stack.length > 0
         ) {
@@ -746,9 +790,9 @@ export function onHexClick(
     }
 
 
-    /*
-     * No unit selected.
-     */
+    // --------------------------------------------------------
+    // NO UNIT SELECTED
+    // --------------------------------------------------------
 
     if (
         stack.length > 0
@@ -797,7 +841,9 @@ function openStackPanel(
                 team || ""
             ).toUpperCase()} FOB`;
 
-    } else {
+    }
+
+    else {
 
         title =
             `UNITS AT ${r}, ${c}`;
@@ -821,6 +867,17 @@ function openStackPanel(
 function highlightSelectedUnitHex() {
 
     if (!selectedUnit) {
+        return;
+    }
+
+
+    const gameBoard =
+        document.getElementById(
+            "gameBoard"
+        );
+
+
+    if (!gameBoard) {
         return;
     }
 
@@ -880,6 +937,7 @@ export async function moveSelectedUnit(
     const fromR =
         selectedUnit.r;
 
+
     const fromC =
         selectedUnit.c;
 
@@ -936,9 +994,9 @@ export async function moveSelectedUnit(
     };
 
 
-    /*
-     * Move locally first.
-     */
+    // --------------------------------------------------------
+    // MOVE LOCALLY
+    // --------------------------------------------------------
 
     fromStack.splice(
         unitIndex,
@@ -954,6 +1012,7 @@ export async function moveSelectedUnit(
     selectedUnit =
         null;
 
+
     validMoves =
         [];
 
@@ -963,9 +1022,9 @@ export async function moveSelectedUnit(
     updateBoard();
 
 
-    /*
-     * Send to server.
-     */
+    // --------------------------------------------------------
+    // SEND TO SERVER
+    // --------------------------------------------------------
 
     try {
 
@@ -973,7 +1032,9 @@ export async function moveSelectedUnit(
             movePayload
         );
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         console.error(
             "Move failed:",
@@ -981,9 +1042,9 @@ export async function moveSelectedUnit(
         );
 
 
-        /*
-         * Roll back.
-         */
+        // ----------------------------------------------------
+        // ROLLBACK
+        // ----------------------------------------------------
 
         const movedIndex =
             destinationStack.indexOf(
@@ -1027,6 +1088,7 @@ export function clearSelection() {
 
     selectedUnit =
         null;
+
 
     validMoves =
         [];

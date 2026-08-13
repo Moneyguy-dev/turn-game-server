@@ -1,9 +1,9 @@
 let currentZoom = 1;
 
 
-/* ============================
-   INITIALIZE UI
-============================ */
+// ============================================================
+// INITIALIZE UI
+// ============================================================
 
 export function initUI() {
 
@@ -37,32 +37,30 @@ export function initUI() {
         );
 
 
-    /*
-     * Zoom in
-     */
+    // --------------------------------------------------------
+    // ZOOM IN
+    // --------------------------------------------------------
 
     if (zoomInBtn) {
 
-        zoomInBtn.addEventListener(
-            "click",
+        zoomInBtn.onclick =
             () => {
 
-                currentZoom += 0.1;
+                currentZoom +=
+                    0.1;
 
                 applyZoom();
-            }
-        );
+            };
     }
 
 
-    /*
-     * Zoom out
-     */
+    // --------------------------------------------------------
+    // ZOOM OUT
+    // --------------------------------------------------------
 
     if (zoomOutBtn) {
 
-        zoomOutBtn.addEventListener(
-            "click",
+        zoomOutBtn.onclick =
             () => {
 
                 currentZoom =
@@ -72,56 +70,54 @@ export function initUI() {
                     );
 
                 applyZoom();
-            }
-        );
+            };
     }
 
 
-    /*
-     * Zoom to units
-     */
+    // --------------------------------------------------------
+    // ZOOM TO UNITS
+    // --------------------------------------------------------
 
     if (zoomUnitsBtn) {
 
-        zoomUnitsBtn.addEventListener(
-            "click",
+        zoomUnitsBtn.onclick =
             () => {
 
                 zoomToUnits();
-            }
-        );
+            };
     }
 
 
-    /*
-     * Units button now simply
-     * toggles the selection panel.
-     */
+    // --------------------------------------------------------
+    // UNITS PANEL
+    // --------------------------------------------------------
 
     if (
         unitsBtn &&
         unitPanel
     ) {
 
-        unitsBtn.addEventListener(
-            "click",
+        unitsBtn.onclick =
             () => {
 
                 unitPanel.classList.toggle(
                     "open"
                 );
-            }
-        );
+            };
     }
 
+
+    // --------------------------------------------------------
+    // DIAGNOSTIC
+    // --------------------------------------------------------
 
     createDiagnosticOverlay();
 }
 
 
-/* ============================
-   APPLY ZOOM
-============================ */
+// ============================================================
+// APPLY ZOOM
+// ============================================================
 
 function applyZoom() {
 
@@ -141,9 +137,9 @@ function applyZoom() {
 }
 
 
-/* ============================
-   ZOOM TO UNITS
-============================ */
+// ============================================================
+// ZOOM TO UNITS
+// ============================================================
 
 function zoomToUnits() {
 
@@ -157,20 +153,6 @@ function zoomToUnits() {
         return;
     }
 
-
-    const units =
-        gameBoard.querySelectorAll(
-            ".unit"
-        );
-
-
-    /*
-     * Units are no longer physically
-     * rendered on the board.
-     *
-     * Instead, zoom to the occupied
-     * hexes.
-     */
 
     const occupied =
         gameBoard.querySelectorAll(
@@ -200,7 +182,7 @@ function zoomToUnits() {
 
 
     occupied.forEach(
-        (element) => {
+        element => {
 
             const rect =
                 element.getBoundingClientRect();
@@ -274,9 +256,9 @@ function zoomToUnits() {
 }
 
 
-/* ============================
-   DIAGNOSTIC OVERLAY
-============================ */
+// ============================================================
+// DIAGNOSTIC OVERLAY
+// ============================================================
 
 export function createDiagnosticOverlay() {
 
@@ -305,11 +287,14 @@ export function createDiagnosticOverlay() {
         diag.style,
         {
 
-            position: "fixed",
+            position:
+                "fixed",
 
-            top: "10px",
+            top:
+                "10px",
 
-            left: "10px",
+            left:
+                "10px",
 
             padding:
                 "10px 14px",
@@ -317,7 +302,8 @@ export function createDiagnosticOverlay() {
             background:
                 "rgba(0,0,0,0.75)",
 
-            color: "#0f0",
+            color:
+                "#0f0",
 
             fontFamily:
                 "monospace",

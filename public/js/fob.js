@@ -22,12 +22,12 @@ export function initFOB() {
 
     fobPanel =
         document.getElementById(
-            "unitPanel"
+            "fobPanel"
         );
 
     fobList =
         document.getElementById(
-            "unitList"
+            "fobList"
         );
 }
 

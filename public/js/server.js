@@ -1,71 +1,100 @@
-import { board } from "./grid.js";
-import { updateBoard } from "./units.js";
-import { updateFobList } from "./fob.js";
+// ============================================================
+// SERVER COMMUNICATION
+// ============================================================
 
-const SERVER_URL = "https://turn-game-server.onrender.com";
+import { board } from "./grid.js";
+
+const SERVER_URL =
+    "https://turn-game-server.onrender.com";
+
+
+// ============================================================
+// GET GAME ID
+// ============================================================
 
 export function getGameId() {
-    const params = new URLSearchParams(
-        window.location.search
-    );
 
-    return params.get("gameId") || "default";
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return (
+        params.get("gameId") ||
+        "default"
+    );
 }
+
+
+// ============================================================
+// GET PLAYER ID
+// ============================================================
 
 export function getPlayerId() {
-    const params = new URLSearchParams(
-        window.location.search
-    );
 
-    return params.get("mode") || "spectator";
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return (
+        params.get("mode") ||
+        "spectator"
+    );
 }
 
-/* ============================
-   LOAD GAME STATE
-============================ */
+
+// ============================================================
+// LOAD GAME STATE
+// ============================================================
 
 export async function loadGameStateFromServer() {
 
     try {
 
-        const gameId = getGameId();
+        const gameId =
+            getGameId();
 
-        const res = await fetch(
-            `${SERVER_URL}/gameState?gameId=${encodeURIComponent(gameId)}`
-        );
+
+        const res =
+            await fetch(
+                `${SERVER_URL}/gameState?gameId=${encodeURIComponent(gameId)}`
+            );
+
 
         if (!res.ok) {
+
             throw new Error(
                 `Server returned ${res.status}`
             );
         }
 
-        const state = await res.json();
 
-        /*
-         * Copy the server board into the board
-         * exported by grid.js.
-         *
-         * Do NOT do:
-         *
-         * window.board = state.board
-         *
-         * because units.js is using the imported
-         * board from grid.js.
-         */
+        const state =
+            await res.json();
+
+
+        // ----------------------------------------------------
+        // COPY SERVER BOARD INTO GRID BOARD
+        // ----------------------------------------------------
 
         if (state.board) {
 
             board.length = 0;
 
-            state.board.forEach(row => {
-                board.push(row);
-            });
+
+            state.board.forEach(
+                row => {
+
+                    board.push(row);
+                }
+            );
         }
 
-        /*
-         * Store useful server state globally.
-         */
+
+        // ----------------------------------------------------
+        // STORE SERVER STATE
+        // ----------------------------------------------------
 
         window.turnLocked =
             state.turnLocked || {
@@ -73,16 +102,11 @@ export async function loadGameStateFromServer() {
                 blue: false
             };
 
+
         window.currentTurnPlayer =
-            state.currentTurnPlayer || "red";
+            state.currentTurnPlayer ||
+            "red";
 
-        updateBoard();
-
-        if (
-            typeof updateFobList === "function"
-        ) {
-            updateFobList();
-        }
 
         return state;
 
@@ -97,31 +121,43 @@ export async function loadGameStateFromServer() {
     }
 }
 
-/* ============================
-   SEND MOVE
-============================ */
 
-export async function sendMoveToServer(movePayload) {
+// ============================================================
+// SEND MOVE
+// ============================================================
 
-    const gameId = getGameId();
-    const playerId = getPlayerId();
+export async function sendMoveToServer(
+    movePayload
+) {
 
-    const response = await fetch(
-        `${SERVER_URL}/submitMove`,
-        {
-            method: "POST",
+    const gameId =
+        getGameId();
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+    const playerId =
+        getPlayerId();
 
-            body: JSON.stringify({
-                gameId,
-                playerId,
-                move: movePayload
-            })
-        }
-    );
+
+    const response =
+        await fetch(
+            `${SERVER_URL}/submitMove`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        gameId,
+                        playerId,
+                        move:
+                            movePayload
+                    })
+            }
+        );
+
 
     if (!response.ok) {
 
@@ -130,33 +166,43 @@ export async function sendMoveToServer(movePayload) {
         );
     }
 
+
     return await response.json();
 }
 
-/* ============================
-   SUBMIT TURN
-============================ */
+
+// ============================================================
+// SUBMIT TURN
+// ============================================================
 
 export async function submitTurnToServer() {
 
-    const gameId = getGameId();
-    const playerId = getPlayerId();
+    const gameId =
+        getGameId();
 
-    const response = await fetch(
-        `${SERVER_URL}/submitTurn`,
-        {
-            method: "POST",
+    const playerId =
+        getPlayerId();
 
-            headers: {
-                "Content-Type": "application/json"
-            },
 
-            body: JSON.stringify({
-                gameId,
-                playerId
-            })
-        }
-    );
+    const response =
+        await fetch(
+            `${SERVER_URL}/submitTurn`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        gameId,
+                        playerId
+                    })
+            }
+        );
+
 
     if (!response.ok) {
 
@@ -165,31 +211,39 @@ export async function submitTurnToServer() {
         );
     }
 
+
     return await response.json();
 }
 
-/* ============================
-   CONTINUE / RESOLVE TURN
-============================ */
+
+// ============================================================
+// CONTINUE / RESOLVE TURN
+// ============================================================
 
 export async function continueTurnOnServer() {
 
-    const gameId = getGameId();
+    const gameId =
+        getGameId();
 
-    const response = await fetch(
-        `${SERVER_URL}/continueTurn`,
-        {
-            method: "POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+    const response =
+        await fetch(
+            `${SERVER_URL}/continueTurn`,
+            {
+                method: "POST",
 
-            body: JSON.stringify({
-                gameId
-            })
-        }
-    );
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        gameId
+                    })
+            }
+        );
+
 
     if (!response.ok) {
 
@@ -198,31 +252,39 @@ export async function continueTurnOnServer() {
         );
     }
 
+
     return await response.json();
 }
 
-/* ============================
-   RESET GAME
-============================ */
+
+// ============================================================
+// RESET GAME
+// ============================================================
 
 export async function resetGameOnServer() {
 
-    const gameId = getGameId();
+    const gameId =
+        getGameId();
 
-    const response = await fetch(
-        `${SERVER_URL}/resetGame`,
-        {
-            method: "POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+    const response =
+        await fetch(
+            `${SERVER_URL}/resetGame`,
+            {
+                method: "POST",
 
-            body: JSON.stringify({
-                gameId
-            })
-        }
-    );
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        gameId
+                    })
+            }
+        );
+
 
     if (!response.ok) {
 
@@ -230,6 +292,7 @@ export async function resetGameOnServer() {
             `Reset failed: ${response.status}`
         );
     }
+
 
     return await response.json();
 }
