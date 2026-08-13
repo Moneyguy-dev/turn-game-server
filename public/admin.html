@@ -2,66 +2,38 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Control</title>
-
-    <link
-        rel="stylesheet"
-        href="/styles.css">
-
+    <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
 
     <div id="layout">
 
-        <!-- ============================
-             HEX MAP
-        ============================ -->
-
         <div id="mapContainer">
-
             <div id="gameBoard"></div>
-
         </div>
-
-
-        <!-- ============================
-             MAP TOOLS
-        ============================ -->
 
         <div id="mapToolsStrip">
 
-            <button
-                id="zoomIn"
-                class="mapToolBtn">
+            <button id="zoomIn" class="mapToolBtn">
                 Zoom +
             </button>
 
-            <button
-                id="zoomOut"
-                class="mapToolBtn">
+            <button id="zoomOut" class="mapToolBtn">
                 Zoom −
             </button>
 
-            <button
-                id="zoomUnits"
-                class="mapToolBtn">
+            <button id="zoomUnits" class="mapToolBtn">
                 Zoom to Units
             </button>
 
         </div>
 
 
-        <!-- ============================
-             UNIT PANEL
-        ============================ -->
+        <!-- UNIT PANEL -->
 
         <div id="unitPanel">
 
@@ -84,110 +56,7 @@
         </div>
 
 
-        <!-- ============================
-             ARMAMENTS PANEL
-        ============================ -->
-
-        <div id="armamentsPanel">
-
-            <div class="sidePanelHeader">
-
-                <span id="armamentsPanelTitle">
-                    Armaments
-                </span>
-
-                <button
-                    id="closeArmamentsPanel"
-                    class="closePanelBtn">
-                    ×
-                </button>
-
-            </div>
-
-            <div id="armamentsList">
-
-                <div class="armamentCategory">
-
-                    <div class="armamentCategoryTitle">
-                        Air
-                    </div>
-
-                    <div class="armamentItem">
-
-                        <div class="armamentName">
-                            Air-to-Air Missiles
-                        </div>
-
-                        <div class="armamentDescription">
-                            Weapons carried by fighter aircraft.
-                        </div>
-
-                    </div>
-
-                    <div class="armamentItem">
-
-                        <div class="armamentName">
-                            Air-to-Ground Weapons
-                        </div>
-
-                        <div class="armamentDescription">
-                            Weapons used against ground targets.
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="armamentCategory">
-
-                    <div class="armamentCategoryTitle">
-                        Naval
-                    </div>
-
-                    <div class="armamentItem">
-
-                        <div class="armamentName">
-                            Anti-Ship Missiles
-                        </div>
-
-                        <div class="armamentDescription">
-                            Weapons used against naval targets.
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="armamentCategory">
-
-                    <div class="armamentCategoryTitle">
-                        Ground
-                    </div>
-
-                    <div class="armamentItem">
-
-                        <div class="armamentName">
-                            Ground-Based Weapons
-                        </div>
-
-                        <div class="armamentDescription">
-                            Weapons available to ground forces.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ============================
-             FOB PANEL
-        ============================ -->
+        <!-- FOB PANEL -->
 
         <div id="fobPanel">
 
@@ -210,9 +79,7 @@
         </div>
 
 
-        <!-- ============================
-             HEX UNIT SELECTION PANEL
-        ============================ -->
+        <!-- HEX UNIT PANEL -->
 
         <div id="hexUnitPanel">
 
@@ -234,36 +101,137 @@
 
         </div>
 
+
+        <!-- ARMAMENTS POPUP -->
+
+        <div id="armamentsPanel">
+
+            <div class="armamentsHeader">
+
+                <span id="armamentsPanelTitle">
+                    Armaments
+                </span>
+
+                <button
+                    id="closeArmamentsPanel"
+                    class="closePanelBtn">
+                    ×
+                </button>
+
+            </div>
+
+            <div id="armamentsList">
+
+                <div class="armamentCategory">
+
+                    <div class="armamentCategoryTitle">
+                        Aircraft
+                    </div>
+
+                    <div class="armamentItem">
+                        <div class="armamentName">
+                            Air-to-Air Missiles
+                        </div>
+
+                        <div class="armamentDescription">
+                            Standard air combat weapons.
+                        </div>
+                    </div>
+
+                    <div class="armamentItem">
+                        <div class="armamentName">
+                            Air-to-Ground Missiles
+                        </div>
+
+                        <div class="armamentDescription">
+                            Weapons designed for attacking ground targets.
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="armamentCategory">
+
+                    <div class="armamentCategoryTitle">
+                        Naval
+                    </div>
+
+                    <div class="armamentItem">
+                        <div class="armamentName">
+                            Anti-Ship Missiles
+                        </div>
+
+                        <div class="armamentDescription">
+                            Long-range weapons for naval targets.
+                        </div>
+                    </div>
+
+                    <div class="armamentItem">
+                        <div class="armamentName">
+                            Naval Guns
+                        </div>
+
+                        <div class="armamentDescription">
+                            Ship-mounted direct-fire weapons.
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="armamentCategory">
+
+                    <div class="armamentCategoryTitle">
+                        Strategic
+                    </div>
+
+                    <div class="armamentItem">
+                        <div class="armamentName">
+                            Cruise Missiles
+                        </div>
+
+                        <div class="armamentDescription">
+                            Long-range precision strike weapons.
+                        </div>
+                    </div>
+
+                    <div class="armamentItem">
+                        <div class="armamentName">
+                            Strategic Weapons
+                        </div>
+
+                        <div class="armamentDescription">
+                            High-value strategic capabilities.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
 
-    <!-- ============================
-         BOTTOM MENU
-    ============================ -->
+    <!-- BOTTOM MENU -->
 
     <div id="bottomMenu">
 
-        <button
-            id="backButton"
-            class="menuBtn">
+        <button id="backButton" class="menuBtn">
             Back
         </button>
 
-        <button
-            id="logBook"
-            class="menuBtn">
+        <button id="logBook" class="menuBtn">
             Log Book
         </button>
 
-        <button
-            id="armaments"
-            class="menuBtn">
+        <button id="armaments" class="menuBtn">
             Armaments
         </button>
 
-        <button
-            id="unitsBtn"
-            class="menuBtn">
+        <button id="unitsBtn" class="menuBtn">
             Units ▸
         </button>
 
@@ -290,5 +258,4 @@
     </script>
 
 </body>
-
 </html>

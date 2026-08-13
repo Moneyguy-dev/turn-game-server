@@ -1,7 +1,3 @@
-// ============================================================
-// UI CONTROLS
-// ============================================================
-
 import {
     submitTurnToServer,
     continueTurnOnServer,
@@ -16,15 +12,7 @@ import {
 let currentZoom = 1;
 
 
-// ============================================================
-// INITIALIZE UI
-// ============================================================
-
 export function initUI() {
-
-    // ========================================================
-    // ELEMENTS
-    // ========================================================
 
     const zoomInBtn =
         document.getElementById("zoomIn");
@@ -41,16 +29,14 @@ export function initUI() {
     const unitPanel =
         document.getElementById("unitPanel");
 
-    const armamentsBtn =
+    const armamentsButton =
         document.getElementById("armaments");
 
     const armamentsPanel =
         document.getElementById("armamentsPanel");
 
     const closeArmamentsPanel =
-        document.getElementById(
-            "closeArmamentsPanel"
-        );
+        document.getElementById("closeArmamentsPanel");
 
     const backButton =
         document.getElementById("backButton");
@@ -62,19 +48,15 @@ export function initUI() {
         document.getElementById("continueTurn");
 
 
-    // ========================================================
-    // ZOOM IN
-    // ========================================================
+    /* ZOOM IN */
 
     if (zoomInBtn) {
 
         zoomInBtn.onclick = () => {
 
-            currentZoom += 0.1;
-
             currentZoom =
                 Math.min(
-                    currentZoom,
+                    currentZoom + 0.1,
                     3
                 );
 
@@ -83,19 +65,15 @@ export function initUI() {
     }
 
 
-    // ========================================================
-    // ZOOM OUT
-    // ========================================================
+    /* ZOOM OUT */
 
     if (zoomOutBtn) {
 
         zoomOutBtn.onclick = () => {
 
-            currentZoom -= 0.1;
-
             currentZoom =
                 Math.max(
-                    currentZoom,
+                    currentZoom - 0.1,
                     0.3
                 );
 
@@ -104,49 +82,33 @@ export function initUI() {
     }
 
 
-    // ========================================================
-    // ZOOM TO UNITS
-    // ========================================================
+    /* ZOOM TO UNITS */
 
     if (zoomUnitsBtn) {
 
-        zoomUnitsBtn.onclick = () => {
-
-            zoomToUnits();
-        };
+        zoomUnitsBtn.onclick =
+            zoomToUnits;
     }
 
 
-    // ========================================================
-    // UNITS PANEL
-    // ========================================================
+    /* UNITS */
 
-    if (
-        unitsBtn &&
-        unitPanel
-    ) {
+    if (unitsBtn && unitPanel) {
 
         unitsBtn.onclick = () => {
 
-            /*
-             * Close armaments when opening units.
-             */
+            unitPanel.classList.toggle("open");
 
-            armamentsPanel?.classList.remove(
-                "open"
-            );
-
-
-            unitPanel.classList.toggle(
-                "open"
-            );
+            if (
+                armamentsPanel
+            ) {
+                armamentsPanel.classList.remove("open");
+            }
         };
     }
 
 
-    // ========================================================
-    // CLOSE UNIT PANEL
-    // ========================================================
+    /* CLOSE UNITS */
 
     const closeUnitPanel =
         document.getElementById(
@@ -164,40 +126,27 @@ export function initUI() {
     }
 
 
-    // ========================================================
-    // ARMAMENTS PANEL
-    // ========================================================
+    /* ARMAMENTS */
 
     if (
-        armamentsBtn &&
+        armamentsButton &&
         armamentsPanel
     ) {
 
-        armamentsBtn.onclick = () => {
-
-            /*
-             * Close the Units panel first.
-             */
+        armamentsButton.onclick = () => {
 
             unitPanel?.classList.remove(
                 "open"
             );
 
-
-            /*
-             * Open / close Armaments.
-             */
-
-            armamentsPanel.classList.toggle(
+            armamentsPanel.classList.add(
                 "open"
             );
         };
     }
 
 
-    // ========================================================
-    // CLOSE ARMAMENTS PANEL
-    // ========================================================
+    /* CLOSE ARMAMENTS */
 
     if (closeArmamentsPanel) {
 
@@ -210,9 +159,7 @@ export function initUI() {
     }
 
 
-    // ========================================================
-    // BACK BUTTON
-    // ========================================================
+    /* BACK */
 
     if (backButton) {
 
@@ -226,39 +173,30 @@ export function initUI() {
 
             } else {
 
-                window.location.href =
-                    "/";
+                window.location.href = "/";
             }
         };
     }
 
 
-    // ========================================================
-    // SUBMIT TURN
-    // ========================================================
+    /* SUBMIT */
 
     if (submitButton) {
 
         submitButton.onclick =
             async () => {
 
+                if (submitButton.disabled) {
+                    return;
+                }
+
                 if (
-                    submitButton.disabled
+                    !confirm(
+                        "Submit your turn?"
+                    )
                 ) {
                     return;
                 }
-
-
-                const confirmed =
-                    confirm(
-                        "Submit your turn?"
-                    );
-
-
-                if (!confirmed) {
-                    return;
-                }
-
 
                 submitButton.disabled =
                     true;
@@ -266,35 +204,26 @@ export function initUI() {
                 submitButton.textContent =
                     "Submitting...";
 
-
                 try {
 
                     await submitTurnToServer();
 
-
                     await loadGameStateFromServer();
 
-
                     updateBoard();
-
 
                     submitButton.textContent =
                         "Submitted";
 
+                    setTimeout(() => {
 
-                    setTimeout(
-                        () => {
+                        submitButton.disabled =
+                            false;
 
-                            submitButton.disabled =
-                                false;
+                        submitButton.textContent =
+                            "Submit";
 
-                            submitButton.textContent =
-                                "Submit";
-
-                        },
-                        1000
-                    );
-
+                    }, 1000);
 
                 } catch (error) {
 
@@ -303,11 +232,9 @@ export function initUI() {
                         error
                     );
 
-
                     alert(
                         "Submit failed. Check the server."
                     );
-
 
                     submitButton.disabled =
                         false;
@@ -319,9 +246,7 @@ export function initUI() {
     }
 
 
-    // ========================================================
-    // CONTINUE BUTTON
-    // ========================================================
+    /* CONTINUE */
 
     if (continueButton) {
 
@@ -334,28 +259,19 @@ export function initUI() {
                     return;
                 }
 
-
                 continueButton.disabled =
                     true;
 
                 continueButton.textContent =
                     "Continuing...";
 
-
                 try {
 
                     await continueTurnOnServer();
 
-
                     await loadGameStateFromServer();
 
-
                     updateBoard();
-
-
-                    continueButton.textContent =
-                        "Continue";
-
 
                 } catch (error) {
 
@@ -364,11 +280,9 @@ export function initUI() {
                         error
                     );
 
-
                     alert(
                         "Continue failed. Check the server."
                     );
-
 
                 } finally {
 
@@ -382,17 +296,9 @@ export function initUI() {
     }
 
 
-    // ========================================================
-    // DIAGNOSTIC
-    // ========================================================
-
     createDiagnosticOverlay();
 }
 
-
-// ============================================================
-// APPLY ZOOM
-// ============================================================
 
 function applyZoom() {
 
@@ -401,20 +307,14 @@ function applyZoom() {
             "gameBoard"
         );
 
-
     if (!gameBoard) {
         return;
     }
-
 
     gameBoard.style.transform =
         `scale(${currentZoom})`;
 }
 
-
-// ============================================================
-// ZOOM TO UNITS
-// ============================================================
 
 function zoomToUnits() {
 
@@ -423,17 +323,14 @@ function zoomToUnits() {
             "gameBoard"
         );
 
-
     if (!gameBoard) {
         return;
     }
-
 
     const occupied =
         gameBoard.querySelectorAll(
             ".unit-count"
         );
-
 
     if (
         occupied.length === 0
@@ -446,53 +343,46 @@ function zoomToUnits() {
         return;
     }
 
-
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
     let maxY = -Infinity;
 
+    occupied.forEach(element => {
 
-    occupied.forEach(
-        element => {
+        const rect =
+            element.getBoundingClientRect();
 
-            const rect =
-                element.getBoundingClientRect();
+        minX =
+            Math.min(
+                minX,
+                rect.left
+            );
 
+        maxX =
+            Math.max(
+                maxX,
+                rect.right
+            );
 
-            minX =
-                Math.min(
-                    minX,
-                    rect.left
-                );
+        minY =
+            Math.min(
+                minY,
+                rect.top
+            );
 
-            maxX =
-                Math.max(
-                    maxX,
-                    rect.right
-                );
-
-            minY =
-                Math.min(
-                    minY,
-                    rect.top
-                );
-
-            maxY =
-                Math.max(
-                    maxY,
-                    rect.bottom
-                );
-        }
-    );
-
+        maxY =
+            Math.max(
+                maxY,
+                rect.bottom
+            );
+    });
 
     const width =
         maxX - minX;
 
     const height =
         maxY - minY;
-
 
     if (
         width <= 0 ||
@@ -501,27 +391,17 @@ function zoomToUnits() {
         return;
     }
 
-
     const availableWidth =
         window.innerWidth * 0.8;
 
     const availableHeight =
         (window.innerHeight - 100) * 0.8;
 
-
-    const zoomX =
-        availableWidth / width;
-
-    const zoomY =
-        availableHeight / height;
-
-
     currentZoom =
         Math.min(
-            zoomX,
-            zoomY
+            availableWidth / width,
+            availableHeight / height
         );
-
 
     currentZoom =
         Math.max(
@@ -532,14 +412,9 @@ function zoomToUnits() {
             )
         );
 
-
     applyZoom();
 }
 
-
-// ============================================================
-// DIAGNOSTIC OVERLAY
-// ============================================================
 
 export function createDiagnosticOverlay() {
 
@@ -548,59 +423,36 @@ export function createDiagnosticOverlay() {
             "diagOverlay"
         );
 
-
     if (existing) {
         return;
     }
 
-
     const diag =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     diag.id =
         "diagOverlay";
 
-
     Object.assign(
         diag.style,
         {
-
             position: "fixed",
-
             top: "10px",
-
             left: "10px",
-
             padding: "10px 14px",
-
-            background:
-                "rgba(0,0,0,0.75)",
-
+            background: "rgba(0,0,0,0.75)",
             color: "#0f0",
-
-            fontFamily:
-                "monospace",
-
+            fontFamily: "monospace",
             fontSize: "12px",
-
             zIndex: "9999",
-
-            border:
-                "1px solid #0f0",
-
+            border: "1px solid #0f0",
             borderRadius: "6px",
-
             pointerEvents: "none"
         }
     );
 
-
     diag.textContent =
         "Diagnostic Overlay Active";
-
 
     document.body.appendChild(
         diag
