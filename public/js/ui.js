@@ -17,6 +17,63 @@ let currentZoom = 1;
 
 
 // ============================================================
+// ARMAMENT DATA
+// ============================================================
+
+const ARMAMENTS = {
+
+    aircraft: [
+        {
+            name: "Air-to-Air Missiles",
+            description: "Long-range and short-range weapons for engaging hostile aircraft."
+        },
+        {
+            name: "Air-to-Ground Missiles",
+            description: "Precision weapons for attacking ground targets."
+        },
+        {
+            name: "Guided Bombs",
+            description: "Precision-guided bombs for fixed and high-value targets."
+        },
+        {
+            name: "Unguided Bombs",
+            description: "Conventional bombs for general ground attack."
+        }
+    ],
+
+    naval: [
+        {
+            name: "Anti-Ship Missiles",
+            description: "Long-range missiles designed to engage surface vessels."
+        },
+        {
+            name: "Surface-to-Air Missiles",
+            description: "Defensive missiles used against aircraft and incoming threats."
+        },
+        {
+            name: "Naval Guns",
+            description: "Ship-mounted guns for surface and shore engagements."
+        }
+    ],
+
+    ground: [
+        {
+            name: "Anti-Tank Weapons",
+            description: "Weapons designed to engage armored ground units."
+        },
+        {
+            name: "Artillery",
+            description: "Long-range indirect-fire weapons."
+        },
+        {
+            name: "Air Defense",
+            description: "Ground-based systems for defending against aircraft."
+        }
+    ]
+};
+
+
+// ============================================================
 // INITIALIZE UI
 // ============================================================
 
@@ -34,6 +91,9 @@ export function initUI() {
     const unitsBtn =
         document.getElementById("unitsBtn");
 
+    const armamentsBtn =
+        document.getElementById("armaments");
+
     const unitPanel =
         document.getElementById("unitPanel");
 
@@ -48,6 +108,14 @@ export function initUI() {
 
     const resetButton =
         document.getElementById("resetGame");
+
+
+    // ========================================================
+    // CREATE ARMAMENTS PANEL
+    // ========================================================
+
+    const armamentsPanel =
+        createArmamentsPanel();
 
 
     // ========================================================
@@ -116,7 +184,51 @@ export function initUI() {
 
         unitsBtn.onclick = () => {
 
+            /*
+             * Close Armaments if it is open.
+             */
+
+            armamentsPanel?.classList.remove(
+                "open"
+            );
+
+
+            /*
+             * Toggle Units panel.
+             */
+
             unitPanel.classList.toggle(
+                "open"
+            );
+        };
+    }
+
+
+    // ========================================================
+    // ARMAMENTS PANEL
+    // ========================================================
+
+    if (
+        armamentsBtn &&
+        armamentsPanel
+    ) {
+
+        armamentsBtn.onclick = () => {
+
+            /*
+             * Close Units panel if it is open.
+             */
+
+            unitPanel?.classList.remove(
+                "open"
+            );
+
+
+            /*
+             * Toggle Armaments panel.
+             */
+
+            armamentsPanel.classList.toggle(
                 "open"
             );
         };
@@ -144,6 +256,26 @@ export function initUI() {
 
 
     // ========================================================
+    // CLOSE ARMAMENTS PANEL
+    // ========================================================
+
+    const closeArmamentsPanel =
+        document.getElementById(
+            "closeArmamentsPanel"
+        );
+
+    if (closeArmamentsPanel) {
+
+        closeArmamentsPanel.onclick = () => {
+
+            armamentsPanel?.classList.remove(
+                "open"
+            );
+        };
+    }
+
+
+    // ========================================================
     // BACK BUTTON
     // ========================================================
 
@@ -152,10 +284,20 @@ export function initUI() {
         backButton.onclick = () => {
 
             /*
+             * Close open panels first.
+             */
+
+            unitPanel?.classList.remove(
+                "open"
+            );
+
+            armamentsPanel?.classList.remove(
+                "open"
+            );
+
+
+            /*
              * Return to the side-selection page.
-             *
-             * history.back() is preferred because it
-             * returns the player to the page they came from.
              */
 
             if (
@@ -213,14 +355,14 @@ export function initUI() {
 
 
                     /*
-                     * Get the newest server state.
+                     * Get newest server state.
                      */
 
                     await loadGameStateFromServer();
 
 
                     /*
-                     * Redraw the map.
+                     * Redraw map.
                      */
 
                     updateBoard();
@@ -229,11 +371,6 @@ export function initUI() {
                     submitButton.textContent =
                         "Submitted";
 
-
-                    /*
-                     * Small delay before restoring
-                     * the normal button.
-                     */
 
                     setTimeout(
                         () => {
@@ -340,9 +477,9 @@ export function initUI() {
     // ========================================================
 
     /*
-     * script.js already handles resetGame,
-     * so we intentionally do NOT attach another
-     * handler here.
+     * script.js already handles resetGame.
+     *
+     * Do NOT attach another reset handler here.
      */
 
 
@@ -351,6 +488,272 @@ export function initUI() {
     // ========================================================
 
     createDiagnosticOverlay();
+}
+
+
+// ============================================================
+// CREATE ARMAMENTS PANEL
+// ============================================================
+
+function createArmamentsPanel() {
+
+    /*
+     * If the panel already exists, use it.
+     *
+     * This prevents duplicate panels if initUI()
+     * is ever called more than once.
+     */
+
+    const existing =
+        document.getElementById(
+            "armamentsPanel"
+        );
+
+
+    if (existing) {
+        return existing;
+    }
+
+
+    // ========================================================
+    // PANEL
+    // ========================================================
+
+    const panel =
+        document.createElement(
+            "div"
+        );
+
+
+    panel.id =
+        "armamentsPanel";
+
+
+    panel.className =
+        "armaments-side-panel";
+
+
+    // ========================================================
+    // HEADER
+    // ========================================================
+
+    const header =
+        document.createElement(
+            "div"
+        );
+
+
+    header.className =
+        "sidePanelHeader";
+
+
+    const title =
+        document.createElement(
+            "span"
+        );
+
+
+    title.id =
+        "armamentsPanelTitle";
+
+
+    title.textContent =
+        "Armaments";
+
+
+    const closeButton =
+        document.createElement(
+            "button"
+        );
+
+
+    closeButton.id =
+        "closeArmamentsPanel";
+
+
+    closeButton.className =
+        "closePanelBtn";
+
+
+    closeButton.textContent =
+        "×";
+
+
+    header.appendChild(
+        title
+    );
+
+    header.appendChild(
+        closeButton
+    );
+
+
+    // ========================================================
+    // CONTENT
+    // ========================================================
+
+    const content =
+        document.createElement(
+            "div"
+        );
+
+
+    content.id =
+        "armamentsList";
+
+
+    buildArmamentsList(
+        content
+    );
+
+
+    // ========================================================
+    // ADD TO PANEL
+    // ========================================================
+
+    panel.appendChild(
+        header
+    );
+
+    panel.appendChild(
+        content
+    );
+
+
+    // ========================================================
+    // ADD TO PAGE
+    // ========================================================
+
+    document
+        .getElementById("layout")
+        ?.appendChild(panel);
+
+
+    return panel;
+}
+
+
+// ============================================================
+// BUILD ARMAMENT LIST
+// ============================================================
+
+function buildArmamentsList(
+    container
+) {
+
+    Object.entries(
+        ARMAMENTS
+    ).forEach(
+        ([category, weapons]) => {
+
+            const categorySection =
+                document.createElement(
+                    "div"
+                );
+
+
+            categorySection.className =
+                "armamentCategory";
+
+
+            const categoryTitle =
+                document.createElement(
+                    "div"
+                );
+
+
+            categoryTitle.className =
+                "armamentCategoryTitle";
+
+
+            categoryTitle.textContent =
+                formatCategoryName(
+                    category
+                );
+
+
+            categorySection.appendChild(
+                categoryTitle
+            );
+
+
+            weapons.forEach(
+                weapon => {
+
+                    const weaponElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    weaponElement.className =
+                        "armamentItem";
+
+
+                    const weaponName =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    weaponName.className =
+                        "armamentName";
+
+
+                    weaponName.textContent =
+                        weapon.name;
+
+
+                    const description =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    description.className =
+                        "armamentDescription";
+
+
+                    description.textContent =
+                        weapon.description;
+
+
+                    weaponElement.appendChild(
+                        weaponName
+                    );
+
+                    weaponElement.appendChild(
+                        description
+                    );
+
+
+                    categorySection.appendChild(
+                        weaponElement
+                    );
+                }
+            );
+
+
+            container.appendChild(
+                categorySection
+            );
+        }
+    );
+}
+
+
+// ============================================================
+// FORMAT CATEGORY NAME
+// ============================================================
+
+function formatCategoryName(
+    category
+) {
+
+    return category
+        .charAt(0)
+        .toUpperCase() +
+        category.slice(1);
 }
 
 
