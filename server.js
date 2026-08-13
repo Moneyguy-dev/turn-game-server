@@ -92,6 +92,7 @@ async function saveGameStateToGitHub(gameState) {
     }
 
     const payload = {
+
         message:
             "Update game state",
 
@@ -100,7 +101,9 @@ async function saveGameStateToGitHub(gameState) {
     };
 
     if (sha) {
-        payload.sha = sha;
+
+        payload.sha =
+            sha;
     }
 
     await axios.put(
@@ -108,6 +111,7 @@ async function saveGameStateToGitHub(gameState) {
         payload,
         {
             headers: {
+
                 Authorization:
                     `token ${token}`,
 
@@ -151,6 +155,7 @@ async function loadGameStateFromGitHub() {
                 apiUrl,
                 {
                     headers: {
+
                         Authorization:
                             `token ${token}`
                     }
@@ -227,6 +232,14 @@ function getGame(gameId) {
 
                 blue: false
             },
+
+            /*
+             * All moves made during the
+             * current turn are stored here.
+             *
+             * Players can make MULTIPLE
+             * moves before submitting.
+             */
 
             pendingMoves: []
         };
@@ -469,8 +482,10 @@ function applyMoveToBoard(
         !move ||
         move.init
     ) {
+
         return;
     }
+
 
     const {
         from,
@@ -496,7 +511,7 @@ function applyMoveToBoard(
             move
         );
 
-        return;
+        return false;
     }
 
 
@@ -520,7 +535,7 @@ function applyMoveToBoard(
             move
         );
 
-        return;
+        return false;
     }
 
 
@@ -550,7 +565,7 @@ function applyMoveToBoard(
             move
         );
 
-        return;
+        return false;
     }
 
 
@@ -568,7 +583,7 @@ function applyMoveToBoard(
             move
         );
 
-        return;
+        return false;
     }
 
 
@@ -592,6 +607,9 @@ function applyMoveToBoard(
         `from ${from.r},${from.c} ` +
         `to ${to.r},${to.c}`
     );
+
+
+    return true;
 }
 
 
@@ -617,7 +635,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Missing gameId"
                     });
@@ -632,7 +652,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Invalid playerId"
                     });
@@ -644,7 +666,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Missing move"
                     });
@@ -672,8 +696,13 @@ app.post(
 
 
             /*
-             * Don't allow additional moves
-             * after this player has submitted.
+             * IMPORTANT:
+             *
+             * A player being locked means
+             * they have pressed SUBMIT.
+             *
+             * Simply making a move does NOT
+             * lock the player anymore.
              */
 
             if (
@@ -683,7 +712,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             `${playerId} has already submitted this turn`
                     });
@@ -691,7 +722,33 @@ app.post(
 
 
             /*
+             * Make sure the submitted move
+             * belongs to the player making it.
+             */
+
+            if (
+                move.team !== playerId
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        status: "error",
+
+                        message:
+                            "You can only move your own units."
+                    });
+            }
+
+
+            /*
              * Store the move.
+             *
+             * DO NOT lock the player here.
+             *
+             * This is what allows multiple
+             * moves during one turn.
              */
 
             game.pendingMoves.push({
@@ -708,14 +765,6 @@ app.post(
 
                 move
             });
-
-
-            /*
-             * Mark this player as submitted.
-             */
-
-            game.turnLocked[playerId] =
-                true;
 
 
             /*
@@ -737,6 +786,12 @@ app.post(
             }
 
 
+            /*
+             * Tell the client the move was
+             * accepted but the player is
+             * still allowed to make more moves.
+             */
+
             res.json({
 
                 status: "ok",
@@ -745,7 +800,10 @@ app.post(
                     "Move stored",
 
                 turnLocked:
-                    game.turnLocked
+                    game.turnLocked,
+
+                pendingMoves:
+                    game.pendingMoves.length
             });
 
         } catch (error) {
@@ -758,7 +816,9 @@ app.post(
             res
                 .status(500)
                 .json({
+
                     status: "error",
+
                     message:
                         "Internal server error"
                 });
@@ -788,7 +848,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Missing gameId"
                     });
@@ -803,7 +865,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Invalid playerId"
                     });
@@ -813,6 +877,10 @@ app.post(
             const game =
                 getGame(gameId);
 
+
+            /*
+             * Don't allow submitting twice.
+             */
 
             if (
                 game.turnLocked[playerId]
@@ -831,9 +899,21 @@ app.post(
             }
 
 
+            /*
+             * Lock this player.
+             *
+             * Their pending moves remain
+             * stored until Continue resolves
+             * the turn.
+             */
+
             game.turnLocked[playerId] =
                 true;
 
+
+            /*
+             * Save state.
+             */
 
             try {
 
@@ -858,7 +938,10 @@ app.post(
                     `${playerId} submitted turn`,
 
                 turnLocked:
-                    game.turnLocked
+                    game.turnLocked,
+
+                pendingMoves:
+                    game.pendingMoves.length
             });
 
         } catch (error) {
@@ -871,7 +954,9 @@ app.post(
             res
                 .status(500)
                 .json({
+
                     status: "error",
+
                     message:
                         "Internal server error"
                 });
@@ -900,7 +985,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Missing gameId"
                     });
@@ -935,9 +1022,13 @@ app.post(
                 game.pendingMoves.length > 0
             ) {
 
+                const pendingMoves =
+                    [...game.pendingMoves];
+
+
                 for (
                     const entry
-                    of game.pendingMoves
+                    of pendingMoves
                 ) {
 
                     applyMoveToBoard(
@@ -952,7 +1043,8 @@ app.post(
              * Clear pending moves.
              */
 
-            game.pendingMoves = [];
+            game.pendingMoves =
+                [];
 
 
             /*
@@ -1009,7 +1101,10 @@ app.post(
                     game.turnLocked,
 
                 currentTurnPlayer:
-                    game.currentTurnPlayer
+                    game.currentTurnPlayer,
+
+                pendingMoves:
+                    0
             });
 
         } catch (error) {
@@ -1022,7 +1117,9 @@ app.post(
             res
                 .status(500)
                 .json({
+
                     status: "error",
+
                     message:
                         "Internal server error"
                 });
@@ -1051,7 +1148,9 @@ app.post(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Missing gameId"
                     });
@@ -1130,7 +1229,16 @@ app.post(
                 status: "ok",
 
                 message:
-                    "Game reset with units at FOBs"
+                    "Game reset with units at FOBs",
+
+                board:
+                    game.board,
+
+                turnLocked:
+                    game.turnLocked,
+
+                currentTurnPlayer:
+                    game.currentTurnPlayer
             });
 
         } catch (error) {
@@ -1143,7 +1251,9 @@ app.post(
             res
                 .status(500)
                 .json({
+
                     status: "error",
+
                     message:
                         "Internal server error"
                 });
@@ -1171,7 +1281,9 @@ app.get(
                 return res
                     .status(400)
                     .json({
+
                         status: "error",
+
                         message:
                             "Missing gameId"
                     });
@@ -1199,6 +1311,22 @@ app.get(
 
 
             /*
+             * Make sure older saved games
+             * have pendingMoves.
+             */
+
+            if (
+                !Array.isArray(
+                    game.pendingMoves
+                )
+            ) {
+
+                game.pendingMoves =
+                    [];
+            }
+
+
+            /*
              * Only send information that
              * clients actually need.
              */
@@ -1215,7 +1343,10 @@ app.get(
                     game.turnLocked,
 
                 currentTurnPlayer:
-                    game.currentTurnPlayer
+                    game.currentTurnPlayer,
+
+                pendingMoves:
+                    game.pendingMoves.length
             };
 
 
@@ -1233,7 +1364,9 @@ app.get(
             res
                 .status(500)
                 .json({
+
                     status: "error",
+
                     message:
                         "Internal server error"
                 });
@@ -1253,6 +1386,7 @@ app.get(
         const saved =
             await loadGameStateFromGitHub();
 
+
         if (saved) {
 
             games =
@@ -1260,6 +1394,43 @@ app.get(
 
             console.log(
                 "✔ Saved games loaded"
+            );
+
+
+            /*
+             * Compatibility for games saved
+             * before pendingMoves existed.
+             */
+
+            Object.values(
+                games
+            ).forEach(
+                game => {
+
+                    if (
+                        !Array.isArray(
+                            game.pendingMoves
+                        )
+                    ) {
+
+                        game.pendingMoves =
+                            [];
+                    }
+
+
+                    if (
+                        !game.turnLocked
+                    ) {
+
+                        game.turnLocked = {
+
+                            red: false,
+
+                            blue: false
+                        };
+                    }
+
+                }
             );
 
         } else {
