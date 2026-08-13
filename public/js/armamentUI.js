@@ -129,10 +129,6 @@ function createMenu() {
 
     menu.innerHTML = `
 
-        <!-- ==================================================
-             HEADER
-        =================================================== -->
-
         <div class="armament-header">
 
             <div class="armament-title">
@@ -151,18 +147,14 @@ function createMenu() {
         </div>
 
 
-        <!-- ==================================================
-             MAIN THREE-PANEL AREA
-        =================================================== -->
-
         <div class="armament-body">
 
 
-            <!-- ==============================================
+            <!-- =================================================
                  LEFT — UNITS
-            =============================================== -->
+            ================================================== -->
 
-            <section class="armament-panel armament-units-panel">
+            <section class="armament-panel">
 
                 <div class="armament-panel-header">
 
@@ -190,12 +182,11 @@ function createMenu() {
             </section>
 
 
-            <!-- ==============================================
-                 CENTER — SELECTED ARMAMENT / ACTION
-            =============================================== -->
+            <!-- =================================================
+                 CENTER — SELECTION
+            ================================================== -->
 
             <section class="armament-center">
-
 
                 <div class="armament-center-content">
 
@@ -284,11 +275,11 @@ function createMenu() {
             </section>
 
 
-            <!-- ==============================================
+            <!-- =================================================
                  RIGHT — ARMAMENTS
-            =============================================== -->
+            ================================================== -->
 
-            <section class="armament-panel armament-list-panel">
+            <section class="armament-panel">
 
                 <div class="armament-panel-header">
 
@@ -314,6 +305,7 @@ function createMenu() {
                 </div>
 
             </section>
+
 
         </div>
 
@@ -542,7 +534,7 @@ function renderUnits() {
 
                 <div class="armament-unit-location">
 
-                    Position:
+                    POSITION
                     ${r}, ${c}
 
                 </div>
@@ -571,7 +563,9 @@ function renderUnits() {
                     selectedArmament = null;
 
                     renderUnits();
+
                     renderArmaments();
+
                     renderCenter();
                 };
 
@@ -614,8 +608,10 @@ function renderArmaments() {
     if (!selectedUnit) {
 
         if (count) {
-            count.textContent = "—";
+            count.textContent =
+                "—";
         }
+
 
         list.innerHTML = `
             <div class="armament-empty">
@@ -624,9 +620,7 @@ function renderArmaments() {
                     SELECT A UNIT
                 </div>
 
-                <div>
-                    Compatible armaments will appear here.
-                </div>
+                Compatible armaments will appear here.
 
             </div>
         `;
@@ -793,7 +787,7 @@ function renderArmaments() {
 
 
 // ============================================================
-// CENTER
+// RENDER CENTER
 // ============================================================
 
 function renderCenter() {
@@ -880,10 +874,11 @@ function renderCenter() {
             "Choose an armament from the right.";
 
 
-        loadout.innerHTML =
-            `<span class="armament-none-loaded">
+        loadout.innerHTML = `
+            <span class="armament-none-loaded">
                 NONE
-            </span>`;
+            </span>
+        `;
 
 
         action.disabled =
@@ -927,7 +922,7 @@ function renderCenter() {
 
 
     // ========================================================
-    // UNIT DISPLAY
+    // UNIT
     // ========================================================
 
     unitDisplay.textContent =
@@ -1047,11 +1042,18 @@ function renderCenter() {
 
 
     // ========================================================
-    // ARMAMENT DISPLAY
+    // SELECTED ARMAMENT
     // ========================================================
 
     armamentDisplay.textContent =
         selectedArmament.name;
+
+
+    const available =
+        getAvailableArmamentCount(
+            unit.team,
+            selectedArmament
+        );
 
 
     armamentInfo.innerHTML = `
@@ -1070,12 +1072,7 @@ function renderCenter() {
 
         <div>
             AVAILABLE:
-            ${
-                getAvailableArmamentCount(
-                    unit.team,
-                    selectedArmament
-                )
-            }/${selectedArmament.maxOnField}
+            ${available}/${selectedArmament.maxOnField}
         </div>
 
     `;
@@ -1144,7 +1141,7 @@ function renderCenter() {
 
 
 // ============================================================
-// ACTION
+// PERFORM LOAD / UNLOAD
 // ============================================================
 
 async function performArmamentAction() {
@@ -1242,9 +1239,7 @@ async function performArmamentAction() {
 // CATEGORY DISPLAY
 // ============================================================
 
-function formatCategory(
-    category
-) {
+function formatCategory(category) {
 
     if (
         category === "air"
@@ -1294,7 +1289,7 @@ function addArmamentStyles() {
     style.textContent = `
 
         /* =====================================================
-           FULL ARMAMENT MENU
+           MAIN MENU
         ====================================================== */
 
         #armamentMenu {
@@ -1430,9 +1425,6 @@ function addArmamentStyles() {
             font-size:
                 28px;
 
-            line-height:
-                35px;
-
             cursor:
                 pointer;
         }
@@ -1446,7 +1438,7 @@ function addArmamentStyles() {
 
 
         /* =====================================================
-           THREE PANEL BODY
+           THREE PANELS
         ====================================================== */
 
         .armament-body {
@@ -1473,10 +1465,6 @@ function addArmamentStyles() {
         }
 
 
-        /* =====================================================
-           LEFT + RIGHT PANELS
-        ====================================================== */
-
         .armament-panel {
 
             min-width:
@@ -1495,6 +1483,10 @@ function addArmamentStyles() {
                 #181818;
         }
 
+
+        /* =====================================================
+           PANEL HEADERS
+        ====================================================== */
 
         .armament-panel-header {
 
@@ -1572,7 +1564,7 @@ function addArmamentStyles() {
 
 
         /* =====================================================
-           INDEPENDENT SCROLLING
+           SCROLLING
         ====================================================== */
 
         .armament-scroll {
@@ -1657,11 +1649,6 @@ function addArmamentStyles() {
 
             text-align:
                 left;
-
-            transition:
-                background 0.15s,
-                border 0.15s,
-                transform 0.1s;
         }
 
 
@@ -1672,13 +1659,6 @@ function addArmamentStyles() {
 
             border-color:
                 #666;
-        }
-
-
-        .armament-unit-button:active {
-
-            transform:
-                scale(0.99);
         }
 
 
@@ -1765,7 +1745,7 @@ function addArmamentStyles() {
 
 
         /* =====================================================
-           RIGHT ARMAMENT BUTTONS
+           ARMAMENT BUTTONS
         ====================================================== */
 
         .armament-button {
@@ -1857,16 +1837,10 @@ function addArmamentStyles() {
 
             font-weight:
                 bold;
-
-            line-height:
-                1.3;
         }
 
 
         .armament-loaded-badge {
-
-            flex-shrink:
-                0;
 
             padding:
                 3px 6px;
@@ -1904,9 +1878,6 @@ function addArmamentStyles() {
 
             font-size:
                 10px;
-
-            text-transform:
-                uppercase;
         }
 
 
@@ -2080,9 +2051,6 @@ function addArmamentStyles() {
 
             font-weight:
                 bold;
-
-            line-height:
-                1.3;
         }
 
 
@@ -2200,7 +2168,7 @@ function addArmamentStyles() {
 
 
         /* =====================================================
-           CURRENT LOADOUT
+           LOADOUT
         ====================================================== */
 
         .armament-loadout-title {

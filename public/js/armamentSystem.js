@@ -9,14 +9,12 @@ import {
 } from "./grid.js";
 
 import {
-    armaments,
     getArmament,
     getArmamentsForTeam,
     getUnitCombatData
 } from "./armaments.js";
 
 import {
-    getPlayerId,
     saveArmamentLoadout
 } from "./server.js";
 
@@ -46,29 +44,34 @@ export function getUnitsForTeam(team) {
                 board[r]?.[c] || [];
 
 
-            stack.forEach(unit => {
-
-                if (
-                    unit.team === team
-                ) {
+            stack.forEach(
+                unit => {
 
                     if (
-                        !Array.isArray(
-                            unit.armaments
-                        )
+                        unit.team === team
                     ) {
 
-                        unit.armaments = [];
+                        if (
+                            !Array.isArray(
+                                unit.armaments
+                            )
+                        ) {
+
+                            unit.armaments = [];
+                        }
+
+
+                        result.push({
+
+                            unit,
+
+                            r,
+
+                            c
+                        });
                     }
-
-
-                    result.push({
-                        unit,
-                        r,
-                        c
-                    });
                 }
-            });
+            );
         }
     }
 
@@ -189,20 +192,26 @@ export function countTeamArmament(
 
 
     const units =
-        getUnitsForTeam(team);
+        getUnitsForTeam(
+            team
+        );
 
 
-    units.forEach(({ unit }) => {
+    units.forEach(
+        ({ unit }) => {
 
-        ensureUnitLoadout(unit);
+            ensureUnitLoadout(
+                unit
+            );
 
 
-        count +=
-            unit.armaments.filter(
-                id =>
-                    id === armamentId
-            ).length;
-    });
+            count +=
+                unit.armaments.filter(
+                    id =>
+                        id === armamentId
+                ).length;
+        }
+    );
 
 
     return count;
@@ -246,7 +255,9 @@ export function unitHasArmament(
     armamentId
 ) {
 
-    ensureUnitLoadout(unit);
+    ensureUnitLoadout(
+        unit
+    );
 
 
     return unit.armaments.includes(
@@ -310,11 +321,15 @@ export function canLoadArmament(
 
 
     const capacity =
-        getUnitCapacity(unit);
+        getUnitCapacity(
+            unit
+        );
 
 
     const current =
-        ensureUnitLoadout(unit).length;
+        ensureUnitLoadout(
+            unit
+        ).length;
 
 
     if (
@@ -394,7 +409,9 @@ export async function loadArmament(
     }
 
 
-    ensureUnitLoadout(unit);
+    ensureUnitLoadout(
+        unit
+    );
 
 
     unit.armaments.push(
@@ -404,7 +421,9 @@ export async function loadArmament(
 
     try {
 
-        await saveArmamentLoadout(unit);
+        await saveArmamentLoadout(
+            unit
+        );
 
     } catch (error) {
 
@@ -442,7 +461,9 @@ export async function unloadArmament(
     }
 
 
-    ensureUnitLoadout(unit);
+    ensureUnitLoadout(
+        unit
+    );
 
 
     const index =
@@ -469,7 +490,9 @@ export async function unloadArmament(
 
     try {
 
-        await saveArmamentLoadout(unit);
+        await saveArmamentLoadout(
+            unit
+        );
 
     } catch (error) {
 
@@ -542,57 +565,67 @@ export function getUnitCombatPower(unit) {
         0;
 
 
-    ensureUnitLoadout(unit);
+    ensureUnitLoadout(
+        unit
+    );
 
 
-    unit.armaments.forEach(id => {
+    unit.armaments.forEach(
+        id => {
 
-        const armament =
-            getArmament(id);
+            const armament =
+                getArmament(
+                    id
+                );
 
 
-        if (!armament) {
-            return;
+            if (!armament) {
+                return;
+            }
+
+
+            if (
+                armament.category ===
+                "air"
+            ) {
+
+                air +=
+                    armament.combatPower;
+            }
+
+
+            else if (
+                armament.category ===
+                "ground"
+            ) {
+
+                ground +=
+                    armament.combatPower;
+            }
+
+
+            else if (
+                armament.category ===
+                "both"
+            ) {
+
+                air +=
+                    armament.combatPower;
+
+                ground +=
+                    armament.combatPower;
+            }
         }
-
-
-        if (
-            armament.category ===
-            "air"
-        ) {
-
-            air +=
-                armament.combatPower;
-        }
-
-
-        else if (
-            armament.category ===
-            "ground"
-        ) {
-
-            ground +=
-                armament.combatPower;
-        }
-
-
-        else if (
-            armament.category ===
-            "both"
-        ) {
-
-            air +=
-                armament.combatPower;
-
-            ground +=
-                armament.combatPower;
-        }
-    });
+    );
 
 
     return {
+
         air,
+
         ground,
-        total: air + ground
+
+        total:
+            air + ground
     };
 }
