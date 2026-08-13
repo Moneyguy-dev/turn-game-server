@@ -1,12 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
     <title>Blue Forces</title>
 
-    <link rel="stylesheet" href="/styles.css">
+    <link
+        rel="stylesheet"
+        href="/styles.css">
+
 </head>
 
 <body>
@@ -18,7 +26,9 @@
         ============================ -->
 
         <div id="mapContainer">
+
             <div id="gameBoard"></div>
+
         </div>
 
 
@@ -28,15 +38,21 @@
 
         <div id="mapToolsStrip">
 
-            <button id="zoomIn" class="mapToolBtn">
+            <button
+                id="zoomIn"
+                class="mapToolBtn">
                 Zoom +
             </button>
 
-            <button id="zoomOut" class="mapToolBtn">
+            <button
+                id="zoomOut"
+                class="mapToolBtn">
                 Zoom −
             </button>
 
-            <button id="zoomUnits" class="mapToolBtn">
+            <button
+                id="zoomUnits"
+                class="mapToolBtn">
                 Zoom to Units
             </button>
 
@@ -64,6 +80,107 @@
             </div>
 
             <div id="unitList"></div>
+
+        </div>
+
+
+        <!-- ============================
+             ARMAMENTS PANEL
+        ============================ -->
+
+        <div id="armamentsPanel">
+
+            <div class="sidePanelHeader">
+
+                <span id="armamentsPanelTitle">
+                    Armaments
+                </span>
+
+                <button
+                    id="closeArmamentsPanel"
+                    class="closePanelBtn">
+                    ×
+                </button>
+
+            </div>
+
+            <div id="armamentsList">
+
+                <div class="armamentCategory">
+
+                    <div class="armamentCategoryTitle">
+                        Air
+                    </div>
+
+                    <div class="armamentItem">
+
+                        <div class="armamentName">
+                            Air-to-Air Missiles
+                        </div>
+
+                        <div class="armamentDescription">
+                            Weapons carried by fighter aircraft.
+                        </div>
+
+                    </div>
+
+                    <div class="armamentItem">
+
+                        <div class="armamentName">
+                            Air-to-Ground Weapons
+                        </div>
+
+                        <div class="armamentDescription">
+                            Weapons used against ground targets.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="armamentCategory">
+
+                    <div class="armamentCategoryTitle">
+                        Naval
+                    </div>
+
+                    <div class="armamentItem">
+
+                        <div class="armamentName">
+                            Anti-Ship Missiles
+                        </div>
+
+                        <div class="armamentDescription">
+                            Weapons used against naval targets.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="armamentCategory">
+
+                    <div class="armamentCategoryTitle">
+                        Ground
+                    </div>
+
+                    <div class="armamentItem">
+
+                        <div class="armamentName">
+                            Ground-Based Weapons
+                        </div>
+
+                        <div class="armamentDescription">
+                            Weapons available to ground forces.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -166,4 +283,5 @@
     </script>
 
 </body>
+
 </html>
