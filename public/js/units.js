@@ -2,11 +2,14 @@ import {
     board,
     rows,
     cols,
-    gameBoard
+    gameBoard,
+    startHexes
 } from "./grid.js";
 
 import {
-    getValidMoves
+    getValidMoves,
+    isFobHex,
+    getFobTeamAt
 } from "./fob.js";
 
 import {
@@ -31,7 +34,7 @@ export const MAX_UNITS_PER_HEX = 4;
 
 
 /* ============================
-   INITIALIZE UNITS
+   INITIALIZE
 ============================ */
 
 export function initUnits() {
@@ -41,15 +44,293 @@ export function initUnits() {
 
 
 /* ============================
-   CHECK IF HEX IS VALID MOVE
+   PANEL ELEMENTS
 ============================ */
 
-function isValidMove(r, c) {
+function getPanel() {
 
-    return validMoves.some(
-        ([vr, vc]) =>
-            vr === r &&
-            vc === c
+    return document.getElementById(
+        "unitPanel"
+    );
+}
+
+
+function getPanelTitle() {
+
+    return document.getElementById(
+        "unitPanelTitle"
+    );
+}
+
+
+function getUnitList() {
+
+    return document.getElementById(
+        "unitList"
+    );
+}
+
+
+/* ============================
+   OPEN UNIT PANEL
+============================ */
+
+export function openUnitPanel(
+    title,
+    units,
+    mode = "hex"
+) {
+
+    const panel =
+        getPanel();
+
+    const titleElement =
+        getPanelTitle();
+
+    const list =
+        getUnitList();
+
+
+    if (
+        !panel ||
+        !titleElement ||
+        !list
+    ) {
+
+        console.error(
+            "Unit panel elements not found."
+        );
+
+        return;
+    }
+
+
+    titleElement.textContent =
+        title;
+
+
+    list.innerHTML = "";
+
+
+    if (
+        !units ||
+        units.length === 0
+    ) {
+
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+        empty.className =
+            "unitPanelEmpty";
+
+        empty.textContent =
+            "No units available.";
+
+        list.appendChild(
+            empty
+        );
+
+    } else {
+
+        units.forEach(
+            (unit, index) => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.className =
+                    `panel-unit ${unit.team}`;
+
+
+                button.type =
+                    "button";
+
+
+                button.textContent =
+                    unit.type;
+
+
+                const info =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                info.className =
+                    "panel-unit-move";
+
+
+                info.textContent =
+                    `Move ${unit.move}`;
+
+
+                button.appendChild(
+                    info
+                );
+
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        selectUnitFromPanel(
+                            unit,
+                            mode
+                        );
+                    }
+                );
+
+
+                if (
+                    selectedUnit &&
+                    selectedUnit.unit === unit
+                ) {
+
+                    button.classList.add(
+                        "selected"
+                    );
+                }
+
+
+                list.appendChild(
+                    button
+                );
+            }
+        );
+    }
+
+
+    panel.classList.add(
+        "open"
+    );
+}
+
+
+/* ============================
+   CLOSE PANEL
+============================ */
+
+export function closeUnitPanel() {
+
+    const panel =
+        getPanel();
+
+
+    if (panel) {
+
+        panel.classList.remove(
+            "open"
+        );
+    }
+}
+
+
+/* ============================
+   SELECT UNIT FROM PANEL
+============================ */
+
+function selectUnitFromPanel(
+    unit,
+    mode
+) {
+
+    /*
+     * Find where this unit currently
+     * exists on the board.
+     */
+
+    let location = null;
+
+
+    for (
+        let r = 0;
+        r < rows;
+        r++
+    ) {
+
+        for (
+            let c = 0;
+            c < cols;
+            c++
+        ) {
+
+            if (
+                board[r][c].includes(
+                    unit
+                )
+            ) {
+
+                location = {
+                    r,
+                    c
+                };
+
+                break;
+            }
+        }
+
+
+        if (location) {
+            break;
+        }
+    }
+
+
+    if (!location) {
+
+        console.error(
+            "Could not find selected unit on board."
+        );
+
+        return;
+    }
+
+
+    selectedUnit = {
+
+        r: location.r,
+
+        c: location.c,
+
+        unit,
+
+        fromFob:
+            isFobHex(
+                location.r,
+                location.c
+            )
+    };
+
+
+    validMoves =
+        getValidMoves(
+            location.r,
+            location.c,
+            unit.move
+        );
+
+
+    /*
+     * Close the panel after selecting.
+     * The map is now the focus.
+     */
+
+    closeUnitPanel();
+
+
+    updateBoard();
+
+
+    console.log(
+        "Selected:",
+        unit.type,
+        "at",
+        location
     );
 }
 
@@ -64,10 +345,12 @@ export function updateBoard() {
         return;
     }
 
+
     const wrappers =
         gameBoard.children;
 
-    let i = 0;
+
+    let index = 0;
 
 
     for (
@@ -83,7 +366,7 @@ export function updateBoard() {
         ) {
 
             const wrapper =
-                wrappers[i++];
+                wrappers[index++];
 
 
             if (!wrapper) {
@@ -92,7 +375,9 @@ export function updateBoard() {
 
 
             const hex =
-                wrapper.querySelector(".hex");
+                wrapper.querySelector(
+                    ".hex"
+                );
 
 
             if (!hex) {
@@ -100,22 +385,31 @@ export function updateBoard() {
             }
 
 
-            /* ============================
-               CLEAR HEX
-            ============================ */
+            /*
+             * Clear previous contents.
+             */
 
             hex.innerHTML = "";
+
+
+            /*
+             * Normal background.
+             */
 
             hex.style.background =
                 "#333";
 
 
-            /* ============================
-               VALID MOVE HIGHLIGHT
-            ============================ */
+            /*
+             * Movement highlight.
+             */
 
             if (
-                isValidMove(r, c)
+                validMoves.some(
+                    ([vr, vc]) =>
+                        vr === r &&
+                        vc === c
+                )
             ) {
 
                 hex.style.background =
@@ -123,28 +417,27 @@ export function updateBoard() {
             }
 
 
-            /* ============================
-               HEX CLICK
-            ============================ */
-
             /*
-             * Remove the old listener by
-             * replacing the wrapper.
-             *
-             * Instead, use onclick so that
-             * updateBoard can safely replace
-             * the current handler.
+             * Hex click.
              */
 
-            wrapper.onclick = () => {
+            wrapper.onclick =
+                () => {
 
-                onHexClick(r, c);
-            };
+                    onHexClick(
+                        r,
+                        c
+                    );
+                };
 
 
-            /* ============================
-               UNITS ON HEX
-            ============================ */
+            /*
+             * Don't display units
+             * inside FOB hexes.
+             *
+             * Don't display individual
+             * units anywhere on the map.
+             */
 
             const stack =
                 board[r][c];
@@ -155,145 +448,136 @@ export function updateBoard() {
                 stack.length > 0
             ) {
 
-                const wrap =
+                /*
+                 * Create unit count.
+                 */
+
+                const count =
                     document.createElement(
                         "div"
                     );
 
 
-                wrap.className =
-                    "unit-stack";
+                count.className =
+                    "unit-count";
 
 
-                stack.forEach(
-                    (u) => {
-
-                        const d =
-                            document.createElement(
-                                "div"
-                            );
+                count.textContent =
+                    stack.length;
 
 
-                        d.className =
-                            `unit ${u.team}`;
+                /*
+                 * Color the indicator
+                 * based on the first unit.
+                 */
+
+                const firstUnit =
+                    stack[0];
 
 
-                        d.textContent =
-                            u.type;
+                if (
+                    firstUnit
+                ) {
+
+                    count.classList.add(
+                        firstUnit.team
+                    );
+                }
 
 
-                        /*
-                         * Prevent clicking a unit
-                         * from also clicking its hex.
-                         */
+                /*
+                 * Mark FOB counts.
+                 */
 
-                        d.addEventListener(
-                            "click",
-                            (e) => {
+                if (
+                    isFobHex(r, c)
+                ) {
 
-                                e.stopPropagation();
-
-                                onUnitClick(
-                                    r,
-                                    c,
-                                    u
-                                );
-                            }
-                        );
-
-
-                        /* ============================
-                           SELECTED UNIT OUTLINE
-                        ============================ */
-
-                        if (
-                            selectedUnit &&
-                            selectedUnit.unit === u &&
-                            !selectedUnit.fromFob
-                        ) {
-
-                            d.style.outline =
-                                "2px solid yellow";
-
-                            d.style.outlineOffset =
-                                "1px";
-                        }
-
-
-                        wrap.appendChild(d);
-                    }
-                );
+                    count.classList.add(
+                        "fob-count"
+                    );
+                }
 
 
                 hex.appendChild(
-                    wrap
+                    count
                 );
+            }
 
-            } else {
 
-                /*
-                 * Only show coordinates when
-                 * there is no unit.
-                 */
+            /*
+             * Show FOB label.
+             */
 
-                hex.textContent =
-                    `${r},${c}`;
+            if (
+                isFobHex(r, c)
+            ) {
+
+                const team =
+                    getFobTeamAt(
+                        r,
+                        c
+                    );
+
+
+                const label =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                label.className =
+                    `fob-label ${team}`;
+
+
+                label.textContent =
+                    team === "blue"
+                        ? "FOB"
+                        : "FOB";
+
+
+                hex.appendChild(
+                    label
+                );
             }
         }
     }
+
+
+    /*
+     * Re-render selected outline
+     * through movement highlighting.
+     */
+
+    highlightSelectedUnitHex();
 }
 
 
 /* ============================
-   UNIT CLICK
+   SELECTED HEX VISUAL
 ============================ */
 
-export function onUnitClick(
-    r,
-    c,
-    unit
-) {
+function highlightSelectedUnitHex() {
 
-    /*
-     * Only allow selecting a unit if
-     * the player owns it.
-     *
-     * Spectators/admin can still be
-     * adjusted later if desired.
-     */
-
-    selectedUnit = {
-        r,
-        c,
-        unit,
-        fromFob: false
-    };
+    if (!selectedUnit) {
+        return;
+    }
 
 
-    /*
-     * Calculate movement range.
-     */
-
-    validMoves =
-        getValidMoves(
-            r,
-            c,
-            unit.move
+    const wrapper =
+        document.querySelector(
+            `.hex-wrapper[data-row="${selectedUnit.r}"][data-col="${selectedUnit.c}"]`
         );
 
 
-    console.log(
-        "Selected unit:",
-        unit.type
-    );
+    if (
+        wrapper
+    ) {
 
-    console.log(
-        "Valid moves:",
-        validMoves
-    );
-
-
-    updateBoard();
+        wrapper.classList.add(
+            "selected-hex"
+        );
+    }
 }
 
 
@@ -301,28 +585,44 @@ export function onUnitClick(
    HEX CLICK
 ============================ */
 
-export async function onHexClick(
+export function onHexClick(
     r,
     c
 ) {
 
+    const stack =
+        board[r][c] || [];
+
+
     /*
-     * Nothing selected.
+     * If a unit is currently selected,
+     * clicking a valid movement hex
+     * moves the unit.
      */
 
-    if (!selectedUnit) {
+    if (
+        selectedUnit &&
+        isValidMove(r, c)
+    ) {
+
+        moveSelectedUnit(
+            r,
+            c
+        );
+
         return;
     }
 
 
     /*
-     * Clicking the current hex cancels
-     * the selection.
+     * Clicking the selected hex again
+     * cancels selection.
      */
 
     if (
-        r === selectedUnit.r &&
-        c === selectedUnit.c
+        selectedUnit &&
+        selectedUnit.r === r &&
+        selectedUnit.c === c
     ) {
 
         clearSelection();
@@ -332,23 +632,74 @@ export async function onHexClick(
 
 
     /*
-     * Make sure destination is allowed.
+     * Clicking a hex containing units
+     * opens the selection panel.
      */
 
     if (
-        !isValidMove(r, c)
+        stack.length > 0
     ) {
 
-        console.log(
-            "Invalid movement hex"
+        const title =
+            isFobHex(r, c)
+                ? `${getFobTeamAt(r, c).toUpperCase()} FOB`
+                : `UNITS AT ${r}, ${c}`;
+
+
+        openUnitPanel(
+            title,
+            stack,
+            isFobHex(r, c)
+                ? "fob"
+                : "hex"
         );
+
 
         return;
     }
 
 
     /*
-     * Prevent overstacking.
+     * Empty hex with nothing selected.
+     */
+
+    clearSelection();
+}
+
+
+/* ============================
+   CHECK VALID MOVE
+============================ */
+
+function isValidMove(
+    r,
+    c
+) {
+
+    return validMoves.some(
+        ([vr, vc]) =>
+            vr === r &&
+            vc === c
+    );
+}
+
+
+/* ============================
+   MOVE SELECTED UNIT
+============================ */
+
+export async function moveSelectedUnit(
+    r,
+    c
+) {
+
+    if (!selectedUnit) {
+        return;
+    }
+
+
+    /*
+     * Don't allow overstacking.
      */
 
     if (
@@ -370,21 +721,19 @@ export async function onHexClick(
     const fromC =
         selectedUnit.c;
 
+
     const unit =
         selectedUnit.unit;
 
-
-    /*
-     * Make sure the unit still exists
-     * on its original hex.
-     */
 
     const fromStack =
         board[fromR][fromC];
 
 
     const unitIndex =
-        fromStack.indexOf(unit);
+        fromStack.indexOf(
+            unit
+        );
 
 
     if (
@@ -392,7 +741,7 @@ export async function onHexClick(
     ) {
 
         console.error(
-            "Selected unit could not be found on the board."
+            "Selected unit is no longer at its original location."
         );
 
         clearSelection();
@@ -401,23 +750,9 @@ export async function onHexClick(
     }
 
 
-    /* ============================
-       MOVE LOCALLY
-    ============================ */
-
-    fromStack.splice(
-        unitIndex,
-        1
-    );
-
-
-    board[r][c].push(
-        unit
-    );
-
-
     /*
-     * Save movement payload.
+     * Build server move before
+     * changing the board.
      */
 
     const movePayload = {
@@ -432,35 +767,53 @@ export async function onHexClick(
             c
         },
 
-        unit: unit.type,
+        unit:
+            unit.type,
 
-        team: unit.team
+        team:
+            unit.team
     };
 
 
-    console.log(
-        "Move:",
-        movePayload
+    /*
+     * Move locally.
+     */
+
+    fromStack.splice(
+        unitIndex,
+        1
+    );
+
+
+    board[r][c].push(
+        unit
     );
 
 
     /*
-     * Clear selection before sending.
+     * Clear selection.
      */
 
-    clearSelection();
+    selectedUnit =
+        null;
+
+    validMoves =
+        [];
+
+
+    closeUnitPanel();
 
 
     /*
-     * Update the screen immediately.
+     * Update immediately.
      */
 
     updateBoard();
 
 
-    /* ============================
-       SEND MOVE TO SERVER
-    ============================ */
+    /*
+     * Send to server.
+     */
 
     try {
 
@@ -468,21 +821,22 @@ export async function onHexClick(
             movePayload
         );
 
+
         console.log(
-            "Move successfully submitted."
+            "Move submitted:",
+            movePayload
         );
 
     } catch (error) {
 
         console.error(
-            "Failed to submit move:",
+            "Move submission failed:",
             error
         );
 
 
         /*
-         * Undo the local move if the
-         * server rejected the request.
+         * Undo local move.
          */
 
         const destinationStack =
@@ -515,7 +869,7 @@ export async function onHexClick(
 
 
         alert(
-            "The move could not be submitted to the server."
+            "The move could not be submitted."
         );
     }
 }
@@ -532,6 +886,10 @@ export function clearSelection() {
 
     validMoves =
         [];
+
+
+    closeUnitPanel();
+
 
     updateBoard();
 }

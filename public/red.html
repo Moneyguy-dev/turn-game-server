@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Red Forces</title>
+
     <link rel="stylesheet" href="/styles.css">
 </head>
 
@@ -9,53 +13,157 @@
 
     <div id="layout">
 
-        <!-- HEX MAP -->
+        <!-- ============================
+             HEX MAP
+        ============================ -->
+
         <div id="mapContainer">
             <div id="gameBoard"></div>
         </div>
 
-        <!-- ZOOM TOOL STRIP -->
+
+        <!-- ============================
+             MAP TOOLS
+        ============================ -->
+
         <div id="mapToolsStrip">
-            <button id="zoomIn" class="mapToolBtn">Zoom +</button>
-            <button id="zoomOut" class="mapToolBtn">Zoom −</button>
-            <button id="zoomUnits" class="mapToolBtn">Zoom to Units</button>
+
+            <button id="zoomIn" class="mapToolBtn">
+                Zoom +
+            </button>
+
+            <button id="zoomOut" class="mapToolBtn">
+                Zoom −
+            </button>
+
+            <button id="zoomUnits" class="mapToolBtn">
+                Zoom to Units
+            </button>
+
         </div>
 
-        <!-- RIGHT-SIDE UNIT PANEL -->
+
+        <!-- ============================
+             UNIT PANEL
+        ============================ -->
+
         <div id="unitPanel">
+
+            <div class="sidePanelHeader">
+
+                <span id="unitPanelTitle">
+                    Units
+                </span>
+
+                <button
+                    id="closeUnitPanel"
+                    class="closePanelBtn">
+                    ×
+                </button>
+
+            </div>
+
             <div id="unitList"></div>
+
+        </div>
+
+
+        <!-- ============================
+             FOB PANEL
+        ============================ -->
+
+        <div id="fobPanel">
+
+            <div class="sidePanelHeader">
+
+                <span id="fobPanelTitle">
+                    FOB
+                </span>
+
+                <button
+                    id="closeFobPanel"
+                    class="closePanelBtn">
+                    ×
+                </button>
+
+            </div>
+
+            <div id="fobList"></div>
+
+        </div>
+
+
+        <!-- ============================
+             HEX UNIT SELECTION PANEL
+        ============================ -->
+
+        <div id="hexUnitPanel">
+
+            <div class="sidePanelHeader">
+
+                <span id="hexUnitPanelTitle">
+                    Units
+                </span>
+
+                <button
+                    id="closeHexUnitPanel"
+                    class="closePanelBtn">
+                    ×
+                </button>
+
+            </div>
+
+            <div id="hexUnitList"></div>
+
         </div>
 
     </div>
 
-    <!-- BOTTOM MENU -->
+
+    <!-- ============================
+         BOTTOM MENU
+    ============================ -->
+
     <div id="bottomMenu">
 
-        <button id="backButton" class="menuBtn">
+        <button
+            id="backButton"
+            class="menuBtn">
             Back
         </button>
 
-        <button id="logBook" class="menuBtn">
+        <button
+            id="logBook"
+            class="menuBtn">
             Log Book
         </button>
 
-        <button id="armaments" class="menuBtn">
+        <button
+            id="armaments"
+            class="menuBtn">
             Armaments
         </button>
 
-        <button id="unitsBtn" class="menuBtn">
+        <button
+            id="unitsBtn"
+            class="menuBtn">
             Units ▸
         </button>
 
-        <button id="submitTurn"
-                class="menuBtn"
-                style="background:#a22;">
+        <button
+            id="submitTurn"
+            class="menuBtn"
+            style="background:#a22;">
             Submit
         </button>
 
     </div>
 
-    <script type="module" src="/script.js"></script>
+
+    <script
+        type="module"
+        src="/script.js">
+    </script>
 
 </body>
 </html>

@@ -4,15 +4,22 @@ import {
     renderTerritories
 } from "./js/grid.js";
 
+
 import {
     initUnits,
     updateBoard
 } from "./js/units.js";
 
+
 import {
-    loadGameStateFromServer,
-    resetGameOnServer
+    initFOB
+} from "./js/fob.js";
+
+
+import {
+    loadGameStateFromServer
 } from "./js/server.js";
+
 
 import {
     initUI
@@ -31,6 +38,13 @@ document.addEventListener(
 
 
         /* ============================
+           INITIALIZE FOB SYSTEM
+        ============================ */
+
+        initFOB();
+
+
+        /* ============================
            INITIALIZE UNITS
         ============================ */
 
@@ -45,7 +59,7 @@ document.addEventListener(
 
 
         /* ============================
-           INITIAL TERRITORIES
+           TERRITORIES
         ============================ */
 
         renderTerritories();
@@ -62,7 +76,7 @@ document.addEventListener(
         } catch (error) {
 
             console.error(
-                "Initial game-state load failed:",
+                "Initial game state load failed:",
                 error
             );
         }
@@ -86,6 +100,7 @@ document.addEventListener(
                 "resetGame"
             );
 
+
         if (resetButton) {
 
             resetButton.addEventListener(
@@ -97,42 +112,91 @@ document.addEventListener(
                             "Are you sure you want to reset the game?"
                         );
 
+
                     if (!confirmed) {
                         return;
                     }
 
-                    resetButton.disabled = true;
+
+                    resetButton.disabled =
+                        true;
 
                     resetButton.textContent =
                         "Resetting...";
 
+
                     try {
 
+                        const params =
+                            new URLSearchParams(
+                                window.location.search
+                            );
+
+
+                        const gameId =
+                            params.get(
+                                "gameId"
+                            ) ||
+                            "default";
+
+
+                        const response =
+                            await fetch(
+                                "/resetGame",
+                                {
+                                    method:
+                                        "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            gameId
+                                        })
+                                }
+                            );
+
+
+                        if (
+                            !response.ok
+                        ) {
+
+                            throw new Error(
+                                `Server returned ${response.status}`
+                            );
+                        }
+
+
                         const result =
-                            await resetGameOnServer();
+                            await response.json();
+
 
                         alert(
                             result.message ||
                             "Game has been reset."
                         );
 
-                        /*
-                         * Reload the board from
-                         * the server.
-                         */
 
                         await loadGameStateFromServer();
+
 
                         updateBoard();
 
                         renderTerritories();
 
-                    } catch (error) {
+
+                    } catch (
+                        error
+                    ) {
 
                         console.error(
                             "Reset failed:",
                             error
                         );
+
 
                         alert(
                             "Reset failed. Check the server."
@@ -166,7 +230,9 @@ document.addEventListener(
 
                     renderTerritories();
 
-                } catch (error) {
+                } catch (
+                    error
+                ) {
 
                     console.error(
                         "Auto refresh failed:",
@@ -179,7 +245,7 @@ document.addEventListener(
         );
 
 
-        /* ===========================
+        /* ============================
            WINDOW RESIZE
         ============================ */
 

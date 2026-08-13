@@ -12,6 +12,23 @@ export let board = [];
 
 
 /* ============================
+   FOB LOCATIONS
+============================ */
+
+export const startHexes = {
+    blue: {
+        r: 15,
+        c: 15
+    },
+
+    red: {
+        r: 3,
+        c: 10
+    }
+};
+
+
+/* ============================
    INITIALIZE GRID
 ============================ */
 
@@ -50,25 +67,9 @@ export function computeHexSize() {
         window.innerHeight;
 
 
-    /*
-     * Hex geometry:
-     *
-     * Width  = hexSize
-     * Height = hexSize * sqrt(3) / 2
-     *
-     * Columns overlap horizontally by 25%.
-     * Rows are separated by the hex height.
-     */
-
-
     const hexHeightRatio =
         Math.sqrt(3) / 2;
 
-
-    /*
-     * Calculate how much space the
-     * entire grid requires.
-     */
 
     const requiredWidthUnits =
         (cols - 1) * 0.75 + 1;
@@ -79,10 +80,6 @@ export function computeHexSize() {
         0.5 +
         hexHeightRatio;
 
-
-    /*
-     * Leave some room around the map.
-     */
 
     const availableWidth =
         w * 0.90;
@@ -109,10 +106,6 @@ export function computeHexSize() {
             )
         );
 
-
-    /*
-     * Prevent extremely small hexes.
-     */
 
     hexSize =
         Math.max(
@@ -141,26 +134,13 @@ export function buildHexGrid() {
     }
 
 
-    /*
-     * Remove old hexes.
-     */
-
     gameBoard.innerHTML = "";
 
-
-    /*
-     * Calculate the actual dimensions
-     * of one hex.
-     */
 
     const hexHeight =
         hexSize *
         (Math.sqrt(3) / 2);
 
-
-    /*
-     * Calculate total board dimensions.
-     */
 
     const boardWidth =
         ((cols - 1) *
@@ -175,24 +155,15 @@ export function buildHexGrid() {
         hexHeight;
 
 
-    /*
-     * Give the board a real size.
-     */
-
     gameBoard.style.width =
         `${boardWidth}px`;
 
     gameBoard.style.height =
         `${boardHeight}px`;
 
-
     gameBoard.style.position =
         "relative";
 
-
-    /*
-     * Build every hex.
-     */
 
     for (
         let r = 0;
@@ -206,10 +177,6 @@ export function buildHexGrid() {
             c++
         ) {
 
-            /*
-             * HEX WRAPPER
-             */
-
             const wrapper =
                 document.createElement("div");
 
@@ -218,20 +185,12 @@ export function buildHexGrid() {
                 "hex-wrapper";
 
 
-            /*
-             * Store coordinates.
-             */
-
             wrapper.dataset.row =
                 r;
 
             wrapper.dataset.col =
                 c;
 
-
-            /*
-             * HEX
-             */
 
             const hex =
                 document.createElement("div");
@@ -245,26 +204,13 @@ export function buildHexGrid() {
                 `hex-${r}-${c}`;
 
 
-            /*
-             * Position the column.
-             */
-
             const x =
                 c * horizontalSpacing;
 
 
-            /*
-             * Position the row.
-             */
-
             let y =
                 r * verticalSpacing;
 
-
-            /*
-             * Odd columns are shifted
-             * downward by half a hex.
-             */
 
             if (c % 2 !== 0) {
 
@@ -272,10 +218,6 @@ export function buildHexGrid() {
                     verticalSpacing / 2;
             }
 
-
-            /*
-             * Wrapper position.
-             */
 
             wrapper.style.position =
                 "absolute";
@@ -286,17 +228,12 @@ export function buildHexGrid() {
             wrapper.style.top =
                 `${y}px`;
 
-
             wrapper.style.width =
                 `${hexSize}px`;
 
             wrapper.style.height =
                 `${hexHeight}px`;
 
-
-            /*
-             * Hex dimensions.
-             */
 
             hex.style.width =
                 "100%";
@@ -305,22 +242,10 @@ export function buildHexGrid() {
                 "100%";
 
 
-            hex.style.boxSizing =
-                "border-box";
-
-
-            /*
-             * Put hex inside wrapper.
-             */
-
             wrapper.appendChild(
                 hex
             );
 
-
-            /*
-             * Put wrapper on board.
-             */
 
             gameBoard.appendChild(
                 wrapper
@@ -373,14 +298,10 @@ export function rebuildGrid() {
 
 
 /* ============================
-   TERRITORY DEFINITIONS
+   TERRITORIES
 ============================ */
 
 export const territories = {
-
-    /*
-     * Blue territory
-     */
 
     natuna: [
         {
@@ -388,11 +309,6 @@ export const territories = {
             c: 2
         }
     ],
-
-
-    /*
-     * Blue territory
-     */
 
     palawan: [
         {
@@ -410,11 +326,6 @@ export const territories = {
             c: 10
         }
     ],
-
-
-    /*
-     * Red territory
-     */
 
     taiwan: [
         {
@@ -438,22 +349,12 @@ export const territories = {
         }
     ],
 
-
-    /*
-     * Red territory
-     */
-
     redsingle: [
         {
             r: 6,
             c: 5
         }
     ],
-
-
-    /*
-     * Blue territory / Blue FOB area
-     */
 
     bluesingle: [
         {
