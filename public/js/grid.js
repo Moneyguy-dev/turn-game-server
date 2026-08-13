@@ -18,7 +18,6 @@ export let board = [];
 // ============================================================
 
 export const startHexes = {
-
     blue: {
         r: 15,
         c: 15
@@ -28,7 +27,6 @@ export const startHexes = {
         r: 3,
         c: 10
     }
-
 };
 
 
@@ -66,7 +64,6 @@ export const territories = {
         { r: 15, c: 15 },
         { r: 16, c: 16 }
     ]
-
 };
 
 
@@ -122,11 +119,13 @@ export function computeHexSize() {
             mapContainer.getBoundingClientRect();
 
         if (rect.width > 0) {
+
             availableWidth =
                 rect.width - 30;
         }
 
         if (rect.height > 0) {
+
             availableHeight =
                 rect.height - 30;
         }
@@ -310,11 +309,6 @@ export function buildHexGrid() {
                 String(hexNumber);
 
 
-            /*
-             * Inline positioning makes the numbers work
-             * even if the CSS for .hex-number is missing.
-             */
-
             numberLabel.style.position =
                 "absolute";
 
@@ -362,10 +356,6 @@ export function buildHexGrid() {
                 r *
                 verticalSpacing;
 
-
-            /*
-             * Offset odd columns.
-             */
 
             if (
                 c % 2 !== 0
@@ -520,10 +510,6 @@ export function renderTerritories() {
         );
 
 
-    /*
-     * Remove existing territory classes.
-     */
-
     wrappers.forEach(
         wrapper => {
 
@@ -546,10 +532,6 @@ export function renderTerritories() {
         }
     );
 
-
-    /*
-     * Add territory classes.
-     */
 
     Object.entries(
         territories

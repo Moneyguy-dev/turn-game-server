@@ -64,10 +64,6 @@ function ensureUnitPanel() {
     }
 
 
-    // --------------------------------------------------------
-    // HEADER
-    // --------------------------------------------------------
-
     let header =
         document.getElementById(
             "unitPanelHeader"
@@ -89,10 +85,6 @@ function ensureUnitPanel() {
         );
     }
 
-
-    // --------------------------------------------------------
-    // TITLE
-    // --------------------------------------------------------
 
     let title =
         document.getElementById(
@@ -118,13 +110,6 @@ function ensureUnitPanel() {
         );
     }
 
-
-    // --------------------------------------------------------
-    // CLOSE BUTTON
-    //
-    // IMPORTANT:
-    // Your HTML already has #closeUnitPanel.
-    // --------------------------------------------------------
 
     let close =
         document.getElementById(
@@ -157,14 +142,9 @@ function ensureUnitPanel() {
     }
 
 
-    // Prevent duplicate listeners.
     close.onclick =
         closeUnitPanel;
 
-
-    // --------------------------------------------------------
-    // LIST
-    // --------------------------------------------------------
 
     let list =
         document.getElementById(
@@ -240,10 +220,6 @@ export function openUnitPanel(
         "";
 
 
-    // --------------------------------------------------------
-    // EMPTY
-    // --------------------------------------------------------
-
     if (
         !units ||
         units.length === 0
@@ -268,11 +244,6 @@ export function openUnitPanel(
         );
 
     }
-
-
-    // --------------------------------------------------------
-    // UNITS
-    // --------------------------------------------------------
 
     else {
 
@@ -486,9 +457,6 @@ function selectUnitFromPanel(
 
 export function updateBoard() {
 
-    // Get the element directly.
-    // This avoids module initialization problems.
-
     const gameBoard =
         document.getElementById(
             "gameBoard"
@@ -552,17 +520,46 @@ export function updateBoard() {
             );
 
 
-            hex.innerHTML =
-                "";
+            // =================================================
+            // PRESERVE HEX NUMBER
+            // =================================================
+
+            const hexNumber =
+                hex.querySelector(
+                    ".hex-number"
+                );
+
+
+            // Remove units / FOB labels only.
+            // DO NOT remove the hex number.
+
+            hex.querySelectorAll(
+                ".unit-count, .fob-label"
+            ).forEach(
+                element => {
+                    element.remove();
+                }
+            );
+
+
+            if (
+                hexNumber &&
+                !hex.contains(hexNumber)
+            ) {
+
+                hex.appendChild(
+                    hexNumber
+                );
+            }
 
 
             hex.style.background =
                 "#333";
 
 
-            // ------------------------------------------------
+            // =================================================
             // VALID MOVES
-            // ------------------------------------------------
+            // =================================================
 
             if (
                 isValidMove(r, c)
@@ -573,9 +570,9 @@ export function updateBoard() {
             }
 
 
-            // ------------------------------------------------
+            // =================================================
             // HEX CLICK
-            // ------------------------------------------------
+            // =================================================
 
             wrapper.onclick =
                 () => {
@@ -587,9 +584,9 @@ export function updateBoard() {
                 };
 
 
-            // ------------------------------------------------
+            // =================================================
             // UNITS AT HEX
-            // ------------------------------------------------
+            // =================================================
 
             const stack =
                 board[r][c] || [];
@@ -664,9 +661,9 @@ export function updateBoard() {
             }
 
 
-            // ------------------------------------------------
+            // =================================================
             // FOB LABEL
-            // ------------------------------------------------
+            // =================================================
 
             if (
                 isFobHex(r, c)
@@ -735,13 +732,8 @@ export function onHexClick(
         board[r][c] || [];
 
 
-    // --------------------------------------------------------
-    // UNIT ALREADY SELECTED
-    // --------------------------------------------------------
-
     if (selectedUnit) {
 
-        // Valid destination
         if (
             isValidMove(r, c)
         ) {
@@ -755,7 +747,6 @@ export function onHexClick(
         }
 
 
-        // Click selected hex = cancel
         if (
             selectedUnit.r === r &&
             selectedUnit.c === c
@@ -767,7 +758,6 @@ export function onHexClick(
         }
 
 
-        // Click another occupied hex
         if (
             stack.length > 0
         ) {
@@ -789,10 +779,6 @@ export function onHexClick(
         return;
     }
 
-
-    // --------------------------------------------------------
-    // NO UNIT SELECTED
-    // --------------------------------------------------------
 
     if (
         stack.length > 0
@@ -994,10 +980,6 @@ export async function moveSelectedUnit(
     };
 
 
-    // --------------------------------------------------------
-    // MOVE LOCALLY
-    // --------------------------------------------------------
-
     fromStack.splice(
         unitIndex,
         1
@@ -1022,10 +1004,6 @@ export async function moveSelectedUnit(
     updateBoard();
 
 
-    // --------------------------------------------------------
-    // SEND TO SERVER
-    // --------------------------------------------------------
-
     try {
 
         await sendMoveToServer(
@@ -1041,10 +1019,6 @@ export async function moveSelectedUnit(
             error
         );
 
-
-        // ----------------------------------------------------
-        // ROLLBACK
-        // ----------------------------------------------------
 
         const movedIndex =
             destinationStack.indexOf(
