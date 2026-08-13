@@ -1,434 +1,235 @@
-const axios = require("axios");
+import { board } from "./grid.js";
+import { updateBoard } from "./units.js";
+import { updateFobList } from "./fob.js";
 
-async function saveGameStateToGitHub(gameState) {
-    const username = process.env.GITHUB_USERNAME;
-    const repo = process.env.GITHUB_REPO;
-    const token = process.env.GITHUB_TOKEN;
+const SERVER_URL = "https://turn-game-server.onrender.com";
 
-    const filePath = "game-state.json";
-    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
-
-    const jsonString = JSON.stringify(gameState, null, 2);
-    const contentEncoded = Buffer.from(jsonString).toString("base64");
-
-    let sha = null;
-
-    try {
-        const existing = await axios.get(apiUrl, {
-            headers: {
-                Authorization: `token ${token}`
-            }
-        });
-
-        sha = existing.data.sha;
-    } catch (err) {
-        // File does not exist yet — that's fine
-    }
-
-    const payload = {
-        message: "Update game state",
-        content: contentEncoded,
-        sha: sha || undefined
-    };
-
-    await axios.put(apiUrl, payload, {
-        headers: {
-            Authorization: `token ${token}`
-        }
-    });
-
-    console.log("✔ Game state saved to GitHub");
-}
-
-async function loadGameStateFromGitHub() {
-    const username = process.env.GITHUB_USERNAME;
-    const repo = process.env.GITHUB_REPO;
-    const token = process.env.GITHUB_TOKEN;
-
-    const filePath = "game-state.json";
-    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
-
-    try {
-        const res = await axios.get(apiUrl, {
-            headers: {
-                Authorization: `token ${token}`
-            }
-        });
-
-        const decoded = Buffer.from(
-            res.data.content,
-            "base64"
-        ).toString("utf8");
-
-        const gameState = JSON.parse(decoded);
-
-        console.log("✔ Game state restored from GitHub");
-        return gameState;
-
-    } catch (err) {
-        console.log("⚠ No saved game state found on GitHub");
-        return null;
-    }
-}
-
-const express = require("express");
-const path = require("path");
-const app = express();
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-let games = {};
-
-(async () => {
-    const saved = await loadGameStateFromGitHub();
-
-    if (saved) {
-        games = saved;
-    }
-})();
-
-function getGame(gameId) {
-    if (!games[gameId]) {
-        games[gameId] = {
-            gameId,
-            board: null,
-            lastMove: null,
-            moveHistory: [],
-            currentTurnPlayer: "red",
-            unlockTime: null,
-            turnLocked: {
-                red: false,
-                blue: false
-            },
-            pendingMoves: []
-        };
-    }
-
-    return games[gameId];
-}
-
-/* =========================
-   UNIT DEFINITIONS
-========================= */
-
-const units = {
-    blue: {
-        F15E:  { move: 8 },
-        F16:   { move: 7 },
-        F22:   { move: 8 },
-        F35:   { move: 6 },
-        B2:    { move: 10 },
-        B52:   { move: 11 },
-        KC135: { move: 12 },
-        DDG80: { move: 6 },
-        ARG:   { move: 3 }
-    },
-
-    red: {
-        J10:      { move: 7 },
-        J11:      { move: 7 },
-        J16:      { move: 7 },
-        J20:      { move: 8 },
-        H6:       { move: 9 },
-        Y20:      { move: 11 },
-        Type052:  { move: 5 },
-        Garrison: { move: 0 },
-        ARG:      { move: 3 }
-    }
-};
-
-/* =========================
-   FOB LOCATIONS
-========================= */
-
-const startHexes = {
-    // Blue FOB
-    blue: {
-        r: 15,
-        c: 15
-    },
-
-    // Red FOB
-    red: {
-        r: 3,
-        c: 10
-    }
-};
-
-/* =========================
-   SERVER-SIDE UNIT SPAWN
-========================= */
-
-function addUnit(board, r, c, type, team) {
-    board[r][c].push({
-        type,
-        team,
-        move: units[team][type].move
-    });
-}
-
-function spawnAllUnits(board) {
-    const blueStart = startHexes.blue;
-    const redStart = startHexes.red;
-
-    // All blue units begin at blue FOB
-    Object.keys(units.blue).forEach(type => {
-        addUnit(
-            board,
-            blueStart.r,
-            blueStart.c,
-            type,
-            "blue"
-        );
-    });
-
-    // All red units begin at red FOB
-    Object.keys(units.red).forEach(type => {
-        addUnit(
-            board,
-            redStart.r,
-            redStart.c,
-            type,
-            "red"
-        );
-    });
-}
-
-/* =========================
-   EMPTY BOARD GENERATOR
-========================= */
-
-function generateEmptyBoard() {
-    const rows = 17;
-    const cols = 19;
-
-    const board = [];
-
-    for (let r = 0; r < rows; r++) {
-        board[r] = [];
-
-        for (let c = 0; c < cols; c++) {
-            board[r][c] = [];
-        }
-    }
-
-    return board;
-}
-
-/* =========================
-   APPLY MOVE TO BOARD
-========================= */
-
-function applyMoveToBoard(board, move) {
-    if (!move || move.init) return;
-
-    const { from, to, unit, team } = move;
-
-    const fromStack = board[from.r][from.c];
-    const toStack = board[to.r][to.c];
-
-    const idx = fromStack.findIndex(
-        u => u.type === unit && u.team === team
+export function getGameId() {
+    const params = new URLSearchParams(
+        window.location.search
     );
 
-    if (idx === -1) return;
-
-    const u = fromStack[idx];
-
-    fromStack.splice(idx, 1);
-    toStack.push(u);
+    return params.get("gameId") || "default";
 }
 
-/* =========================
-   SUBMIT MOVE
-========================= */
+export function getPlayerId() {
+    const params = new URLSearchParams(
+        window.location.search
+    );
 
-app.post("/submitMove", async (req, res) => {
-    const { gameId, playerId, move } = req.body;
+    return params.get("mode") || "spectator";
+}
 
-    const game = getGame(gameId);
+/* ============================
+   LOAD GAME STATE
+============================ */
 
-    if (!game.board) {
-        game.board = generateEmptyBoard();
-        spawnAllUnits(game.board);
-    }
-
-    if (!game.pendingMoves) {
-        game.pendingMoves = [];
-    }
-
-    game.pendingMoves.push({
-        playerId,
-        move
-    });
-
-    game.moveHistory.push({
-        playerId,
-        move
-    });
-
-    if (playerId === "red") {
-        game.turnLocked.red = true;
-    }
-
-    if (playerId === "blue") {
-        game.turnLocked.blue = true;
-    }
+export async function loadGameStateFromServer() {
 
     try {
-        await saveGameStateToGitHub(games);
-    } catch (err) {
-        console.log(
-            "⚠ Failed to save game state to GitHub on submitMove:",
-            err.message
+
+        const gameId = getGameId();
+
+        const res = await fetch(
+            `${SERVER_URL}/gameState?gameId=${encodeURIComponent(gameId)}`
         );
-    }
 
-    res.json({
-        status: "ok",
-        message: "Move stored and saved"
-    });
-});
-
-/* =========================
-   SUBMIT TURN
-========================= */
-
-app.post("/submitTurn", (req, res) => {
-    const { gameId, playerId } = req.body;
-
-    const game = getGame(gameId);
-
-    if (playerId === "red") {
-        game.turnLocked.red = true;
-    }
-
-    if (playerId === "blue") {
-        game.turnLocked.blue = true;
-    }
-
-    res.json({
-        status: "ok",
-        turnLocked: game.turnLocked
-    });
-});
-
-/* =========================
-   CONTINUE TURN
-========================= */
-
-app.post("/continueTurn", async (req, res) => {
-    const { gameId } = req.body;
-
-    const game = getGame(gameId);
-
-    if (!game.board) {
-        game.board = generateEmptyBoard();
-        spawnAllUnits(game.board);
-    }
-
-    if (game.pendingMoves && game.pendingMoves.length > 0) {
-        for (const entry of game.pendingMoves) {
-            applyMoveToBoard(
-                game.board,
-                entry.move
+        if (!res.ok) {
+            throw new Error(
+                `Server returned ${res.status}`
             );
         }
+
+        const state = await res.json();
+
+        /*
+         * Copy the server board into the board
+         * exported by grid.js.
+         *
+         * Do NOT do:
+         *
+         * window.board = state.board
+         *
+         * because units.js is using the imported
+         * board from grid.js.
+         */
+
+        if (state.board) {
+
+            board.length = 0;
+
+            state.board.forEach(row => {
+                board.push(row);
+            });
+        }
+
+        /*
+         * Store useful server state globally.
+         */
+
+        window.turnLocked =
+            state.turnLocked || {
+                red: false,
+                blue: false
+            };
+
+        window.currentTurnPlayer =
+            state.currentTurnPlayer || "red";
+
+        updateBoard();
+
+        if (
+            typeof updateFobList === "function"
+        ) {
+            updateFobList();
+        }
+
+        return state;
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load game state:",
+            error
+        );
+
+        throw error;
     }
+}
 
-    game.pendingMoves = [];
+/* ============================
+   SEND MOVE
+============================ */
 
-    game.turnLocked.red = false;
-    game.turnLocked.blue = false;
+export async function sendMoveToServer(movePayload) {
 
-    game.currentTurnPlayer = "red";
+    const gameId = getGameId();
+    const playerId = getPlayerId();
 
-    try {
-        await saveGameStateToGitHub(games);
-    } catch (err) {
-        console.log(
-            "⚠ Failed to save game state to GitHub on continueTurn:",
-            err.message
+    const response = await fetch(
+        `${SERVER_URL}/submitMove`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                gameId,
+                playerId,
+                move: movePayload
+            })
+        }
+    );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Move submission failed: ${response.status}`
         );
     }
 
-    res.json({
-        status: "ok",
-        message: "Turn resolved"
-    });
-});
+    return await response.json();
+}
 
-/* =========================
+/* ============================
+   SUBMIT TURN
+============================ */
+
+export async function submitTurnToServer() {
+
+    const gameId = getGameId();
+    const playerId = getPlayerId();
+
+    const response = await fetch(
+        `${SERVER_URL}/submitTurn`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                gameId,
+                playerId
+            })
+        }
+    );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Submit turn failed: ${response.status}`
+        );
+    }
+
+    return await response.json();
+}
+
+/* ============================
+   CONTINUE / RESOLVE TURN
+============================ */
+
+export async function continueTurnOnServer() {
+
+    const gameId = getGameId();
+
+    const response = await fetch(
+        `${SERVER_URL}/continueTurn`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                gameId
+            })
+        }
+    );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Continue turn failed: ${response.status}`
+        );
+    }
+
+    return await response.json();
+}
+
+/* ============================
    RESET GAME
-========================= */
+============================ */
 
-app.post("/resetGame", async (req, res) => {
-    const { gameId } = req.body;
+export async function resetGameOnServer() {
 
-    delete games[gameId];
+    const gameId = getGameId();
 
-    const game = getGame(gameId);
+    const response = await fetch(
+        `${SERVER_URL}/resetGame`,
+        {
+            method: "POST",
 
-    game.board = generateEmptyBoard();
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-    // Spawn all units at their FOBs
-    spawnAllUnits(game.board);
+            body: JSON.stringify({
+                gameId
+            })
+        }
+    );
 
-    game.lastMove = null;
-    game.moveHistory = [];
+    if (!response.ok) {
 
-    game.turnLocked = {
-        red: false,
-        blue: false
-    };
-
-    game.currentTurnPlayer = "red";
-    game.pendingMoves = [];
-
-    try {
-        await saveGameStateToGitHub(games);
-    } catch (err) {
-        console.log(
-            "⚠ Failed to save game state to GitHub on resetGame:",
-            err.message
+        throw new Error(
+            `Reset failed: ${response.status}`
         );
     }
 
-    res.json({
-        status: "ok",
-        message: "Game reset with units at FOBs"
-    });
-});
-
-/* =========================
-   GET GAME STATE
-========================= */
-
-app.get("/gameState", (req, res) => {
-    const gameId = req.query.gameId;
-
-    const game = getGame(gameId);
-
-    if (!game.board) {
-        game.board = generateEmptyBoard();
-        spawnAllUnits(game.board);
-    }
-
-    const safeGame = {
-        gameId: game.gameId,
-        board: game.board,
-        turnLocked: game.turnLocked,
-        currentTurnPlayer: game.currentTurnPlayer
-    };
-
-    res.json(safeGame);
-});
-
-/* =========================
-   START SERVER
-========================= */
-
-app.listen(process.env.PORT || 3000, () => {
-    console.log("HTTP server running");
-});
+    return await response.json();
+}

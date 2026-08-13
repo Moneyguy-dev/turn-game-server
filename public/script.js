@@ -10,7 +10,8 @@ import {
 } from "./js/units.js";
 
 import {
-    loadGameStateFromServer
+    loadGameStateFromServer,
+    resetGameOnServer
 } from "./js/server.js";
 
 import {
@@ -18,183 +19,180 @@ import {
 } from "./js/ui.js";
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-    /* ============================
-       BUILD GRID
-    ============================ */
+        /* ============================
+           BUILD GRID
+        ============================ */
 
-    initGrid();
-
-
-    /* ============================
-       INITIALIZE UNITS
-    ============================ */
-
-    initUnits();
+        initGrid();
 
 
-    /* ============================
-       INITIALIZE UI
-    ============================ */
+        /* ============================
+           INITIALIZE UNITS
+        ============================ */
 
-    initUI();
-
-
-    /* ============================
-       INITIAL TERRITORY RENDER
-    ============================ */
-
-    renderTerritories();
+        initUnits();
 
 
-    /* ============================
-       LOAD GAME STATE
-    ============================ */
+        /* ============================
+           INITIALIZE UI
+        ============================ */
 
-    loadGameStateFromServer();
-
-
-    /* ============================
-       INITIAL BOARD UPDATE
-    ============================ */
-
-    updateBoard();
-
-    renderTerritories();
+        initUI();
 
 
-    /* ============================
-       RESET GAME
-    ============================ */
+        /* ============================
+           INITIAL TERRITORIES
+        ============================ */
 
-    const resetButton =
-        document.getElementById("resetGame");
-
-    if (resetButton) {
-
-        resetButton.addEventListener("click", async () => {
-
-            const confirmed =
-                confirm(
-                    "Are you sure you want to reset the game?"
-                );
-
-            if (!confirmed) {
-                return;
-            }
-
-            resetButton.disabled = true;
-            resetButton.textContent = "Resetting...";
-
-            try {
-
-                /*
-                 * Get the game ID from the URL.
-                 * If none exists, use "default".
-                 */
-                const params =
-                    new URLSearchParams(
-                        window.location.search
-                    );
-
-                const gameId =
-                    params.get("gameId") || "default";
+        renderTerritories();
 
 
-                const response =
-                    await fetch("/resetGame", {
+        /* ============================
+           LOAD SERVER STATE
+        ============================ */
 
-                        method: "POST",
+        try {
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
+            await loadGameStateFromServer();
 
-                        body: JSON.stringify({
-                            gameId
-                        })
-                    });
+        } catch (error) {
+
+            console.error(
+                "Initial game-state load failed:",
+                error
+            );
+        }
 
 
-                if (!response.ok) {
-                    throw new Error(
-                        `Server returned ${response.status}`
+        /* ============================
+           UPDATE BOARD
+        ============================ */
+
+        updateBoard();
+
+        renderTerritories();
+
+
+        /* ============================
+           RESET GAME
+        ============================ */
+
+        const resetButton =
+            document.getElementById(
+                "resetGame"
+            );
+
+        if (resetButton) {
+
+            resetButton.addEventListener(
+                "click",
+                async () => {
+
+                    const confirmed =
+                        confirm(
+                            "Are you sure you want to reset the game?"
+                        );
+
+                    if (!confirmed) {
+                        return;
+                    }
+
+                    resetButton.disabled = true;
+
+                    resetButton.textContent =
+                        "Resetting...";
+
+                    try {
+
+                        const result =
+                            await resetGameOnServer();
+
+                        alert(
+                            result.message ||
+                            "Game has been reset."
+                        );
+
+                        /*
+                         * Reload the board from
+                         * the server.
+                         */
+
+                        await loadGameStateFromServer();
+
+                        updateBoard();
+
+                        renderTerritories();
+
+                    } catch (error) {
+
+                        console.error(
+                            "Reset failed:",
+                            error
+                        );
+
+                        alert(
+                            "Reset failed. Check the server."
+                        );
+
+                    } finally {
+
+                        resetButton.disabled =
+                            false;
+
+                        resetButton.textContent =
+                            "Reset";
+                    }
+                }
+            );
+        }
+
+
+        /* ============================
+           AUTO REFRESH
+        ============================ */
+
+        setInterval(
+            async () => {
+
+                try {
+
+                    await loadGameStateFromServer();
+
+                    updateBoard();
+
+                    renderTerritories();
+
+                } catch (error) {
+
+                    console.error(
+                        "Auto refresh failed:",
+                        error
                     );
                 }
 
-
-                const result =
-                    await response.json();
-
-
-                /*
-                 * Show the server's reset message.
-                 */
-                alert(
-                    result.message ||
-                    "Game has been reset."
-                );
+            },
+            10000
+        );
 
 
-                /*
-                 * Reload the board so all units
-                 * appear at their FOBs.
-                 */
-                await loadGameStateFromServer();
+        /* ============================
+           WINDOW RESIZE
+        ============================ */
+
+        window.addEventListener(
+            "resize",
+            () => {
+
+                rebuildGrid();
 
                 updateBoard();
 
                 renderTerritories();
-
-            } catch (error) {
-
-                console.error(
-                    "Reset failed:",
-                    error
-                );
-
-                alert(
-                    "Reset failed. Check the server."
-                );
-
-            } finally {
-
-                resetButton.disabled = false;
-                resetButton.textContent = "Reset";
             }
-        });
+        );
     }
-
-
-    /* ============================
-       AUTO REFRESH
-    ============================ */
-
-    setInterval(() => {
-
-        loadGameStateFromServer();
-
-        updateBoard();
-
-        renderTerritories();
-
-    }, 10000);
-
-
-    /* ============================
-       WINDOW RESIZE
-    ============================ */
-
-    window.addEventListener("resize", () => {
-
-        rebuildGrid();
-
-        updateBoard();
-
-        renderTerritories();
-
-    });
-
-});
+);
