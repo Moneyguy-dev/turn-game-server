@@ -206,10 +206,8 @@ export function buildHexGrid() {
 
 
     /*
-     * IMPORTANT:
-     *
-     * This only rebuilds the visual grid.
-     * It does NOT erase board data.
+     * Rebuild only the visual grid.
+     * Board data is preserved.
      */
 
     gameBoard.innerHTML = "";
@@ -246,6 +244,9 @@ export function buildHexGrid() {
     // ========================================================
     // CREATE HEXES
     // ========================================================
+
+    let hexNumber = 1;
+
 
     for (
         let r = 0;
@@ -293,6 +294,65 @@ export function buildHexGrid() {
                 String(c);
 
 
+            // =================================================
+            // HEX NUMBER
+            // =================================================
+
+            const numberLabel =
+                document.createElement("div");
+
+
+            numberLabel.className =
+                "hex-number";
+
+
+            numberLabel.textContent =
+                String(hexNumber);
+
+
+            /*
+             * Inline positioning makes the numbers work
+             * even if the CSS for .hex-number is missing.
+             */
+
+            numberLabel.style.position =
+                "absolute";
+
+            numberLabel.style.left =
+                "50%";
+
+            numberLabel.style.top =
+                "50%";
+
+            numberLabel.style.transform =
+                "translate(-50%, -50%)";
+
+            numberLabel.style.zIndex =
+                "2";
+
+            numberLabel.style.pointerEvents =
+                "none";
+
+            numberLabel.style.fontSize =
+                `${Math.max(
+                    10,
+                    Math.floor(hexSize * 0.25)
+                )}px`;
+
+            numberLabel.style.fontWeight =
+                "700";
+
+            numberLabel.style.color =
+                "#ffffff";
+
+            numberLabel.style.textShadow =
+                "0 1px 2px #000000, 0 0 3px #000000";
+
+
+            // =================================================
+            // HEX POSITION
+            // =================================================
+
             const x =
                 c *
                 horizontalSpacing;
@@ -329,6 +389,15 @@ export function buildHexGrid() {
                 `${hexHeight}px`;
 
 
+            // =================================================
+            // ADD ELEMENTS
+            // =================================================
+
+            hex.appendChild(
+                numberLabel
+            );
+
+
             wrapper.appendChild(
                 hex
             );
@@ -337,6 +406,9 @@ export function buildHexGrid() {
             gameBoard.appendChild(
                 wrapper
             );
+
+
+            hexNumber++;
         }
     }
 
