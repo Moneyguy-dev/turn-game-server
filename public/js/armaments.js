@@ -442,9 +442,7 @@ export const armaments = {
 // GET ARMAMENT BY ID
 // ============================================================
 
-export function getArmament(
-    id
-) {
+export function getArmament(id) {
 
     return Object.values(
         armaments
@@ -459,9 +457,7 @@ export function getArmament(
 // GET ARMAMENTS FOR TEAM
 // ============================================================
 
-export function getArmamentsForTeam(
-    team
-) {
+export function getArmamentsForTeam(team) {
 
     return Object.values(
         armaments
@@ -476,9 +472,7 @@ export function getArmamentsForTeam(
 // GET UNIT DATA
 // ============================================================
 
-export function getUnitCombatData(
-    type
-) {
+export function getUnitCombatData(type) {
 
     return (
         unitCombatData[type] ||

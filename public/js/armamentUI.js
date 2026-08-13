@@ -129,97 +129,194 @@ function createMenu() {
 
     menu.innerHTML = `
 
+        <!-- ==================================================
+             HEADER
+        =================================================== -->
+
         <div class="armament-header">
 
             <div class="armament-title">
-                ARMAMENTS
+                ARMAMENT LOADOUT
             </div>
 
             <button
                 id="armamentClose"
                 class="armament-close"
                 type="button">
+
                 ×
+
             </button>
 
         </div>
 
+
+        <!-- ==================================================
+             MAIN THREE-PANEL AREA
+        =================================================== -->
 
         <div class="armament-body">
 
 
-            <div class="armament-column armament-units">
+            <!-- ==============================================
+                 LEFT — UNITS
+            =============================================== -->
 
-                <div class="armament-column-title">
-                    YOUR UNITS
+            <section class="armament-panel armament-units-panel">
+
+                <div class="armament-panel-header">
+
+                    <div class="armament-panel-title">
+                        YOUR UNITS
+                    </div>
+
+                    <div
+                        id="armamentUnitCount"
+                        class="armament-panel-count">
+
+                        0
+
+                    </div>
+
                 </div>
+
 
                 <div
                     id="armamentUnitList"
                     class="armament-scroll">
-                </div>
-
-            </div>
-
-
-            <div class="armament-center">
-
-                <div
-                    id="armamentSelectedUnit"
-                    class="armament-selected-unit">
-
-                    Select a unit
 
                 </div>
 
+            </section>
 
-                <div
-                    id="armamentSelectedDetails"
-                    class="armament-selected-details">
 
-                    Select a unit and armament.
+            <!-- ==============================================
+                 CENTER — SELECTED ARMAMENT / ACTION
+            =============================================== -->
+
+            <section class="armament-center">
+
+
+                <div class="armament-center-content">
+
+
+                    <div
+                        id="armamentSelectedUnit"
+                        class="armament-selected-unit">
+
+                        SELECT A UNIT
+
+                    </div>
+
+
+                    <div
+                        id="armamentSelectedUnitInfo"
+                        class="armament-selected-unit-info">
+
+                        Choose an aircraft from the left.
+
+                    </div>
+
+
+                    <div class="armament-divider"></div>
+
+
+                    <div class="armament-selection-label">
+
+                        SELECTED ARMAMENT
+
+                    </div>
+
+
+                    <div
+                        id="armamentSelectedArmament"
+                        class="armament-selected-armament">
+
+                        NONE
+
+                    </div>
+
+
+                    <div
+                        id="armamentSelectedArmamentInfo"
+                        class="armament-selected-armament-info">
+
+                        Choose an armament from the right.
+
+                    </div>
+
+
+                    <div
+                        id="armamentSelectedWarning"
+                        class="armament-warning">
+
+                    </div>
+
+
+                    <button
+                        id="armamentAction"
+                        class="armament-action"
+                        type="button"
+                        disabled>
+
+                        SELECT UNIT + ARMAMENT
+
+                    </button>
+
+
+                    <div class="armament-loadout-title">
+
+                        CURRENT LOADOUT
+
+                    </div>
+
+
+                    <div
+                        id="armamentSelectedLoadout"
+                        class="armament-loadout">
+
+                        NONE
+
+                    </div>
 
                 </div>
 
+            </section>
 
-                <div
-                    id="armamentSelectedLoadout"
-                    class="armament-loadout">
+
+            <!-- ==============================================
+                 RIGHT — ARMAMENTS
+            =============================================== -->
+
+            <section class="armament-panel armament-list-panel">
+
+                <div class="armament-panel-header">
+
+                    <div class="armament-panel-title">
+                        ARMAMENTS
+                    </div>
+
+                    <div
+                        id="armamentAvailableCount"
+                        class="armament-panel-count">
+
+                        0
+
+                    </div>
 
                 </div>
 
-            </div>
-
-
-            <div class="armament-column armament-list-column">
-
-                <div class="armament-column-title">
-                    ARMAMENTS
-                </div>
 
                 <div
                     id="armamentList"
                     class="armament-scroll">
+
                 </div>
 
-            </div>
+            </section>
 
         </div>
 
-
-        <div class="armament-footer">
-
-            <button
-                id="armamentAction"
-                class="armament-action"
-                type="button"
-                disabled>
-
-                SELECT
-
-            </button>
-
-        </div>
     `;
 
 
@@ -316,6 +413,12 @@ function renderUnits() {
         );
 
 
+    const count =
+        document.getElementById(
+            "armamentUnitCount"
+        );
+
+
     if (!list) {
         return;
     }
@@ -334,10 +437,15 @@ function renderUnits() {
         team !== "blue"
     ) {
 
-        list.innerHTML =
-            `<div class="armament-empty">
+        list.innerHTML = `
+            <div class="armament-empty">
                 Select a team first.
-            </div>`;
+            </div>
+        `;
+
+        if (count) {
+            count.textContent = "0";
+        }
 
         return;
     }
@@ -349,14 +457,21 @@ function renderUnits() {
         );
 
 
+    if (count) {
+        count.textContent =
+            units.length;
+    }
+
+
     if (
         units.length === 0
     ) {
 
-        list.innerHTML =
-            `<div class="armament-empty">
+        list.innerHTML = `
+            <div class="armament-empty">
                 No units available.
-            </div>`;
+            </div>
+        `;
 
         return;
     }
@@ -404,15 +519,42 @@ function renderUnits() {
                     : 0;
 
 
+            const combat =
+                getUnitCombatPower(
+                    unit
+                );
+
+
             button.innerHTML = `
 
-                <span class="armament-unit-name">
-                    ${unit.type}
-                </span>
+                <div class="unit-button-top">
 
-                <span class="armament-unit-info">
-                    ${loaded}/${capacity}
-                </span>
+                    <span class="armament-unit-name">
+                        ${unit.type}
+                    </span>
+
+                    <span class="armament-unit-load">
+                        ${loaded}/${capacity}
+                    </span>
+
+                </div>
+
+
+                <div class="armament-unit-location">
+
+                    Position:
+                    ${r}, ${c}
+
+                </div>
+
+
+                <div class="armament-unit-combat">
+
+                    AIR ${combat.air}
+                    &nbsp; • &nbsp;
+                    GROUND ${combat.ground}
+
+                </div>
 
             `;
 
@@ -454,6 +596,12 @@ function renderArmaments() {
         );
 
 
+    const count =
+        document.getElementById(
+            "armamentAvailableCount"
+        );
+
+
     if (!list) {
         return;
     }
@@ -465,10 +613,23 @@ function renderArmaments() {
 
     if (!selectedUnit) {
 
-        list.innerHTML =
-            `<div class="armament-empty">
-                Select a unit first.
-            </div>`;
+        if (count) {
+            count.textContent = "—";
+        }
+
+        list.innerHTML = `
+            <div class="armament-empty">
+
+                <div class="armament-empty-large">
+                    SELECT A UNIT
+                </div>
+
+                <div>
+                    Compatible armaments will appear here.
+                </div>
+
+            </div>
+        `;
 
         return;
     }
@@ -480,14 +641,21 @@ function renderArmaments() {
         );
 
 
+    if (count) {
+        count.textContent =
+            compatible.length;
+    }
+
+
     if (
         compatible.length === 0
     ) {
 
-        list.innerHTML =
-            `<div class="armament-empty">
+        list.innerHTML = `
+            <div class="armament-empty">
                 No compatible armaments.
-            </div>`;
+            </div>
+        `;
 
         return;
     }
@@ -536,23 +704,6 @@ function renderArmaments() {
                 );
 
 
-            button.innerHTML = `
-
-                <span class="armament-name">
-                    ${armament.name}
-                </span>
-
-                <span class="armament-info">
-                    ${formatCategory(
-                        armament.category
-                    )}
-                    • Power ${armament.combatPower}
-                    • ${available}/${armament.maxOnField}
-                </span>
-
-            `;
-
-
             if (
                 available <= 0 &&
                 !loaded
@@ -562,6 +713,63 @@ function renderArmaments() {
                     "unavailable"
                 );
             }
+
+
+            if (loaded) {
+
+                button.classList.add(
+                    "loaded"
+                );
+            }
+
+
+            button.innerHTML = `
+
+                <div class="armament-button-top">
+
+                    <span class="armament-name">
+                        ${armament.name}
+                    </span>
+
+                    ${
+                        loaded
+                            ? `
+                                <span class="armament-loaded-badge">
+                                    LOADED
+                                </span>
+                              `
+                            : ""
+                    }
+
+                </div>
+
+
+                <div class="armament-info">
+
+                    <span>
+                        ${formatCategory(
+                            armament.category
+                        )}
+                    </span>
+
+                    <span>
+                        POWER ${armament.combatPower}
+                    </span>
+
+                </div>
+
+
+                <div class="armament-stock">
+
+                    AVAILABLE
+
+                    <strong>
+                        ${available}/${armament.maxOnField}
+                    </strong>
+
+                </div>
+
+            `;
 
 
             button.onclick =
@@ -596,9 +804,27 @@ function renderCenter() {
         );
 
 
-    const details =
+    const unitInfo =
         document.getElementById(
-            "armamentSelectedDetails"
+            "armamentSelectedUnitInfo"
+        );
+
+
+    const armamentDisplay =
+        document.getElementById(
+            "armamentSelectedArmament"
+        );
+
+
+    const armamentInfo =
+        document.getElementById(
+            "armamentSelectedArmamentInfo"
+        );
+
+
+    const warning =
+        document.getElementById(
+            "armamentSelectedWarning"
         );
 
 
@@ -616,30 +842,61 @@ function renderCenter() {
 
     if (
         !unitDisplay ||
-        !details ||
+        !unitInfo ||
+        !armamentDisplay ||
+        !armamentInfo ||
+        !warning ||
         !loadout ||
         !action
     ) {
+
         return;
     }
 
 
+    warning.textContent =
+        "";
+
+
+    // ========================================================
+    // NO UNIT
+    // ========================================================
+
     if (!selectedUnit) {
 
         unitDisplay.textContent =
-            "Select a unit";
+            "SELECT A UNIT";
 
-        details.textContent =
-            "Select a unit and armament.";
+
+        unitInfo.textContent =
+            "Choose an aircraft from the left.";
+
+
+        armamentDisplay.textContent =
+            "NONE";
+
+
+        armamentInfo.textContent =
+            "Choose an armament from the right.";
+
 
         loadout.innerHTML =
-            "";
+            `<span class="armament-none-loaded">
+                NONE
+            </span>`;
+
 
         action.disabled =
             true;
 
+
         action.textContent =
-            "SELECT";
+            "SELECT UNIT + ARMAMENT";
+
+
+        action.className =
+            "armament-action";
+
 
         return;
     }
@@ -669,35 +926,43 @@ function renderCenter() {
         );
 
 
+    // ========================================================
+    // UNIT DISPLAY
+    // ========================================================
+
     unitDisplay.textContent =
         unit.type;
 
 
-    details.innerHTML = `
+    unitInfo.innerHTML = `
 
-        <div>
-            Location:
+        <span>
+            POSITION
             ${selectedUnit.r},
             ${selectedUnit.c}
-        </div>
+        </span>
 
-        <div>
-            Armaments:
+        <span>
+            LOADOUT
             ${loaded}/${capacity}
-        </div>
+        </span>
 
-        <div>
-            Air Combat:
+        <span>
+            AIR
             ${combat.air}
-        </div>
+        </span>
 
-        <div>
-            Ground Combat:
+        <span>
+            GROUND
             ${combat.ground}
-        </div>
+        </span>
 
     `;
 
+
+    // ========================================================
+    // CURRENT LOADOUT
+    // ========================================================
 
     loadout.innerHTML =
         "";
@@ -707,10 +972,11 @@ function renderCenter() {
         loaded === 0
     ) {
 
-        loadout.innerHTML =
-            `<div class="armament-none-loaded">
-                No armaments loaded
-            </div>`;
+        loadout.innerHTML = `
+            <span class="armament-none-loaded">
+                NO ARMAMENTS LOADED
+            </span>
+        `;
 
     } else {
 
@@ -750,17 +1016,74 @@ function renderCenter() {
     }
 
 
+    // ========================================================
+    // NO ARMAMENT
+    // ========================================================
+
     if (!selectedArmament) {
+
+        armamentDisplay.textContent =
+            "NONE";
+
+
+        armamentInfo.textContent =
+            "Choose an armament from the right.";
+
 
         action.disabled =
             true;
 
+
         action.textContent =
-            "SELECT";
+            "SELECT ARMAMENT";
+
+
+        action.className =
+            "armament-action";
+
 
         return;
     }
 
+
+    // ========================================================
+    // ARMAMENT DISPLAY
+    // ========================================================
+
+    armamentDisplay.textContent =
+        selectedArmament.name;
+
+
+    armamentInfo.innerHTML = `
+
+        <div>
+            ${formatCategory(
+                selectedArmament.category
+            )}
+            ARMAMENT
+        </div>
+
+        <div>
+            COMBAT POWER:
+            ${selectedArmament.combatPower}
+        </div>
+
+        <div>
+            AVAILABLE:
+            ${
+                getAvailableArmamentCount(
+                    unit.team,
+                    selectedArmament
+                )
+            }/${selectedArmament.maxOnField}
+        </div>
+
+    `;
+
+
+    // ========================================================
+    // UNLOAD
+    // ========================================================
 
     const loadedAlready =
         unitHasArmament(
@@ -774,15 +1097,22 @@ function renderCenter() {
         action.disabled =
             false;
 
+
         action.textContent =
-            "UNLOAD";
+            "UNLOAD ARMAMENT";
+
 
         action.className =
             "armament-action unload";
 
+
         return;
     }
 
+
+    // ========================================================
+    // LOAD
+    // ========================================================
 
     const check =
         canLoadArmament(
@@ -797,7 +1127,7 @@ function renderCenter() {
 
     action.textContent =
         check.allowed
-            ? "LOAD"
+            ? "LOAD ARMAMENT"
             : "CANNOT LOAD";
 
 
@@ -807,13 +1137,8 @@ function renderCenter() {
 
     if (!check.allowed) {
 
-        details.innerHTML += `
-
-            <div class="armament-warning">
-                ${check.reason}
-            </div>
-
-        `;
+        warning.textContent =
+            check.reason;
     }
 }
 
@@ -922,17 +1247,17 @@ function formatCategory(
 ) {
 
     if (
-        category ===
-        "air"
+        category === "air"
     ) {
+
         return "AIR";
     }
 
 
     if (
-        category ===
-        "ground"
+        category === "ground"
     ) {
+
         return "GROUND";
     }
 
@@ -968,30 +1293,38 @@ function addArmamentStyles() {
 
     style.textContent = `
 
+        /* =====================================================
+           FULL ARMAMENT MENU
+        ====================================================== */
+
         #armamentMenu {
 
             position: fixed;
 
-            left: 0;
-            right: 0;
-            bottom: 0;
+            left: 3vw;
+            right: 3vw;
 
-            height: 92vh;
+            top: 4vh;
+            bottom: 4vh;
 
             background:
-                rgba(15,15,15,0.98);
+                rgba(12, 12, 12, 0.99);
 
-            border-top:
-                3px solid #555;
+            border:
+                2px solid #555;
+
+            border-radius:
+                10px;
 
             box-shadow:
-                0 -10px 40px
-                rgba(0,0,0,0.8);
+                0 20px 70px
+                rgba(0,0,0,0.85);
 
-            z-index: 10000;
+            z-index:
+                10000;
 
             transform:
-                translateY(100%);
+                translateY(110%);
 
             transition:
                 transform 0.3s ease;
@@ -1002,7 +1335,11 @@ function addArmamentStyles() {
             flex-direction:
                 column;
 
-            color: white;
+            overflow:
+                hidden;
+
+            color:
+                white;
 
             font-family:
                 Arial, sans-serif;
@@ -1016,21 +1353,32 @@ function addArmamentStyles() {
         }
 
 
+        /* =====================================================
+           HEADER
+        ====================================================== */
+
         .armament-header {
 
-            height: 65px;
+            height:
+                70px;
 
-            flex-shrink: 0;
+            flex-shrink:
+                0;
 
-            display: flex;
+            display:
+                flex;
 
-            align-items: center;
+            align-items:
+                center;
 
-            justify-content: center;
+            justify-content:
+                center;
 
-            position: relative;
+            position:
+                relative;
 
-            background: #222;
+            background:
+                #202020;
 
             border-bottom:
                 2px solid #444;
@@ -1039,365 +1387,1039 @@ function addArmamentStyles() {
 
         .armament-title {
 
-            font-size: 24px;
+            font-size:
+                25px;
 
-            font-weight: bold;
+            font-weight:
+                bold;
 
-            letter-spacing: 2px;
+            letter-spacing:
+                4px;
         }
 
 
         .armament-close {
 
-            position: absolute;
+            position:
+                absolute;
 
-            right: 15px;
+            right:
+                15px;
 
-            top: 12px;
+            top:
+                15px;
 
-            width: 40px;
-            height: 40px;
+            width:
+                40px;
 
-            border: 0;
+            height:
+                40px;
 
-            border-radius: 7px;
+            border:
+                1px solid #666;
 
-            background: #444;
+            border-radius:
+                6px;
 
-            color: white;
+            background:
+                #333;
 
-            font-size: 28px;
+            color:
+                white;
 
-            cursor: pointer;
+            font-size:
+                28px;
+
+            line-height:
+                35px;
+
+            cursor:
+                pointer;
         }
 
 
         .armament-close:hover {
 
-            background: #666;
+            background:
+                #555;
         }
 
+
+        /* =====================================================
+           THREE PANEL BODY
+        ====================================================== */
 
         .armament-body {
 
-            flex: 1;
+            flex:
+                1;
 
-            min-height: 0;
+            min-height:
+                0;
 
-            display: grid;
+            display:
+                grid;
 
             grid-template-columns:
-                28% 44% 28%;
+                minmax(240px, 30%)
+                minmax(320px, 40%)
+                minmax(240px, 30%);
 
-            gap: 2px;
+            gap:
+                2px;
 
-            background: #111;
+            background:
+                #080808;
         }
 
 
-        .armament-column {
+        /* =====================================================
+           LEFT + RIGHT PANELS
+        ====================================================== */
 
-            min-width: 0;
+        .armament-panel {
 
-            display: flex;
+            min-width:
+                0;
 
-            flex-direction: column;
+            min-height:
+                0;
 
-            background: #1c1c1c;
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            background:
+                #181818;
         }
 
 
-        .armament-column-title {
+        .armament-panel-header {
 
-            flex-shrink: 0;
+            height:
+                58px;
 
-            padding: 14px;
+            flex-shrink:
+                0;
 
-            text-align: center;
+            display:
+                flex;
 
-            font-size: 16px;
+            align-items:
+                center;
 
-            font-weight: bold;
+            justify-content:
+                space-between;
 
-            background: #292929;
+            padding:
+                0 16px;
+
+            background:
+                #252525;
 
             border-bottom:
                 2px solid #444;
         }
 
 
-        .armament-scroll {
+        .armament-panel-title {
 
-            overflow-y: auto;
+            font-size:
+                15px;
 
-            padding: 10px;
+            font-weight:
+                bold;
+
+            letter-spacing:
+                2px;
         }
 
 
-        .armament-unit-button,
-        .armament-button {
+        .armament-panel-count {
 
-            width: 100%;
+            min-width:
+                28px;
 
-            margin-bottom: 8px;
+            height:
+                26px;
 
-            padding: 13px;
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
 
             border:
-                2px solid #444;
+                1px solid #555;
 
-            border-radius: 7px;
+            border-radius:
+                4px;
 
-            background: #303030;
+            background:
+                #111;
 
-            color: white;
+            color:
+                #aaa;
 
-            cursor: pointer;
-
-            text-align: left;
+            font-size:
+                12px;
         }
 
 
-        .armament-unit-button:hover,
-        .armament-button:hover {
+        /* =====================================================
+           INDEPENDENT SCROLLING
+        ====================================================== */
 
-            background: #444;
+        .armament-scroll {
+
+            flex:
+                1;
+
+            min-height:
+                0;
+
+            overflow-y:
+                auto;
+
+            overflow-x:
+                hidden;
+
+            padding:
+                12px;
         }
 
 
-        .armament-unit-button.selected,
-        .armament-button.selected {
+        .armament-scroll::-webkit-scrollbar {
 
-            border-color: yellow;
+            width:
+                8px;
+        }
+
+
+        .armament-scroll::-webkit-scrollbar-track {
+
+            background:
+                #111;
+        }
+
+
+        .armament-scroll::-webkit-scrollbar-thumb {
+
+            background:
+                #444;
+
+            border-radius:
+                4px;
+        }
+
+
+        .armament-scroll::-webkit-scrollbar-thumb:hover {
+
+            background:
+                #666;
+        }
+
+
+        /* =====================================================
+           UNIT BUTTONS
+        ====================================================== */
+
+        .armament-unit-button {
+
+            width:
+                100%;
+
+            margin-bottom:
+                8px;
+
+            padding:
+                14px;
+
+            border:
+                1px solid #444;
+
+            border-radius:
+                6px;
+
+            background:
+                #292929;
+
+            color:
+                white;
+
+            cursor:
+                pointer;
+
+            text-align:
+                left;
+
+            transition:
+                background 0.15s,
+                border 0.15s,
+                transform 0.1s;
+        }
+
+
+        .armament-unit-button:hover {
+
+            background:
+                #363636;
+
+            border-color:
+                #666;
+        }
+
+
+        .armament-unit-button:active {
+
+            transform:
+                scale(0.99);
+        }
+
+
+        .armament-unit-button.selected {
+
+            background:
+                #303830;
+
+            border:
+                2px solid #e6d94c;
 
             box-shadow:
-                0 0 8px
-                rgba(255,255,0,0.35);
+                0 0 12px
+                rgba(230,217,76,0.15);
         }
 
 
-        .armament-unit-name,
-        .armament-name {
+        .unit-button-top {
 
-            display: block;
+            display:
+                flex;
 
-            font-weight: bold;
+            justify-content:
+                space-between;
 
-            font-size: 15px;
+            align-items:
+                center;
         }
 
 
-        .armament-unit-info,
-        .armament-info {
+        .armament-unit-name {
 
-            display: block;
+            font-size:
+                16px;
 
-            margin-top: 5px;
+            font-weight:
+                bold;
+        }
 
-            color: #aaa;
 
-            font-size: 11px;
+        .armament-unit-load {
+
+            padding:
+                3px 7px;
+
+            border-radius:
+                4px;
+
+            background:
+                #111;
+
+            color:
+                #bbb;
+
+            font-size:
+                12px;
+        }
+
+
+        .armament-unit-location {
+
+            margin-top:
+                8px;
+
+            color:
+                #888;
+
+            font-size:
+                11px;
+        }
+
+
+        .armament-unit-combat {
+
+            margin-top:
+                5px;
+
+            color:
+                #aaa;
+
+            font-size:
+                11px;
+        }
+
+
+        /* =====================================================
+           RIGHT ARMAMENT BUTTONS
+        ====================================================== */
+
+        .armament-button {
+
+            width:
+                100%;
+
+            margin-bottom:
+                8px;
+
+            padding:
+                14px;
+
+            border:
+                1px solid #444;
+
+            border-radius:
+                6px;
+
+            background:
+                #292929;
+
+            color:
+                white;
+
+            cursor:
+                pointer;
+
+            text-align:
+                left;
+        }
+
+
+        .armament-button:hover {
+
+            background:
+                #363636;
+
+            border-color:
+                #666;
+        }
+
+
+        .armament-button.selected {
+
+            border:
+                2px solid #e6d94c;
+
+            background:
+                #303830;
+
+            box-shadow:
+                0 0 12px
+                rgba(230,217,76,0.15);
         }
 
 
         .armament-button.unavailable {
 
-            opacity: 0.45;
+            opacity:
+                0.45;
         }
 
 
+        .armament-button.loaded {
+
+            border-color:
+                #477c4c;
+        }
+
+
+        .armament-button-top {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            gap:
+                8px;
+        }
+
+
+        .armament-name {
+
+            font-size:
+                14px;
+
+            font-weight:
+                bold;
+
+            line-height:
+                1.3;
+        }
+
+
+        .armament-loaded-badge {
+
+            flex-shrink:
+                0;
+
+            padding:
+                3px 6px;
+
+            border-radius:
+                3px;
+
+            background:
+                #315a35;
+
+            color:
+                #bce5bf;
+
+            font-size:
+                9px;
+
+            font-weight:
+                bold;
+        }
+
+
+        .armament-info {
+
+            display:
+                flex;
+
+            gap:
+                15px;
+
+            margin-top:
+                8px;
+
+            color:
+                #999;
+
+            font-size:
+                10px;
+
+            text-transform:
+                uppercase;
+        }
+
+
+        .armament-stock {
+
+            margin-top:
+                8px;
+
+            color:
+                #777;
+
+            font-size:
+                10px;
+        }
+
+
+        .armament-stock strong {
+
+            color:
+                #ccc;
+
+            margin-left:
+                5px;
+        }
+
+
+        /* =====================================================
+           CENTER
+        ====================================================== */
+
         .armament-center {
 
-            display: flex;
+            min-width:
+                0;
 
-            flex-direction: column;
+            min-height:
+                0;
 
-            align-items: center;
+            display:
+                flex;
 
-            justify-content: center;
+            align-items:
+                center;
 
-            padding: 25px;
+            justify-content:
+                center;
 
-            text-align: center;
+            background:
+                #101010;
 
-            background: #151515;
+            border-left:
+                1px solid #333;
+
+            border-right:
+                1px solid #333;
+
+            overflow:
+                hidden;
+        }
+
+
+        .armament-center-content {
+
+            width:
+                90%;
+
+            max-width:
+                500px;
+
+            text-align:
+                center;
         }
 
 
         .armament-selected-unit {
 
-            font-size: 34px;
+            font-size:
+                34px;
 
-            font-weight: bold;
+            font-weight:
+                bold;
 
-            margin-bottom: 20px;
+            letter-spacing:
+                2px;
         }
 
 
-        .armament-selected-details {
+        .armament-selected-unit-info {
 
-            color: #ccc;
+            margin-top:
+                12px;
 
-            line-height: 1.8;
+            display:
+                flex;
 
-            font-size: 15px;
+            justify-content:
+                center;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                10px;
+
+            color:
+                #999;
+
+            font-size:
+                11px;
+        }
+
+
+        .armament-selected-unit-info span {
+
+            padding:
+                5px 8px;
+
+            background:
+                #1e1e1e;
+
+            border:
+                1px solid #333;
+
+            border-radius:
+                4px;
+        }
+
+
+        .armament-divider {
+
+            width:
+                80%;
+
+            height:
+                1px;
+
+            margin:
+                28px auto;
+
+            background:
+                #444;
+        }
+
+
+        .armament-selection-label {
+
+            color:
+                #777;
+
+            font-size:
+                11px;
+
+            font-weight:
+                bold;
+
+            letter-spacing:
+                2px;
+        }
+
+
+        .armament-selected-armament {
+
+            min-height:
+                38px;
+
+            margin-top:
+                10px;
+
+            font-size:
+                23px;
+
+            font-weight:
+                bold;
+
+            line-height:
+                1.3;
+        }
+
+
+        .armament-selected-armament-info {
+
+            min-height:
+                45px;
+
+            margin-top:
+                8px;
+
+            color:
+                #aaa;
+
+            font-size:
+                12px;
+
+            line-height:
+                1.8;
         }
 
 
         .armament-warning {
 
-            margin-top: 15px;
+            min-height:
+                20px;
 
-            color: #ff7777;
+            margin-top:
+                8px;
 
-            font-weight: bold;
+            color:
+                #ff7777;
+
+            font-size:
+                12px;
+
+            font-weight:
+                bold;
         }
 
 
-        .armament-loadout {
-
-            margin-top: 25px;
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: center;
-
-            gap: 7px;
-        }
-
-
-        .loaded-armament {
-
-            padding: 7px 10px;
-
-            border:
-                1px solid #666;
-
-            border-radius: 5px;
-
-            background: #292929;
-
-            font-size: 12px;
-        }
-
-
-        .armament-none-loaded {
-
-            color: #777;
-
-            font-style: italic;
-        }
-
-
-        .armament-empty {
-
-            padding: 25px 10px;
-
-            color: #777;
-
-            text-align: center;
-        }
-
-
-        .armament-footer {
-
-            height: 95px;
-
-            flex-shrink: 0;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            background: #202020;
-
-            border-top:
-                2px solid #444;
-        }
-
+        /* =====================================================
+           ACTION BUTTON
+        ====================================================== */
 
         .armament-action {
 
-            width: 320px;
+            width:
+                100%;
 
-            max-width: 80%;
+            height:
+                62px;
 
-            height: 62px;
+            margin-top:
+                20px;
 
-            border: 0;
+            border:
+                1px solid #527ee8;
 
-            border-radius: 9px;
+            border-radius:
+                6px;
 
-            background: #155cff;
+            background:
+                #174bc7;
 
-            color: white;
+            color:
+                white;
 
-            font-size: 22px;
+            font-size:
+                17px;
 
-            font-weight: bold;
+            font-weight:
+                bold;
 
-            cursor: pointer;
+            letter-spacing:
+                1px;
+
+            cursor:
+                pointer;
         }
 
 
         .armament-action:hover:not(:disabled) {
 
-            filter: brightness(1.2);
+            background:
+                #2861e5;
         }
 
 
         .armament-action.unload {
 
-            background: #b30000;
+            border-color:
+                #a84c4c;
+
+            background:
+                #8d1717;
+        }
+
+
+        .armament-action.unload:hover:not(:disabled) {
+
+            background:
+                #aa2020;
         }
 
 
         .armament-action:disabled {
 
-            opacity: 0.35;
+            opacity:
+                0.3;
 
-            cursor: not-allowed;
+            cursor:
+                not-allowed;
         }
 
 
-        @media (max-width: 800px) {
+        /* =====================================================
+           CURRENT LOADOUT
+        ====================================================== */
+
+        .armament-loadout-title {
+
+            margin-top:
+                28px;
+
+            color:
+                #777;
+
+            font-size:
+                10px;
+
+            font-weight:
+                bold;
+
+            letter-spacing:
+                2px;
+        }
+
+
+        .armament-loadout {
+
+            display:
+                flex;
+
+            justify-content:
+                center;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                6px;
+
+            margin-top:
+                10px;
+
+            max-height:
+                100px;
+
+            overflow-y:
+                auto;
+        }
+
+
+        .loaded-armament {
+
+            padding:
+                6px 9px;
+
+            border:
+                1px solid #555;
+
+            border-radius:
+                4px;
+
+            background:
+                #252525;
+
+            color:
+                #ccc;
+
+            font-size:
+                10px;
+        }
+
+
+        .armament-none-loaded {
+
+            color:
+                #555;
+
+            font-size:
+                10px;
+
+            font-style:
+                italic;
+        }
+
+
+        /* =====================================================
+           EMPTY STATES
+        ====================================================== */
+
+        .armament-empty {
+
+            padding:
+                40px 15px;
+
+            color:
+                #666;
+
+            text-align:
+                center;
+
+            font-size:
+                12px;
+
+            line-height:
+                1.8;
+        }
+
+
+        .armament-empty-large {
+
+            margin-bottom:
+                5px;
+
+            color:
+                #888;
+
+            font-size:
+                13px;
+
+            font-weight:
+                bold;
+
+            letter-spacing:
+                1px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @media (max-width: 900px) {
 
             #armamentMenu {
 
-                height: 95vh;
+                left:
+                    1vw;
+
+                right:
+                    1vw;
+
+                top:
+                    2vh;
+
+                bottom:
+                    2vh;
             }
 
 
             .armament-body {
 
                 grid-template-columns:
-                    32% 36% 32%;
+                    28% 44% 28%;
             }
 
 
             .armament-selected-unit {
 
-                font-size: 22px;
+                font-size:
+                    25px;
             }
 
 
-            .armament-selected-details {
+            .armament-selected-armament {
 
-                font-size: 12px;
+                font-size:
+                    18px;
             }
 
 
             .armament-action {
 
-                width: 250px;
+                height:
+                    55px;
 
-                height: 55px;
+                font-size:
+                    14px;
+            }
+        }
 
-                font-size: 18px;
+
+        @media (max-width: 650px) {
+
+            .armament-body {
+
+                grid-template-columns:
+                    30% 40% 30%;
+            }
+
+
+            .armament-title {
+
+                font-size:
+                    18px;
+            }
+
+
+            .armament-panel-title {
+
+                font-size:
+                    11px;
+            }
+
+
+            .armament-unit-name,
+            .armament-name {
+
+                font-size:
+                    12px;
+            }
+
+
+            .armament-selected-unit {
+
+                font-size:
+                    20px;
+            }
+
+
+            .armament-selected-armament {
+
+                font-size:
+                    15px;
             }
         }
 

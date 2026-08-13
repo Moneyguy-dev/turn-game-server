@@ -25,11 +25,10 @@ import {
 // FIND ALL UNITS FOR TEAM
 // ============================================================
 
-export function getUnitsForTeam(
-    team
-) {
+export function getUnitsForTeam(team) {
 
     const result = [];
+
 
     for (
         let r = 0;
@@ -46,35 +45,33 @@ export function getUnitsForTeam(
             const stack =
                 board[r]?.[c] || [];
 
-            stack.forEach(
-                unit => {
+
+            stack.forEach(unit => {
+
+                if (
+                    unit.team === team
+                ) {
 
                     if (
-                        unit.team === team
+                        !Array.isArray(
+                            unit.armaments
+                        )
                     ) {
 
-                        if (
-                            !Array.isArray(
-                                unit.armaments
-                            )
-                        ) {
-
-                            unit.armaments = [];
-                        }
-
-                        result.push({
-
-                            unit,
-
-                            r,
-
-                            c
-                        });
+                        unit.armaments = [];
                     }
+
+
+                    result.push({
+                        unit,
+                        r,
+                        c
+                    });
                 }
-            );
+            });
         }
     }
+
 
     return result;
 }
@@ -84,9 +81,7 @@ export function getUnitsForTeam(
 // ENSURE LOADOUT
 // ============================================================
 
-export function ensureUnitLoadout(
-    unit
-) {
+export function ensureUnitLoadout(unit) {
 
     if (
         !Array.isArray(
@@ -97,6 +92,7 @@ export function ensureUnitLoadout(
         unit.armaments = [];
     }
 
+
     return unit.armaments;
 }
 
@@ -105,14 +101,13 @@ export function ensureUnitLoadout(
 // UNIT CAPACITY
 // ============================================================
 
-export function getUnitCapacity(
-    unit
-) {
+export function getUnitCapacity(unit) {
 
     const data =
         getUnitCombatData(
             unit.type
         );
+
 
     return (
         data?.maxArmaments ||
@@ -125,14 +120,13 @@ export function getUnitCapacity(
 // UNIT CLASS
 // ============================================================
 
-export function getUnitClass(
-    unit
-) {
+export function getUnitClass(unit) {
 
     const data =
         getUnitCombatData(
             unit.type
         );
+
 
     return (
         data?.unitClass ||
@@ -195,26 +189,20 @@ export function countTeamArmament(
 
 
     const units =
-        getUnitsForTeam(
-            team
-        );
+        getUnitsForTeam(team);
 
 
-    units.forEach(
-        ({ unit }) => {
+    units.forEach(({ unit }) => {
 
-            ensureUnitLoadout(
-                unit
-            );
+        ensureUnitLoadout(unit);
 
 
-            count +=
-                unit.armaments.filter(
-                    id =>
-                        id === armamentId
-                ).length;
-        }
-    );
+        count +=
+            unit.armaments.filter(
+                id =>
+                    id === armamentId
+            ).length;
+    });
 
 
     return count;
@@ -258,9 +246,7 @@ export function unitHasArmament(
     armamentId
 ) {
 
-    ensureUnitLoadout(
-        unit
-    );
+    ensureUnitLoadout(unit);
 
 
     return unit.armaments.includes(
@@ -324,15 +310,11 @@ export function canLoadArmament(
 
 
     const capacity =
-        getUnitCapacity(
-            unit
-        );
+        getUnitCapacity(unit);
 
 
     const current =
-        ensureUnitLoadout(
-            unit
-        ).length;
+        ensureUnitLoadout(unit).length;
 
 
     if (
@@ -412,9 +394,7 @@ export async function loadArmament(
     }
 
 
-    ensureUnitLoadout(
-        unit
-    );
+    ensureUnitLoadout(unit);
 
 
     unit.armaments.push(
@@ -424,9 +404,7 @@ export async function loadArmament(
 
     try {
 
-        await saveArmamentLoadout(
-            unit
-        );
+        await saveArmamentLoadout(unit);
 
     } catch (error) {
 
@@ -453,7 +431,10 @@ export async function unloadArmament(
     armament
 ) {
 
-    if (!unit || !armament) {
+    if (
+        !unit ||
+        !armament
+    ) {
 
         throw new Error(
             "Invalid unit or armament."
@@ -461,9 +442,7 @@ export async function unloadArmament(
     }
 
 
-    ensureUnitLoadout(
-        unit
-    );
+    ensureUnitLoadout(unit);
 
 
     const index =
@@ -490,9 +469,7 @@ export async function unloadArmament(
 
     try {
 
-        await saveArmamentLoadout(
-            unit
-        );
+        await saveArmamentLoadout(unit);
 
     } catch (error) {
 
@@ -514,9 +491,7 @@ export async function unloadArmament(
 // GET COMPATIBLE ARMAMENTS
 // ============================================================
 
-export function getCompatibleArmaments(
-    unit
-) {
+export function getCompatibleArmaments(unit) {
 
     if (!unit) {
         return [];
@@ -539,9 +514,7 @@ export function getCompatibleArmaments(
 // GET COMBAT POWER
 // ============================================================
 
-export function getUnitCombatPower(
-    unit
-) {
+export function getUnitCombatPower(unit) {
 
     if (!unit) {
 
@@ -563,72 +536,63 @@ export function getUnitCombatPower(
         data?.baseAirCombat ||
         0;
 
+
     let ground =
         data?.baseGroundCombat ||
         0;
 
 
-    ensureUnitLoadout(
-        unit
-    );
+    ensureUnitLoadout(unit);
 
 
-    unit.armaments.forEach(
-        id => {
+    unit.armaments.forEach(id => {
 
-            const armament =
-                getArmament(
-                    id
-                );
+        const armament =
+            getArmament(id);
 
 
-            if (!armament) {
-                return;
-            }
-
-
-            if (
-                armament.category ===
-                "air"
-            ) {
-
-                air +=
-                    armament.combatPower;
-            }
-
-
-            else if (
-                armament.category ===
-                "ground"
-            ) {
-
-                ground +=
-                    armament.combatPower;
-            }
-
-
-            else if (
-                armament.category ===
-                "both"
-            ) {
-
-                air +=
-                    armament.combatPower;
-
-                ground +=
-                    armament.combatPower;
-            }
+        if (!armament) {
+            return;
         }
-    );
+
+
+        if (
+            armament.category ===
+            "air"
+        ) {
+
+            air +=
+                armament.combatPower;
+        }
+
+
+        else if (
+            armament.category ===
+            "ground"
+        ) {
+
+            ground +=
+                armament.combatPower;
+        }
+
+
+        else if (
+            armament.category ===
+            "both"
+        ) {
+
+            air +=
+                armament.combatPower;
+
+            ground +=
+                armament.combatPower;
+        }
+    });
 
 
     return {
-
         air,
-
         ground,
-
-        total:
-            air + ground
+        total: air + ground
     };
 }
