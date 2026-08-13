@@ -3,18 +3,31 @@
 export let rows = 17;
 export let cols = 19;
 
-export let hexSize;
-export let horizontalSpacing;
-export let verticalSpacing;
+export let hexSize = 40;
+export let horizontalSpacing = 30;
+export let verticalSpacing = 34.64;
 
 export let gameBoard = null;
 export let board = [];
 
 
+/* ============================
+   INITIALIZE GRID
+============================ */
+
 export function initGrid() {
 
     gameBoard =
         document.getElementById("gameBoard");
+
+    if (!gameBoard) {
+
+        console.error(
+            "Could not find #gameBoard"
+        );
+
+        return;
+    }
 
     computeHexSize();
 
@@ -30,28 +43,90 @@ export function initGrid() {
 
 export function computeHexSize() {
 
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w =
+        window.innerWidth;
 
-    const maxHexWidth =
-        w / (cols * 0.85);
+    const h =
+        window.innerHeight;
 
-    const maxHexHeight =
-        h / (rows * 1.00);
+
+    /*
+     * Hex geometry:
+     *
+     * Width  = hexSize
+     * Height = hexSize * sqrt(3) / 2
+     *
+     * Columns overlap horizontally by 25%.
+     * Rows are separated by the hex height.
+     */
+
+
+    const hexHeightRatio =
+        Math.sqrt(3) / 2;
+
+
+    /*
+     * Calculate how much space the
+     * entire grid requires.
+     */
+
+    const requiredWidthUnits =
+        (cols - 1) * 0.75 + 1;
+
+
+    const requiredHeightUnits =
+        (rows - 1) +
+        0.5 +
+        hexHeightRatio;
+
+
+    /*
+     * Leave some room around the map.
+     */
+
+    const availableWidth =
+        w * 0.90;
+
+    const availableHeight =
+        h * 0.90;
+
+
+    const widthSize =
+        availableWidth /
+        requiredWidthUnits;
+
+
+    const heightSize =
+        availableHeight /
+        requiredHeightUnits;
+
 
     hexSize =
         Math.floor(
             Math.min(
-                maxHexWidth,
-                maxHexHeight
+                widthSize,
+                heightSize
             )
         );
+
+
+    /*
+     * Prevent extremely small hexes.
+     */
+
+    hexSize =
+        Math.max(
+            hexSize,
+            20
+        );
+
 
     horizontalSpacing =
         hexSize * 0.75;
 
+
     verticalSpacing =
-        hexSize * Math.sqrt(3) / 2;
+        hexSize * hexHeightRatio;
 }
 
 
@@ -61,42 +136,149 @@ export function computeHexSize() {
 
 export function buildHexGrid() {
 
+    if (!gameBoard) {
+        return;
+    }
+
+
+    /*
+     * Remove old hexes.
+     */
+
     gameBoard.innerHTML = "";
 
-    let maxX = 0;
-    let maxY = 0;
 
-    for (let r = 0; r < rows; r++) {
+    /*
+     * Calculate the actual dimensions
+     * of one hex.
+     */
 
-        for (let c = 0; c < cols; c++) {
+    const hexHeight =
+        hexSize *
+        (Math.sqrt(3) / 2);
+
+
+    /*
+     * Calculate total board dimensions.
+     */
+
+    const boardWidth =
+        ((cols - 1) *
+            horizontalSpacing) +
+        hexSize;
+
+
+    const boardHeight =
+        ((rows - 1) *
+            verticalSpacing) +
+        (verticalSpacing / 2) +
+        hexHeight;
+
+
+    /*
+     * Give the board a real size.
+     */
+
+    gameBoard.style.width =
+        `${boardWidth}px`;
+
+    gameBoard.style.height =
+        `${boardHeight}px`;
+
+
+    gameBoard.style.position =
+        "relative";
+
+
+    /*
+     * Build every hex.
+     */
+
+    for (
+        let r = 0;
+        r < rows;
+        r++
+    ) {
+
+        for (
+            let c = 0;
+            c < cols;
+            c++
+        ) {
+
+            /*
+             * HEX WRAPPER
+             */
 
             const wrapper =
                 document.createElement("div");
 
-            wrapper.classList.add(
-                "hex-wrapper"
-            );
+
+            wrapper.className =
+                "hex-wrapper";
+
+
+            /*
+             * Store coordinates.
+             */
+
+            wrapper.dataset.row =
+                r;
+
+            wrapper.dataset.col =
+                c;
+
+
+            /*
+             * HEX
+             */
 
             const hex =
                 document.createElement("div");
 
-            hex.classList.add("hex");
+
+            hex.className =
+                "hex";
+
 
             hex.id =
                 `hex-${r}-${c}`;
 
-            wrapper.appendChild(hex);
 
-            let x =
+            /*
+             * Position the column.
+             */
+
+            const x =
                 c * horizontalSpacing;
+
+
+            /*
+             * Position the row.
+             */
 
             let y =
                 r * verticalSpacing;
 
+
+            /*
+             * Odd columns are shifted
+             * downward by half a hex.
+             */
+
             if (c % 2 !== 0) {
+
                 y +=
                     verticalSpacing / 2;
             }
+
+
+            /*
+             * Wrapper position.
+             */
+
+            wrapper.style.position =
+                "absolute";
 
             wrapper.style.left =
                 `${x}px`;
@@ -104,11 +286,17 @@ export function buildHexGrid() {
             wrapper.style.top =
                 `${y}px`;
 
+
             wrapper.style.width =
                 `${hexSize}px`;
 
             wrapper.style.height =
-                `${hexSize * 0.866}px`;
+                `${hexHeight}px`;
+
+
+            /*
+             * Hex dimensions.
+             */
 
             hex.style.width =
                 "100%";
@@ -116,38 +304,29 @@ export function buildHexGrid() {
             hex.style.height =
                 "100%";
 
-            hex.style.lineHeight =
-                `${hexSize * 0.866}px`;
 
-            const pad =
-                hexSize * 0.866 * 0.12;
+            hex.style.boxSizing =
+                "border-box";
 
-            hex.style.paddingTop =
-                `${pad}px`;
 
-            hex.style.paddingBottom =
-                `${pad}px`;
+            /*
+             * Put hex inside wrapper.
+             */
 
-            wrapper.dataset.row = r;
-            wrapper.dataset.col = c;
+            wrapper.appendChild(
+                hex
+            );
 
-            gameBoard.appendChild(wrapper);
 
-            if (x > maxX) {
-                maxX = x;
-            }
+            /*
+             * Put wrapper on board.
+             */
 
-            if (y > maxY) {
-                maxY = y;
-            }
+            gameBoard.appendChild(
+                wrapper
+            );
         }
     }
-
-    gameBoard.style.width =
-        (maxX + hexSize) + "px";
-
-    gameBoard.style.height =
-        (maxY + hexSize) + "px";
 }
 
 
@@ -159,11 +338,21 @@ export function initBoard() {
 
     board = [];
 
-    for (let r = 0; r < rows; r++) {
+
+    for (
+        let r = 0;
+        r < rows;
+        r++
+    ) {
 
         board[r] = [];
 
-        for (let c = 0; c < cols; c++) {
+
+        for (
+            let c = 0;
+            c < cols;
+            c++
+        ) {
 
             board[r][c] = [];
         }
@@ -189,38 +378,108 @@ export function rebuildGrid() {
 
 export const territories = {
 
-    // Blue territory
+    /*
+     * Blue territory
+     */
+
     natuna: [
-        { r: 14, c: 2 }
+        {
+            r: 14,
+            c: 2
+        }
     ],
 
-    // Blue territory
+
+    /*
+     * Blue territory
+     */
+
     palawan: [
-        { r: 11, c: 8 },
-        { r: 10, c: 9 },
-        { r: 10, c: 10 }
+        {
+            r: 11,
+            c: 8
+        },
+
+        {
+            r: 10,
+            c: 9
+        },
+
+        {
+            r: 10,
+            c: 10
+        }
     ],
 
-    // Red territory
+
+    /*
+     * Red territory
+     */
+
     taiwan: [
-        { r: 2, c: 10 },
-        { r: 3, c: 10 },
-        { r: 1, c: 11 },
-        { r: 2, c: 11 }
+        {
+            r: 2,
+            c: 10
+        },
+
+        {
+            r: 3,
+            c: 10
+        },
+
+        {
+            r: 1,
+            c: 11
+        },
+
+        {
+            r: 2,
+            c: 11
+        }
     ],
 
-    // Red territory
+
+    /*
+     * Red territory
+     */
+
     redsingle: [
-        { r: 6, c: 5 }
+        {
+            r: 6,
+            c: 5
+        }
     ],
 
-    // Blue territory / Blue FOB area
+
+    /*
+     * Blue territory / Blue FOB area
+     */
+
     bluesingle: [
-        { r: 11, c: 12 },
-        { r: 10, c: 13 },
-        { r: 10, c: 14 },
-        { r: 15, c: 15 },
-        { r: 16, c: 16 }
+        {
+            r: 11,
+            c: 12
+        },
+
+        {
+            r: 10,
+            c: 13
+        },
+
+        {
+            r: 10,
+            c: 14
+        },
+
+        {
+            r: 15,
+            c: 15
+        },
+
+        {
+            r: 16,
+            c: 16
+        }
     ]
 };
 
@@ -231,22 +490,28 @@ export const territories = {
 
 export function renderTerritories() {
 
-    Object.entries(territories)
-        .forEach(([name, hexes]) => {
+    Object.entries(
+        territories
+    ).forEach(
+        ([name, hexes]) => {
 
-            hexes.forEach(({ r, c }) => {
+            hexes.forEach(
+                ({ r, c }) => {
 
-                const wrapper =
-                    document.querySelector(
-                        `.hex-wrapper[data-row="${r}"][data-col="${c}"]`
-                    );
+                    const wrapper =
+                        document.querySelector(
+                            `.hex-wrapper[data-row="${r}"][data-col="${c}"]`
+                        );
 
-                if (wrapper) {
 
-                    wrapper.classList.add(
-                        `territory-${name}`
-                    );
+                    if (wrapper) {
+
+                        wrapper.classList.add(
+                            `territory-${name}`
+                        );
+                    }
                 }
-            });
-        });
+            );
+        }
+    );
 }
