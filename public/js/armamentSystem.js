@@ -47,26 +47,28 @@ export function getUnitsForTeam(team) {
             stack.forEach(
                 unit => {
 
+                    /*
+                     * ARG is shared by both sides.
+                     * Include it for either team.
+                     */
+
+                    const belongsToTeam =
+                        unit.team === team ||
+                        unit.team === "both";
+
+
                     if (
-                        unit.team === team
+                        belongsToTeam
                     ) {
 
-                        if (
-                            !Array.isArray(
-                                unit.armaments
-                            )
-                        ) {
-
-                            unit.armaments = [];
-                        }
+                        ensureUnitLoadout(
+                            unit
+                        );
 
 
                         result.push({
-
                             unit,
-
                             r,
-
                             c
                         });
                     }
@@ -85,6 +87,14 @@ export function getUnitsForTeam(team) {
 // ============================================================
 
 export function ensureUnitLoadout(unit) {
+
+    if (
+        !unit
+    ) {
+
+        return [];
+    }
+
 
     if (
         !Array.isArray(
@@ -108,7 +118,7 @@ export function getUnitCapacity(unit) {
 
     const data =
         getUnitCombatData(
-            unit.type
+            unit?.type
         );
 
 
@@ -127,7 +137,7 @@ export function getUnitClass(unit) {
 
     const data =
         getUnitCombatData(
-            unit.type
+            unit?.type
         );
 
 
@@ -156,9 +166,24 @@ export function canUnitUseArmament(
     }
 
 
+    /*
+     * "both" units are allowed to use
+     * their applicable armaments.
+     */
+
     if (
-        unit.team !==
-        armament.team
+        unit.team !== armament.team &&
+        unit.team !== "both"
+    ) {
+
+        return false;
+    }
+
+
+    if (
+        !Array.isArray(
+            armament.compatibleUnits
+        )
     ) {
 
         return false;
@@ -294,8 +319,8 @@ export function canLoadArmament(
 
 
     if (
-        unit.team !==
-        armament.team
+        unit.team !== armament.team &&
+        unit.team !== "both"
     ) {
 
         return {
@@ -391,6 +416,8 @@ export function canLoadArmament(
 
 export async function loadArmament(
     unit,
+    r,
+    c,
     armament
 ) {
 
@@ -422,16 +449,34 @@ export async function loadArmament(
     try {
 
         await saveArmamentLoadout(
-            unit
+            unit,
+            r,
+            c
         );
 
     } catch (error) {
 
-        unit.armaments =
-            unit.armaments.filter(
-                id =>
-                    id !== armament.id
+        /*
+         * Roll back local state if server
+         * rejected the change.
+         */
+
+        const index =
+            unit.armaments.lastIndexOf(
+                armament.id
             );
+
+
+        if (
+            index !== -1
+        ) {
+
+            unit.armaments.splice(
+                index,
+                1
+            );
+        }
+
 
         throw error;
     }
@@ -447,6 +492,8 @@ export async function loadArmament(
 
 export async function unloadArmament(
     unit,
+    r,
+    c,
     armament
 ) {
 
@@ -491,16 +538,24 @@ export async function unloadArmament(
     try {
 
         await saveArmamentLoadout(
-            unit
+            unit,
+            r,
+            c
         );
 
     } catch (error) {
+
+        /*
+         * Restore local loadout if the
+         * server rejected the change.
+         */
 
         unit.armaments.splice(
             index,
             0,
             armament.id
         );
+
 
         throw error;
     }

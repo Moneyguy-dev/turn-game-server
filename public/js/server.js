@@ -57,9 +57,7 @@ export function getPlayerId() {
 // GET JSON HELPER
 // ============================================================
 
-async function getJson(
-    url
-) {
+async function getJson(url) {
 
     const response =
         await fetch(
@@ -72,7 +70,8 @@ async function getJson(
                         "application/json"
                 },
 
-                cache: "no-store"
+                cache:
+                    "no-store"
             }
         );
 
@@ -123,10 +122,12 @@ async function postJson(
         let message =
             `Server returned ${response.status}`;
 
+
         try {
 
             const errorData =
                 await response.json();
+
 
             if (
                 errorData &&
@@ -147,7 +148,7 @@ async function postJson(
             }
 
         } catch {
-            // Ignore invalid error JSON.
+            // Ignore invalid JSON.
         }
 
 
@@ -210,11 +211,6 @@ function normalizeBoard(
     }
 
 
-    /*
-     * Remove extra rows if the server
-     * returned more than our local grid.
-     */
-
     board.length =
         rows;
 }
@@ -274,7 +270,7 @@ export async function loadGameStateFromServer() {
 
 
         // ----------------------------------------------------
-        // STORE COMPLETE STATE
+        // COMPLETE STATE
         // ----------------------------------------------------
 
         window.gameState =
@@ -345,9 +341,119 @@ export async function sendMoveToServer(
     );
 
 
+    if (
+        result &&
+        result.board
+    ) {
+
+        normalizeBoard(
+            result.board
+        );
+    }
+
+
+    return result;
+}
+
+
+// ============================================================
+// SAVE ARMAMENT LOADOUT
+// ============================================================
+
+export async function saveArmamentLoadout(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+
+        throw new Error(
+            "No unit was provided."
+        );
+    }
+
+
+    if (
+        typeof r !== "number" ||
+        typeof c !== "number"
+    ) {
+
+        throw new Error(
+            "Unit board position is required."
+        );
+    }
+
+
+    const gameId =
+        getGameId();
+
+
+    const playerId =
+        getPlayerId();
+
+
+    if (
+        playerId !== "red" &&
+        playerId !== "blue"
+    ) {
+
+        throw new Error(
+            "You must be on the red or blue team."
+        );
+    }
+
+
+    if (
+        unit.team !== playerId
+    ) {
+
+        throw new Error(
+            "You cannot modify the opposing team's units."
+        );
+    }
+
+
+    const armaments =
+        Array.isArray(
+            unit.armaments
+        )
+            ? [...unit.armaments]
+            : [];
+
+
+    const result =
+        await postJson(
+            `${SERVER_URL}/updateArmament`,
+            {
+                gameId,
+
+                playerId,
+
+                unitType:
+                    unit.type,
+
+                unitTeam:
+                    unit.team,
+
+                r,
+
+                c,
+
+                armaments
+            }
+        );
+
+
+    console.log(
+        "Armament loadout saved:",
+        result
+    );
+
+
     /*
-     * If the server returned a new board,
-     * immediately synchronize it.
+     * If the server returns the updated board,
+     * immediately synchronize the local board.
      */
 
     if (
@@ -386,260 +492,6 @@ export async function submitTurnToServer() {
         }
     );
 
-/* =========================
-   UPDATE ARMAMENT LOADOUT
-========================= */
-
-app.post(
-    "/updateArmament",
-    async (req, res) => {
-
-        try {
-
-            const {
-                gameId,
-                playerId,
-                unitType,
-                unitTeam,
-                armaments
-            } = req.body;
-
-
-            if (!gameId) {
-
-                return res
-                    .status(400)
-                    .json({
-                        status: "error",
-                        message:
-                            "Missing gameId"
-                    });
-            }
-
-
-            if (
-                playerId !== "red" &&
-                playerId !== "blue"
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-                        status: "error",
-                        message:
-                            "Invalid playerId"
-                    });
-            }
-
-
-            if (
-                unitTeam !==
-                playerId
-            ) {
-
-                return res
-                    .status(403)
-                    .json({
-                        status: "error",
-                        message:
-                            "You cannot modify the opposing team's units."
-                    });
-            }
-
-
-            if (
-                !unitType ||
-                !Array.isArray(
-                    armaments
-                )
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-                        status: "error",
-                        message:
-                            "Invalid armament data."
-                    });
-            }
-
-
-            const game =
-                getGame(gameId);
-
-
-            if (!game.board) {
-
-                game.board =
-                    generateEmptyBoard();
-
-                spawnAllUnits(
-                    game.board
-                );
-            }
-
-
-            /*
-             * Find the matching unit.
-             *
-             * If multiple identical units exist,
-             * we use the first matching unit that
-             * can be identified by its current loadout.
-             *
-             * A stronger unique unit ID can be added
-             * later when we build the full combat system.
-             */
-
-            let foundUnit =
-                null;
-
-
-            for (
-                let r = 0;
-                r < game.board.length;
-                r++
-            ) {
-
-                for (
-                    let c = 0;
-                    c < game.board[r].length;
-                    c++
-                ) {
-
-                    const stack =
-                        game.board[r][c];
-
-
-                    for (
-                        const unit
-                        of stack
-                    ) {
-
-                        if (
-                            unit.type ===
-                                unitType &&
-                            unit.team ===
-                                unitTeam
-                        ) {
-
-                            /*
-                             * Prefer a unit whose current
-                             * loadout matches the submitted
-                             * loadout.
-                             */
-
-                            const current =
-                                Array.isArray(
-                                    unit.armaments
-                                )
-                                    ? unit.armaments
-                                    : [];
-
-
-                            if (
-                                JSON.stringify(
-                                    current
-                                ) ===
-                                JSON.stringify(
-                                    armaments
-                                )
-                            ) {
-
-                                foundUnit =
-                                    unit;
-
-                                break;
-                            }
-
-
-                            if (!foundUnit) {
-
-                                foundUnit =
-                                    unit;
-                            }
-                        }
-                    }
-
-
-                    if (foundUnit) {
-                        break;
-                    }
-                }
-
-
-                if (foundUnit) {
-                    break;
-                }
-            }
-
-
-            if (!foundUnit) {
-
-                return res
-                    .status(404)
-                    .json({
-                        status: "error",
-                        message:
-                            "Unit not found."
-                    });
-            }
-
-
-            /*
-             * Store loadout.
-             */
-
-            foundUnit.armaments =
-                [...armaments];
-
-
-            /*
-             * Save complete game state.
-             */
-
-            try {
-
-                await saveGameStateToGitHub(
-                    games
-                );
-
-            } catch (err) {
-
-                console.error(
-                    "Failed to save armament loadout:",
-                    err.message
-                );
-            }
-
-
-            res.json({
-
-                status: "ok",
-
-                message:
-                    "Armament loadout updated",
-
-                armaments:
-                    foundUnit.armaments
-            });
-
-        } catch (error) {
-
-            console.error(
-                "updateArmament error:",
-                error
-            );
-
-            res
-                .status(500)
-                .json({
-                    status: "error",
-                    message:
-                        "Internal server error"
-                });
-        }
-    }
-);
 
     const result =
         await postJson(
@@ -658,11 +510,6 @@ app.post(
     );
 
 
-    /*
-     * Synchronize board if the server
-     * returned one.
-     */
-
     if (
         result &&
         result.board
@@ -673,10 +520,6 @@ app.post(
         );
     }
 
-
-    /*
-     * Update turn information if supplied.
-     */
 
     if (
         result &&
@@ -733,10 +576,6 @@ export async function continueTurnOnServer() {
     );
 
 
-    /*
-     * Synchronize returned board.
-     */
-
     if (
         result &&
         result.board
@@ -747,10 +586,6 @@ export async function continueTurnOnServer() {
         );
     }
 
-
-    /*
-     * Synchronize turn information.
-     */
 
     if (
         result &&
@@ -807,11 +642,6 @@ export async function resetGameOnServer() {
     );
 
 
-    /*
-     * If reset returned a board,
-     * synchronize it immediately.
-     */
-
     if (
         result &&
         result.board
@@ -822,10 +652,6 @@ export async function resetGameOnServer() {
         );
     }
 
-
-    /*
-     * Reset turn state.
-     */
 
     window.turnLocked = {
         red: false,

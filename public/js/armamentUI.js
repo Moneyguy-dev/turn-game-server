@@ -150,10 +150,6 @@ function createMenu() {
         <div class="armament-body">
 
 
-            <!-- =================================================
-                 LEFT — UNITS
-            ================================================== -->
-
             <section class="armament-panel">
 
                 <div class="armament-panel-header">
@@ -181,10 +177,6 @@ function createMenu() {
 
             </section>
 
-
-            <!-- =================================================
-                 CENTER — SELECTION
-            ================================================== -->
 
             <section class="armament-center">
 
@@ -274,10 +266,6 @@ function createMenu() {
 
             </section>
 
-
-            <!-- =================================================
-                 RIGHT — ARMAMENTS
-            ================================================== -->
 
             <section class="armament-panel">
 
@@ -435,9 +423,11 @@ function renderUnits() {
             </div>
         `;
 
+
         if (count) {
             count.textContent = "0";
         }
+
 
         return;
     }
@@ -450,6 +440,7 @@ function renderUnits() {
 
 
     if (count) {
+
         count.textContent =
             units.length;
     }
@@ -560,7 +551,9 @@ function renderUnits() {
                         c
                     };
 
+
                     selectedArmament = null;
+
 
                     renderUnits();
 
@@ -771,6 +764,7 @@ function renderArmaments() {
 
                     selectedArmament =
                         armament;
+
 
                     renderArmaments();
 
@@ -1169,6 +1163,14 @@ async function performArmamentAction() {
         selectedUnit.unit;
 
 
+    const r =
+        selectedUnit.r;
+
+
+    const c =
+        selectedUnit.c;
+
+
     const armament =
         selectedArmament;
 
@@ -1196,6 +1198,8 @@ async function performArmamentAction() {
 
             await unloadArmament(
                 unit,
+                r,
+                c,
                 armament
             );
 
@@ -1203,6 +1207,8 @@ async function performArmamentAction() {
 
             await loadArmament(
                 unit,
+                r,
+                c,
                 armament
             );
         }
@@ -1229,6 +1235,10 @@ async function performArmamentAction() {
             "Armament operation failed."
         );
 
+
+        renderUnits();
+
+        renderArmaments();
 
         renderCenter();
     }
@@ -1288,10 +1298,6 @@ function addArmamentStyles() {
 
     style.textContent = `
 
-        /* =====================================================
-           MAIN MENU
-        ====================================================== */
-
         #armamentMenu {
 
             position: fixed;
@@ -1347,10 +1353,6 @@ function addArmamentStyles() {
                 translateY(0);
         }
 
-
-        /* =====================================================
-           HEADER
-        ====================================================== */
 
         .armament-header {
 
@@ -1437,10 +1439,6 @@ function addArmamentStyles() {
         }
 
 
-        /* =====================================================
-           THREE PANELS
-        ====================================================== */
-
         .armament-body {
 
             flex:
@@ -1483,10 +1481,6 @@ function addArmamentStyles() {
                 #181818;
         }
 
-
-        /* =====================================================
-           PANEL HEADERS
-        ====================================================== */
 
         .armament-panel-header {
 
@@ -1563,10 +1557,6 @@ function addArmamentStyles() {
         }
 
 
-        /* =====================================================
-           SCROLLING
-        ====================================================== */
-
         .armament-scroll {
 
             flex:
@@ -1616,10 +1606,6 @@ function addArmamentStyles() {
                 #666;
         }
 
-
-        /* =====================================================
-           UNIT BUTTONS
-        ====================================================== */
 
         .armament-unit-button {
 
@@ -1743,10 +1729,6 @@ function addArmamentStyles() {
                 11px;
         }
 
-
-        /* =====================================================
-           ARMAMENT BUTTONS
-        ====================================================== */
 
         .armament-button {
 
@@ -1903,10 +1885,6 @@ function addArmamentStyles() {
                 5px;
         }
 
-
-        /* =====================================================
-           CENTER
-        ====================================================== */
 
         .armament-center {
 
@@ -2092,10 +2070,6 @@ function addArmamentStyles() {
         }
 
 
-        /* =====================================================
-           ACTION BUTTON
-        ====================================================== */
-
         .armament-action {
 
             width:
@@ -2166,10 +2140,6 @@ function addArmamentStyles() {
                 not-allowed;
         }
 
-
-        /* =====================================================
-           LOADOUT
-        ====================================================== */
 
         .armament-loadout-title {
 
@@ -2250,10 +2220,6 @@ function addArmamentStyles() {
         }
 
 
-        /* =====================================================
-           EMPTY STATES
-        ====================================================== */
-
         .armament-empty {
 
             padding:
@@ -2291,10 +2257,6 @@ function addArmamentStyles() {
                 1px;
         }
 
-
-        /* =====================================================
-           RESPONSIVE
-        ====================================================== */
 
         @media (max-width: 900px) {
 
