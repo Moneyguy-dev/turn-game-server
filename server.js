@@ -4,11 +4,14 @@ const path = require("path");
 
 const app = express();
 
-/* =========================
-   EXPRESS SETUP
-========================= */
 
-app.use(express.json());
+/* ============================================================
+   EXPRESS SETUP
+============================================================ */
+
+app.use(
+    express.json()
+);
 
 app.use(
     express.static(
@@ -17,16 +20,16 @@ app.use(
 );
 
 
-/* =========================
+/* ============================================================
    GAME STORAGE
-========================= */
+============================================================ */
 
 let games = {};
 
 
-/* =========================
+/* ============================================================
    GITHUB PERSISTENCE
-========================= */
+============================================================ */
 
 async function saveGameStateToGitHub(gameState) {
 
@@ -86,6 +89,7 @@ async function saveGameStateToGitHub(gameState) {
         }
     }
 
+
     const payload = {
 
         message:
@@ -95,11 +99,13 @@ async function saveGameStateToGitHub(gameState) {
             contentEncoded
     };
 
+
     if (sha) {
 
         payload.sha =
             sha;
     }
+
 
     await axios.put(
         apiUrl,
@@ -116,15 +122,16 @@ async function saveGameStateToGitHub(gameState) {
         }
     );
 
+
     console.log(
         "✔ Game state saved to GitHub"
     );
 }
 
 
-/* =========================
+/* ============================================================
    LOAD GAME STATE FROM GITHUB
-========================= */
+============================================================ */
 
 async function loadGameStateFromGitHub() {
 
@@ -143,6 +150,7 @@ async function loadGameStateFromGitHub() {
     const apiUrl =
         `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
 
+
     try {
 
         const res =
@@ -157,6 +165,7 @@ async function loadGameStateFromGitHub() {
                 }
             );
 
+
         const decoded =
             Buffer
                 .from(
@@ -165,12 +174,17 @@ async function loadGameStateFromGitHub() {
                 )
                 .toString("utf8");
 
+
         const gameState =
-            JSON.parse(decoded);
+            JSON.parse(
+                decoded
+            );
+
 
         console.log(
             "✔ Game state restored from GitHub"
         );
+
 
         return gameState;
 
@@ -193,16 +207,19 @@ async function loadGameStateFromGitHub() {
             );
         }
 
+
         return null;
     }
 }
 
 
-/* =========================
+/* ============================================================
    GET / CREATE GAME
-========================= */
+============================================================ */
 
-function getGame(gameId) {
+function getGame(
+    gameId
+) {
 
     if (!games[gameId]) {
 
@@ -210,35 +227,43 @@ function getGame(gameId) {
 
             gameId,
 
-            board: null,
+            board:
+                null,
 
-            lastMove: null,
+            lastMove:
+                null,
 
-            moveHistory: [],
+            moveHistory:
+                [],
 
             currentTurnPlayer:
                 "red",
 
-            unlockTime: null,
+            unlockTime:
+                null,
 
             turnLocked: {
 
-                red: false,
+                red:
+                    false,
 
-                blue: false
+                blue:
+                    false
             },
 
-            pendingMoves: []
+            pendingMoves:
+                []
         };
     }
+
 
     return games[gameId];
 }
 
 
-/* =========================
+/* ============================================================
    UNIT DEFINITIONS
-========================= */
+============================================================ */
 
 const units = {
 
@@ -281,6 +306,7 @@ const units = {
         }
     },
 
+
     red: {
 
         J10: {
@@ -322,27 +348,71 @@ const units = {
 };
 
 
-/* =========================
+/* ============================================================
    FOB LOCATIONS
-========================= */
+============================================================ */
 
 const startHexes = {
 
     blue: {
+
         r: 15,
+
         c: 15
     },
 
+
     red: {
+
         r: 3,
+
         c: 10
     }
 };
 
 
-/* =========================
+/* ============================================================
+   CREATE UNIT
+============================================================ */
+
+function createUnit(
+    type,
+    team
+) {
+
+    return {
+
+        type,
+
+        team,
+
+        move:
+            units[team][type].move,
+
+        /*
+         * New armament system.
+         *
+         * The frontend uses an array of
+         * armament IDs.
+         */
+
+        armaments:
+            [],
+
+        /*
+         * Keep the old property for
+         * compatibility with old saves.
+         */
+
+        armament:
+            {}
+    };
+}
+
+
+/* ============================================================
    ADD UNIT
-========================= */
+============================================================ */
 
 function addUnit(
     board,
@@ -352,27 +422,30 @@ function addUnit(
     team
 ) {
 
-    board[r][c].push({
+    if (
+        !board?.[r]?.[c]
+    ) {
 
-        type,
+        return;
+    }
 
-        team,
 
-        move:
-            units[team][type].move,
-
-        armament: {},
-
-        armaments: []
-    });
+    board[r][c].push(
+        createUnit(
+            type,
+            team
+        )
+    );
 }
 
 
-/* =========================
+/* ============================================================
    SPAWN ALL UNITS
-========================= */
+============================================================ */
 
-function spawnAllUnits(board) {
+function spawnAllUnits(
+    board
+) {
 
     const blueStart =
         startHexes.blue;
@@ -383,44 +456,60 @@ function spawnAllUnits(board) {
 
     Object.keys(
         units.blue
-    ).forEach(type => {
+    ).forEach(
+        type => {
 
-        addUnit(
-            board,
-            blueStart.r,
-            blueStart.c,
-            type,
-            "blue"
-        );
-    });
+            addUnit(
+                board,
+
+                blueStart.r,
+
+                blueStart.c,
+
+                type,
+
+                "blue"
+            );
+        }
+    );
 
 
     Object.keys(
         units.red
-    ).forEach(type => {
+    ).forEach(
+        type => {
 
-        addUnit(
-            board,
-            redStart.r,
-            redStart.c,
-            type,
-            "red"
-        );
-    });
+            addUnit(
+                board,
+
+                redStart.r,
+
+                redStart.c,
+
+                type,
+
+                "red"
+            );
+        }
+    );
 }
 
 
-/* =========================
+/* ============================================================
    EMPTY BOARD
-========================= */
+============================================================ */
 
 function generateEmptyBoard() {
 
-    const rows = 17;
+    const rows =
+        17;
 
-    const cols = 19;
+    const cols =
+        19;
 
-    const board = [];
+    const board =
+        [];
+
 
     for (
         let r = 0;
@@ -428,7 +517,9 @@ function generateEmptyBoard() {
         r++
     ) {
 
-        board[r] = [];
+        board[r] =
+            [];
+
 
         for (
             let c = 0;
@@ -436,23 +527,31 @@ function generateEmptyBoard() {
             c++
         ) {
 
-            board[r][c] = [];
+            board[r][c] =
+                [];
         }
     }
+
 
     return board;
 }
 
 
-/* =========================
-   NORMALIZE EXISTING UNITS
-========================= */
+/* ============================================================
+   NORMALIZE UNITS
+============================================================ */
 
-function normalizeBoardUnits(board) {
+function normalizeBoardUnits(
+    board
+) {
 
-    if (!Array.isArray(board)) {
+    if (
+        !Array.isArray(board)
+    ) {
+
         return;
     }
+
 
     for (
         let r = 0;
@@ -460,9 +559,15 @@ function normalizeBoardUnits(board) {
         r++
     ) {
 
-        if (!Array.isArray(board[r])) {
+        if (
+            !Array.isArray(
+                board[r]
+            )
+        ) {
+
             continue;
         }
+
 
         for (
             let c = 0;
@@ -473,171 +578,268 @@ function normalizeBoardUnits(board) {
             const stack =
                 board[r][c];
 
-            if (!Array.isArray(stack)) {
+
+            if (
+                !Array.isArray(stack)
+            ) {
+
                 continue;
             }
 
-            stack.forEach(unit => {
 
-                if (!unit) {
-                    return;
+            stack.forEach(
+                unit => {
+
+                    if (!unit) {
+
+                        return;
+                    }
+
+
+                    /*
+                     * Movement compatibility.
+                     */
+
+                    if (
+                        unit.move === undefined &&
+                        unit.team &&
+                        unit.type &&
+                        units[unit.team] &&
+                        units[unit.team][unit.type]
+                    ) {
+
+                        unit.move =
+                            units[
+                                unit.team
+                            ][
+                                unit.type
+                            ].move;
+                    }
+
+
+                    /*
+                     * New armament array.
+                     */
+
+                    if (
+                        !Array.isArray(
+                            unit.armaments
+                        )
+                    ) {
+
+                        /*
+                         * Convert old single
+                         * armament format if possible.
+                         */
+
+                        if (
+                            unit.armament &&
+                            typeof unit.armament === "object" &&
+                            unit.armament.id !== undefined
+                        ) {
+
+                            unit.armaments = [
+                                unit.armament.id
+                            ];
+
+                        } else {
+
+                            unit.armaments =
+                                [];
+                        }
+                    }
+
+
+                    /*
+                     * Keep old field available.
+                     */
+
+                    if (
+                        unit.armament === undefined ||
+                        unit.armament === null
+                    ) {
+
+                        unit.armament =
+                            {};
+                    }
                 }
-
-
-                if (
-                    unit.armament === undefined ||
-                    unit.armament === null
-                ) {
-
-                    unit.armament = {};
-                }
-
-
-                if (
-                    !Array.isArray(
-                        unit.armaments
-                    )
-                ) {
-
-                    unit.armaments = [];
-                }
-
-
-                if (
-                    unit.move === undefined &&
-                    unit.team &&
-                    unit.type &&
-                    units[unit.team] &&
-                    units[unit.team][unit.type]
-                ) {
-
-                    unit.move =
-                        units[unit.team][unit.type].move;
-                }
-
-            });
+            );
         }
     }
 }
 
 
-/* =========================
+/* ============================================================
    FIND UNIT ON BOARD
-========================= */
+============================================================ */
 
 function findUnitOnBoard(
     board,
     options
 ) {
 
-    if (!board || !options) {
+    if (
+        !board ||
+        !options
+    ) {
+
         return null;
     }
 
-    const {
-        team,
-        unit,
-        unitId,
-        from
-    } = options;
+
+    const team =
+        options.team;
+
+
+    const unitType =
+        options.unit ||
+        options.unitType;
+
+
+    const unitId =
+        options.unitId;
+
+
+    const from =
+        options.from;
+
+
+    const r =
+        options.r;
+
+
+    const c =
+        options.c;
 
 
     /*
-     * Search exact supplied coordinates
-     * first.
+     * Determine coordinates.
      *
-     * IMPORTANT:
-     * We do NOT require an ID here.
+     * Accept all formats:
+     *
+     * from: { r, c }
+     * r / c
+     */
+
+    let searchR =
+        Number.isInteger(
+            from?.r
+        )
+            ? from.r
+            : r;
+
+
+    let searchC =
+        Number.isInteger(
+            from?.c
+        )
+            ? from.c
+            : c;
+
+
+    /*
+     * FIRST:
+     * Search the exact requested hex.
      */
 
     if (
-        from &&
-        Number.isInteger(from.r) &&
-        Number.isInteger(from.c) &&
-        from.r >= 0 &&
-        from.r < 17 &&
-        from.c >= 0 &&
-        from.c < 19
+        Number.isInteger(
+            searchR
+        ) &&
+        Number.isInteger(
+            searchC
+        ) &&
+        searchR >= 0 &&
+        searchR < 17 &&
+        searchC >= 0 &&
+        searchC < 19
     ) {
 
         const stack =
-            board[from.r][from.c];
+            board[searchR]?.[searchC];
 
 
-        if (Array.isArray(stack)) {
+        if (
+            Array.isArray(stack)
+        ) {
 
-            const index =
-                stack.findIndex(
-                    u => {
+            for (
+                let i = 0;
+                i < stack.length;
+                i++
+            ) {
 
-                        if (!u) {
-                            return false;
-                        }
-
-
-                        if (
-                            team &&
-                            u.team !== team
-                        ) {
-                            return false;
-                        }
+                const candidate =
+                    stack[i];
 
 
-                        if (
-                            unit &&
-                            u.type !== unit
-                        ) {
-                            return false;
-                        }
+                if (
+                    !candidate
+                ) {
+
+                    continue;
+                }
 
 
-                        /*
-                         * Only check ID if the
-                         * unit actually has one.
-                         */
+                if (
+                    team &&
+                    candidate.team !== team
+                ) {
 
-                        if (
-                            unitId &&
-                            (
-                                u.id !== undefined ||
-                                u.unitId !== undefined
-                            )
-                        ) {
-
-                            if (
-                                String(
-                                    u.id ??
-                                    u.unitId
-                                ) !==
-                                String(unitId)
-                            ) {
-
-                                return false;
-                            }
-                        }
+                    continue;
+                }
 
 
-                        return true;
+                if (
+                    unitType &&
+                    candidate.type !== unitType
+                ) {
+
+                    continue;
+                }
+
+
+                /*
+                 * If an ID was supplied,
+                 * check it.
+                 */
+
+                if (
+                    unitId
+                ) {
+
+                    const candidateId =
+                        candidate.id ??
+                        candidate.unitId ??
+                        candidate.uid;
+
+
+                    if (
+                        candidateId !== undefined &&
+                        String(candidateId) !==
+                            String(unitId)
+                    ) {
+
+                        continue;
                     }
-                );
+                }
 
-
-            if (index !== -1) {
 
                 return {
 
                     unit:
-                        stack[index],
+                        candidate,
 
                     stack,
 
-                    index,
+                    index:
+                        i,
 
                     r:
-                        from.r,
+                        searchR,
 
                     c:
-                        from.c
+                        searchC
                 };
             }
         }
@@ -645,95 +847,111 @@ function findUnitOnBoard(
 
 
     /*
-     * Search entire board.
+     * SECOND:
+     * If exact position didn't work,
+     * search the entire board.
+     *
+     * This is important because a unit
+     * may have moved since the frontend
+     * selected it.
      */
 
     for (
-        let r = 0;
-        r < 17;
-        r++
+        let boardR = 0;
+        boardR < 17;
+        boardR++
     ) {
 
         for (
-            let c = 0;
-            c < 19;
-            c++
+            let boardC = 0;
+            boardC < 19;
+            boardC++
         ) {
 
             const stack =
-                board[r][c];
+                board[boardR]?.[boardC];
 
 
-            if (!Array.isArray(stack)) {
+            if (
+                !Array.isArray(stack)
+            ) {
+
                 continue;
             }
 
 
-            const index =
-                stack.findIndex(
-                    u => {
+            for (
+                let i = 0;
+                i < stack.length;
+                i++
+            ) {
 
-                        if (!u) {
-                            return false;
-                        }
-
-
-                        if (
-                            team &&
-                            u.team !== team
-                        ) {
-                            return false;
-                        }
+                const candidate =
+                    stack[i];
 
 
-                        if (
-                            unit &&
-                            u.type !== unit
-                        ) {
-                            return false;
-                        }
+                if (
+                    !candidate
+                ) {
+
+                    continue;
+                }
 
 
-                        if (
-                            unitId &&
-                            (
-                                u.id !== undefined ||
-                                u.unitId !== undefined
-                            )
-                        ) {
+                if (
+                    team &&
+                    candidate.team !== team
+                ) {
 
-                            if (
-                                String(
-                                    u.id ??
-                                    u.unitId
-                                ) !==
-                                String(unitId)
-                            ) {
-
-                                return false;
-                            }
-                        }
+                    continue;
+                }
 
 
-                        return true;
+                if (
+                    unitType &&
+                    candidate.type !== unitType
+                ) {
+
+                    continue;
+                }
+
+
+                if (
+                    unitId
+                ) {
+
+                    const candidateId =
+                        candidate.id ??
+                        candidate.unitId ??
+                        candidate.uid;
+
+
+                    if (
+                        candidateId !== undefined &&
+                        String(candidateId) !==
+                            String(unitId)
+                    ) {
+
+                        continue;
                     }
-                );
+                }
 
-
-            if (index !== -1) {
 
                 return {
 
                     unit:
-                        stack[index],
+                        candidate,
 
                     stack,
 
-                    index,
+                    index:
+                        i,
 
-                    r,
+                    r:
+                        boardR,
 
-                    c
+                    c:
+                        boardC
                 };
             }
         }
@@ -744,9 +962,9 @@ function findUnitOnBoard(
 }
 
 
-/* =========================
+/* ============================================================
    APPLY MOVE
-========================= */
+============================================================ */
 
 function applyMoveToBoard(
     board,
@@ -807,21 +1025,33 @@ function applyMoveToBoard(
 
 
     const fromStack =
-        board[from.r][from.c];
+        board[
+            from.r
+        ][
+            from.c
+        ];
+
 
     const toStack =
-        board[to.r][to.c];
+        board[
+            to.r
+        ][
+            to.c
+        ];
 
 
     const idx =
         fromStack.findIndex(
             u =>
+                u &&
                 u.type === unit &&
                 u.team === team
         );
 
 
-    if (idx === -1) {
+    if (
+        idx === -1
+    ) {
 
         console.log(
             "⚠ Unit not found:",
@@ -855,7 +1085,9 @@ function applyMoveToBoard(
     );
 
 
-    toStack.push(u);
+    toStack.push(
+        u
+    );
 
 
     console.log(
@@ -869,13 +1101,16 @@ function applyMoveToBoard(
 }
 
 
-/* =========================
+/* ============================================================
    UPDATE ARMAMENT
-========================= */
+============================================================ */
 
 app.post(
     "/updateArmament",
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -883,73 +1118,107 @@ app.post(
                 req.body || {};
 
 
+            console.log(
+                "================================================"
+            );
+
+            console.log(
+                "UPDATE ARMAMENT REQUEST:"
+            );
+
+            console.log(
+                JSON.stringify(
+                    body,
+                    null,
+                    2
+                )
+            );
+
+            console.log(
+                "================================================"
+            );
+
+
             /*
-             * Accept both the old and new
+             * Accept BOTH the old and new
              * frontend payload formats.
              */
 
             const gameId =
                 body.gameId;
 
+
             const playerId =
                 body.playerId;
 
-            const team =
+
+            const requestedTeam =
                 body.team ||
                 body.unitTeam ||
                 playerId;
 
-            const unit =
+
+            const requestedUnit =
                 body.unit ||
                 body.unitType;
 
-            const unitId =
-                body.unitId;
+
+            const requestedUnitId =
+                body.unitId ??
+                body.unit?.id ??
+                body.unit?.unitId ??
+                body.unit?.uid;
+
+
+            const requestedR =
+                Number.isInteger(
+                    body.r
+                )
+                    ? body.r
+                    : Number.isInteger(
+                        body.from?.r
+                    )
+                        ? body.from.r
+                        : null;
+
+
+            const requestedC =
+                Number.isInteger(
+                    body.c
+                )
+                    ? body.c
+                    : Number.isInteger(
+                        body.from?.c
+                    )
+                        ? body.from.c
+                        : null;
 
 
             /*
-             * Armament may arrive directly
-             * as "armament".
+             * Accept armament from:
+             *
+             * armament
+             * OR
+             * armamentId
              */
 
-            const armament =
+            let requestedArmament =
                 body.armament;
 
 
-            /*
-             * Coordinates may arrive as:
-             *
-             * from: { r, c }
-             *
-             * OR:
-             *
-             * r / c
-             */
-
-            let from =
-                body.from;
-
-
             if (
-                !from &&
-                Number.isInteger(body.r) &&
-                Number.isInteger(body.c)
+                requestedArmament === undefined &&
+                body.armamentId !== undefined
             ) {
 
-                from = {
-
-                    r:
-                        body.r,
-
-                    c:
-                        body.c
-                };
+                requestedArmament =
+                    body.armamentId;
             }
 
 
-            /* =========================
-               VALIDATE GAME
-            ========================= */
+            /*
+             * Validate game.
+             */
 
             if (!gameId) {
 
@@ -957,7 +1226,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing gameId"
@@ -965,9 +1235,9 @@ app.post(
             }
 
 
-            /* =========================
-               VALIDATE PLAYER
-            ========================= */
+            /*
+             * Validate player.
+             */
 
             if (
                 playerId !== "red" &&
@@ -978,7 +1248,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Invalid playerId"
@@ -986,20 +1257,21 @@ app.post(
             }
 
 
-            /* =========================
-               VALIDATE TEAM
-            ========================= */
+            /*
+             * Validate team.
+             */
 
             if (
-                team !== "red" &&
-                team !== "blue"
+                requestedTeam !== "red" &&
+                requestedTeam !== "blue"
             ) {
 
                 return res
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing or invalid team"
@@ -1008,19 +1280,20 @@ app.post(
 
 
             /*
-             * A player can only modify
-             * their own units.
+             * Player can only modify
+             * their own team.
              */
 
             if (
-                team !== playerId
+                requestedTeam !== playerId
             ) {
 
                 return res
                     .status(403)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "You can only update the armament of your own units."
@@ -1028,20 +1301,21 @@ app.post(
             }
 
 
-            /* =========================
-               VALIDATE UNIT
-            ========================= */
+            /*
+             * We need at least a unit type.
+             */
 
             if (
-                !unit &&
-                !unitId
+                !requestedUnit &&
+                !requestedUnitId
             ) {
 
                 return res
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing unit or unitId"
@@ -1049,20 +1323,21 @@ app.post(
             }
 
 
-            /* =========================
-               VALIDATE ARMAMENT
-            ========================= */
+            /*
+             * We need an armament.
+             */
 
             if (
-                armament === undefined ||
-                armament === null
+                requestedArmament === undefined ||
+                requestedArmament === null
             ) {
 
                 return res
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing armament"
@@ -1070,22 +1345,21 @@ app.post(
             }
 
 
-            /* =========================
-               GET GAME
-            ========================= */
-
             const game =
-                getGame(gameId);
+                getGame(
+                    gameId
+                );
 
 
-            /* =========================
-               CREATE BOARD
-            ========================= */
+            /*
+             * Make sure board exists.
+             */
 
             if (!game.board) {
 
                 game.board =
                     generateEmptyBoard();
+
 
                 spawnAllUnits(
                     game.board
@@ -1093,176 +1367,65 @@ app.post(
             }
 
 
+            /*
+             * Normalize existing saves.
+             */
+
             normalizeBoardUnits(
                 game.board
             );
 
 
-            /* =========================
-               FIND UNIT
-            ========================= */
-
-            let found = null;
-
-
             /*
-             * First try the exact hex.
-             *
-             * We intentionally match by:
-             *
-             * team + type
-             *
-             * instead of requiring unitId.
+             * Find the actual unit.
              */
 
-            if (
-                from &&
-                Number.isInteger(from.r) &&
-                Number.isInteger(from.c) &&
-                from.r >= 0 &&
-                from.r < 17 &&
-                from.c >= 0 &&
-                from.c < 19
-            ) {
+            const found =
+                findUnitOnBoard(
+                    game.board,
+                    {
 
-                const stack =
-                    game.board[from.r][from.c];
+                        team:
+                            requestedTeam,
 
+                        unit:
+                            requestedUnit,
 
-                if (Array.isArray(stack)) {
+                        unitId:
+                            requestedUnitId,
 
-                    const index =
-                        stack.findIndex(
-                            candidate => {
+                        r:
+                            requestedR,
 
-                                if (!candidate) {
-                                    return false;
-                                }
+                        c:
+                            requestedC,
 
-
-                                if (
-                                    candidate.team !==
-                                    team
-                                ) {
-
-                                    return false;
-                                }
-
-
-                                if (
-                                    unit &&
-                                    candidate.type !==
-                                    unit
-                                ) {
-
-                                    return false;
-                                }
-
-
-                                /*
-                                 * If the actual unit has
-                                 * an ID, honor it.
-                                 *
-                                 * If it doesn't have one,
-                                 * do not reject it.
-                                 */
-
-                                if (
-                                    unitId &&
-                                    (
-                                        candidate.id !==
-                                            undefined ||
-                                        candidate.unitId !==
-                                            undefined
-                                    )
-                                ) {
-
-                                    const candidateId =
-                                        candidate.id ??
-                                        candidate.unitId;
-
-
-                                    if (
-                                        String(
-                                            candidateId
-                                        ) !==
-                                        String(
-                                            unitId
-                                        )
-                                    ) {
-
-                                        return false;
-                                    }
-                                }
-
-
-                                return true;
-                            }
-                        );
-
-
-                    if (index !== -1) {
-
-                        found = {
-
-                            unit:
-                                stack[index],
-
-                            stack,
-
-                            index,
-
-                            r:
-                                from.r,
-
-                            c:
-                                from.c
-                        };
+                        from:
+                            body.from
                     }
-                }
-            }
+                );
 
-
-            /*
-             * If coordinate lookup failed,
-             * search the entire board.
-             */
-
-            if (!found) {
-
-                found =
-                    findUnitOnBoard(
-                        game.board,
-                        {
-                            team,
-
-                            unit,
-
-                            unitId:
-                                unitId || null,
-
-                            from:
-                                null
-                        }
-                    );
-            }
-
-
-            /* =========================
-               UNIT NOT FOUND
-            ========================= */
 
             if (!found) {
 
                 console.error(
-                    "❌ Unit not found for armament update:",
+                    "❌ Unit not found on board",
                     {
-                        gameId,
-                        playerId,
-                        team,
-                        unit,
-                        unitId,
-                        from
+
+                        team:
+                            requestedTeam,
+
+                        unit:
+                            requestedUnit,
+
+                        unitId:
+                            requestedUnitId,
+
+                        r:
+                            requestedR,
+
+                        c:
+                            requestedC
                     }
                 );
 
@@ -1271,7 +1434,8 @@ app.post(
                     .status(404)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Unit not found on the board"
@@ -1279,17 +1443,18 @@ app.post(
             }
 
 
-            /* =========================
-               UPDATE ARMAMENT
-            ========================= */
+            /*
+             * Determine requested action.
+             */
 
-            found.unit.armament =
-                armament;
+            const action =
+                body.action ||
+                "load";
 
 
             /*
-             * Keep the frontend's armaments
-             * array synchronized too.
+             * Make sure armament array
+             * exists.
              */
 
             if (
@@ -1303,33 +1468,61 @@ app.post(
             }
 
 
-            const armamentId =
-                body.armamentId !== undefined
-                    ? body.armamentId
-                    : (
-                        typeof armament === "object" &&
-                        armament !== null
-                            ? armament.id
-                            : armament
-                    );
-
-
             /*
-             * Add the armament ID if available.
+             * LOAD
              */
 
             if (
-                armamentId !== undefined &&
-                armamentId !== null
+                action === "load"
             ) {
 
-                const alreadyLoaded =
-                    found.unit.armaments.includes(
+                /*
+                 * If frontend sent an object
+                 * with an ID, use that ID.
+                 */
+
+                let armamentId =
+                    requestedArmament;
+
+
+                if (
+                    typeof requestedArmament ===
+                        "object" &&
+                    requestedArmament !== null
+                ) {
+
+                    armamentId =
+                        requestedArmament.id;
+                }
+
+
+                if (
+                    armamentId === undefined ||
+                    armamentId === null
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            status:
+                                "error",
+
+                            message:
+                                "Unable to determine armament ID"
+                        });
+                }
+
+
+                /*
+                 * Don't duplicate.
+                 */
+
+                if (
+                    !found.unit.armaments.includes(
                         armamentId
-                    );
-
-
-                if (!alreadyLoaded) {
+                    )
+                ) {
 
                     found.unit.armaments.push(
                         armamentId
@@ -1338,9 +1531,75 @@ app.post(
             }
 
 
-            /* =========================
-               SAVE STATE
-            ========================= */
+            /*
+             * UNLOAD
+             */
+
+            else if (
+                action === "unload"
+            ) {
+
+                let armamentId =
+                    requestedArmament;
+
+
+                if (
+                    typeof requestedArmament ===
+                        "object" &&
+                    requestedArmament !== null
+                ) {
+
+                    armamentId =
+                        requestedArmament.id;
+                }
+
+
+                const index =
+                    found.unit.armaments.indexOf(
+                        armamentId
+                    );
+
+
+                if (
+                    index !== -1
+                ) {
+
+                    found.unit.armaments.splice(
+                        index,
+                        1
+                    );
+                }
+            }
+
+
+            /*
+             * If the old armament field is
+             * being used by an older client,
+             * keep it synchronized.
+             */
+
+            if (
+                typeof requestedArmament ===
+                    "object" &&
+                requestedArmament !== null
+            ) {
+
+                found.unit.armament =
+                    requestedArmament;
+
+            } else {
+
+                found.unit.armament = {
+
+                    id:
+                        requestedArmament
+                };
+            }
+
+
+            /*
+             * Save state.
+             */
 
             try {
 
@@ -1360,7 +1619,8 @@ app.post(
                     .status(500)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Armament updated in memory but failed to save game state."
@@ -1368,13 +1628,25 @@ app.post(
             }
 
 
-            /* =========================
-               RESPONSE
-            ========================= */
+            /*
+             * Return updated unit.
+             */
+
+            const updatedUnit =
+                {
+                    ...found.unit,
+
+                    armaments:
+                        [
+                            ...found.unit.armaments
+                        ]
+                };
+
 
             return res.json({
 
-                status: "ok",
+                status:
+                    "ok",
 
                 message:
                     "Armament updated",
@@ -1382,9 +1654,7 @@ app.post(
                 gameId,
 
                 unit:
-                    {
-                        ...found.unit
-                    },
+                    updatedUnit,
 
                 location: {
 
@@ -1411,7 +1681,7 @@ app.post(
         } catch (error) {
 
             console.error(
-                "updateArmament error:",
+                "❌ updateArmament error:",
                 error
             );
 
@@ -1420,7 +1690,8 @@ app.post(
                 .status(500)
                 .json({
 
-                    status: "error",
+                    status:
+                        "error",
 
                     message:
                         "Internal server error"
@@ -1430,13 +1701,16 @@ app.post(
 );
 
 
-/* =========================
+/* ============================================================
    SUBMIT MOVE
-========================= */
+============================================================ */
 
 app.post(
     "/submitMove",
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -1444,7 +1718,8 @@ app.post(
                 gameId,
                 playerId,
                 move
-            } = req.body;
+            } =
+                req.body;
 
 
             if (!gameId) {
@@ -1453,7 +1728,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing gameId"
@@ -1470,7 +1746,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Invalid playerId"
@@ -1484,7 +1761,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing move"
@@ -1493,13 +1771,16 @@ app.post(
 
 
             const game =
-                getGame(gameId);
+                getGame(
+                    gameId
+                );
 
 
             if (!game.board) {
 
                 game.board =
                     generateEmptyBoard();
+
 
                 spawnAllUnits(
                     game.board
@@ -1513,14 +1794,17 @@ app.post(
 
 
             if (
-                game.turnLocked[playerId]
+                game.turnLocked[
+                    playerId
+                ]
             ) {
 
                 return res
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             `${playerId} has already submitted this turn`
@@ -1536,7 +1820,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "You can only move your own units."
@@ -1575,9 +1860,10 @@ app.post(
             }
 
 
-            res.json({
+            return res.json({
 
-                status: "ok",
+                status:
+                    "ok",
 
                 message:
                     "Move stored",
@@ -1597,11 +1883,12 @@ app.post(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
-                    status: "error",
+                    status:
+                        "error",
 
                     message:
                         "Internal server error"
@@ -1611,20 +1898,24 @@ app.post(
 );
 
 
-/* =========================
+/* ============================================================
    SUBMIT TURN
-========================= */
+============================================================ */
 
 app.post(
     "/submitTurn",
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const {
                 gameId,
                 playerId
-            } = req.body;
+            } =
+                req.body;
 
 
             if (!gameId) {
@@ -1633,7 +1924,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing gameId"
@@ -1650,7 +1942,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Invalid playerId"
@@ -1659,16 +1952,21 @@ app.post(
 
 
             const game =
-                getGame(gameId);
+                getGame(
+                    gameId
+                );
 
 
             if (
-                game.turnLocked[playerId]
+                game.turnLocked[
+                    playerId
+                ]
             ) {
 
                 return res.json({
 
-                    status: "ok",
+                    status:
+                        "ok",
 
                     message:
                         `${playerId} already submitted`,
@@ -1679,7 +1977,9 @@ app.post(
             }
 
 
-            game.turnLocked[playerId] =
+            game.turnLocked[
+                playerId
+            ] =
                 true;
 
 
@@ -1698,9 +1998,10 @@ app.post(
             }
 
 
-            res.json({
+            return res.json({
 
-                status: "ok",
+                status:
+                    "ok",
 
                 message:
                     `${playerId} submitted turn`,
@@ -1720,11 +2021,12 @@ app.post(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
-                    status: "error",
+                    status:
+                        "error",
 
                     message:
                         "Internal server error"
@@ -1734,19 +2036,23 @@ app.post(
 );
 
 
-/* =========================
+/* ============================================================
    CONTINUE / RESOLVE TURN
-========================= */
+============================================================ */
 
 app.post(
     "/continueTurn",
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const {
                 gameId
-            } = req.body;
+            } =
+                req.body;
 
 
             if (!gameId) {
@@ -1755,7 +2061,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing gameId"
@@ -1764,13 +2071,16 @@ app.post(
 
 
             const game =
-                getGame(gameId);
+                getGame(
+                    gameId
+                );
 
 
             if (!game.board) {
 
                 game.board =
                     generateEmptyBoard();
+
 
                 spawnAllUnits(
                     game.board
@@ -1784,12 +2094,15 @@ app.post(
 
 
             if (
-                game.pendingMoves &&
-                game.pendingMoves.length > 0
+                Array.isArray(
+                    game.pendingMoves
+                )
             ) {
 
                 const pendingMoves =
-                    [...game.pendingMoves];
+                    [
+                        ...game.pendingMoves
+                    ];
 
 
                 for (
@@ -1811,9 +2124,11 @@ app.post(
 
             game.turnLocked = {
 
-                red: false,
+                red:
+                    false,
 
-                blue: false
+                blue:
+                    false
             };
 
 
@@ -1836,9 +2151,10 @@ app.post(
             }
 
 
-            res.json({
+            return res.json({
 
-                status: "ok",
+                status:
+                    "ok",
 
                 message:
                     "Turn resolved",
@@ -1864,11 +2180,12 @@ app.post(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
-                    status: "error",
+                    status:
+                        "error",
 
                     message:
                         "Internal server error"
@@ -1878,19 +2195,23 @@ app.post(
 );
 
 
-/* =========================
+/* ============================================================
    RESET GAME
-========================= */
+============================================================ */
 
 app.post(
     "/resetGame",
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const {
                 gameId
-            } = req.body;
+            } =
+                req.body;
 
 
             if (!gameId) {
@@ -1899,7 +2220,8 @@ app.post(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing gameId"
@@ -1907,11 +2229,15 @@ app.post(
             }
 
 
-            delete games[gameId];
+            delete games[
+                gameId
+            ];
 
 
             const game =
-                getGame(gameId);
+                getGame(
+                    gameId
+                );
 
 
             game.board =
@@ -1926,18 +2252,24 @@ app.post(
             game.lastMove =
                 null;
 
+
             game.moveHistory =
                 [];
 
+
             game.turnLocked = {
 
-                red: false,
+                red:
+                    false,
 
-                blue: false
+                blue:
+                    false
             };
+
 
             game.currentTurnPlayer =
                 "red";
+
 
             game.pendingMoves =
                 [];
@@ -1958,9 +2290,10 @@ app.post(
             }
 
 
-            res.json({
+            return res.json({
 
-                status: "ok",
+                status:
+                    "ok",
 
                 message:
                     "Game reset with units at FOBs",
@@ -1983,11 +2316,12 @@ app.post(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
-                    status: "error",
+                    status:
+                        "error",
 
                     message:
                         "Internal server error"
@@ -1997,13 +2331,16 @@ app.post(
 );
 
 
-/* =========================
+/* ============================================================
    GET GAME STATE
-========================= */
+============================================================ */
 
 app.get(
     "/gameState",
-    (req, res) => {
+    (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -2017,7 +2354,8 @@ app.get(
                     .status(400)
                     .json({
 
-                        status: "error",
+                        status:
+                            "error",
 
                         message:
                             "Missing gameId"
@@ -2026,13 +2364,16 @@ app.get(
 
 
             const game =
-                getGame(gameId);
+                getGame(
+                    gameId
+                );
 
 
             if (!game.board) {
 
                 game.board =
                     generateEmptyBoard();
+
 
                 spawnAllUnits(
                     game.board
@@ -2057,9 +2398,11 @@ app.get(
 
                 game.turnLocked = {
 
-                    red: false,
+                    red:
+                        false,
 
-                    blue: false
+                    blue:
+                        false
                 };
             }
 
@@ -2088,7 +2431,7 @@ app.get(
             };
 
 
-            res.json(
+            return res.json(
                 safeGame
             );
 
@@ -2100,11 +2443,12 @@ app.get(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
-                    status: "error",
+                    status:
+                        "error",
 
                     message:
                         "Internal server error"
@@ -2114,9 +2458,9 @@ app.get(
 );
 
 
-/* =========================
+/* ============================================================
    LOAD SAVED GAME
-========================= */
+============================================================ */
 
 (async () => {
 
@@ -2131,15 +2475,28 @@ app.get(
             games =
                 saved;
 
+
             console.log(
                 "✔ Saved games loaded"
             );
 
 
-            Object.values(
+            Object.entries(
                 games
             ).forEach(
-                game => {
+                (
+                    [
+                        gameId,
+                        game
+                    ]
+                ) => {
+
+                    if (!game.gameId) {
+
+                        game.gameId =
+                            gameId;
+                    }
+
 
                     if (
                         !Array.isArray(
@@ -2158,23 +2515,19 @@ app.get(
 
                         game.turnLocked = {
 
-                            red: false,
+                            red:
+                                false,
 
-                            blue: false
+                            blue:
+                                false
                         };
                     }
 
 
-                    if (
-                        !game.gameId
-                    ) {
+                    if (!game.currentTurnPlayer) {
 
-                        game.gameId =
-                            Object.keys(games)
-                                .find(
-                                    id =>
-                                        games[id] === game
-                                );
+                        game.currentTurnPlayer =
+                            "red";
                     }
 
 
@@ -2184,7 +2537,6 @@ app.get(
                             game.board
                         );
                     }
-
                 }
             );
 
@@ -2206,12 +2558,14 @@ app.get(
 })();
 
 
-/* =========================
+/* ============================================================
    START SERVER
-========================= */
+============================================================ */
 
 const PORT =
-    process.env.PORT || 3000;
+    process.env.PORT ||
+    3000;
+
 
 app.listen(
     PORT,
