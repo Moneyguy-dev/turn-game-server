@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Game Settings</title>
+
+    <link
+        rel="stylesheet"
+        href="./settings.css"
+    >
+
+</head>
+
+
+<body>
+
+    <div class="settings-page">
+
+
+        <!-- ==================================================
+             HEADER
+        =================================================== -->
+
+        <header class="settings-header">
+
+            <div>
+
+                <h1>
+                    Settings
+                </h1>
+
+                <p class="settings-subtitle">
+                    Customize your game interface.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="back-button"
+                id="backButton"
+            >
+                ← Back to Game
+            </button>
+
+        </header>
+
+
+        <!-- ==================================================
+             IMPORTANT INFORMATION
+        =================================================== -->
+
+        <div class="settings-notice">
+
+            <div class="notice-icon">
+                ⚙
+            </div>
+
+            <div>
+
+                <strong>
+                    Settings are not saved
+                </strong>
+
+                <p>
+                    Your settings only remain active while this
+                    page is open. Refreshing the page or returning
+                    to the game will restore the default settings.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             DISPLAY
+        =================================================== -->
+
+        <section class="settings-section">
+
+            <div class="section-heading">
+
+                <h2>
+                    Display
+                </h2>
+
+                <p>
+                    Control what is shown on the game board.
+                </p>
+
+            </div>
+
+
+            <!-- Coordinates -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show Coordinates
+                    </strong>
+
+                    <small>
+                        Display row and column coordinates
+                        on the game board.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showCoordinates"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Unit IDs -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show Unit IDs
+                    </strong>
+
+                    <small>
+                        Display the permanent ID of each unit.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showUnitIds"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Movement -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show Movement Ranges
+                    </strong>
+
+                    <small>
+                        Display the available movement range
+                        when selecting a unit.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showMovementRanges"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- FOB -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show FOB Markers
+                    </strong>
+
+                    <small>
+                        Display each team's FOB on the board.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showFOBs"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Unit Labels -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show Unit Labels
+                    </strong>
+
+                    <small>
+                        Display unit names and types on the board.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showUnitLabels"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Animations -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Animations
+                    </strong>
+
+                    <small>
+                        Enable board and interface animations.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="animations"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+        </section>
+
+
+        <!-- ==================================================
+             GAMEPLAY
+        =================================================== -->
+
+        <section class="settings-section">
+
+            <div class="section-heading">
+
+                <h2>
+                    Gameplay
+                </h2>
+
+                <p>
+                    Control confirmations and gameplay information.
+                </p>
+
+            </div>
+
+
+            <!-- Confirm Move -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Confirm Before Moving
+                    </strong>
+
+                    <small>
+                        Ask for confirmation before submitting
+                        a unit movement.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="confirmMove"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Confirm Load -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Confirm Before Loading Armaments
+                    </strong>
+
+                    <small>
+                        Ask for confirmation before loading
+                        an armament onto a unit.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="confirmArmamentLoad"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Confirm Unload -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Confirm Before Unloading Armaments
+                    </strong>
+
+                    <small>
+                        Ask for confirmation before removing
+                        an armament from a unit.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="confirmArmamentUnload"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Combat Information -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show Combat Information
+                    </strong>
+
+                    <small>
+                        Display combat power and combat-related
+                        information.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showCombatInformation"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Turn Notifications -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Show Turn Notifications
+                    </strong>
+
+                    <small>
+                        Display notifications when turns are
+                        submitted or resolved.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="showTurnNotifications"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+        </section>
+
+
+        <!-- ==================================================
+             INTERFACE
+        =================================================== -->
+
+        <section class="settings-section">
+
+            <div class="section-heading">
+
+                <h2>
+                    Interface
+                </h2>
+
+                <p>
+                    Adjust the appearance and scale of the game.
+                </p>
+
+            </div>
+
+
+            <!-- Compact Units -->
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Compact Unit Display
+                    </strong>
+
+                    <small>
+                        Use a smaller display for units on
+                        crowded hexes.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="compactUnits"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+
+            <!-- Board Zoom -->
+
+            <div class="setting-row slider-row">
+
+                <div class="setting-info">
+
+                    <strong>
+                        Board Zoom
+                    </strong>
+
+                    <small>
+                        Adjust the board zoom level.
+                    </small>
+
+                </div>
+
+
+                <div class="slider-control">
+
+                    <input
+                        type="range"
+                        min="75"
+                        max="150"
+                        step="5"
+                        value="100"
+                        data-setting="boardZoom"
+                        id="boardZoom"
+                    >
+
+                    <span
+                        id="boardZoomValue"
+                        class="slider-value"
+                    >
+                        100%
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- UI Scale -->
+
+            <div class="setting-row slider-row">
+
+                <div class="setting-info">
+
+                    <strong>
+                        Interface Scale
+                    </strong>
+
+                    <small>
+                        Adjust the size of menus and controls.
+                    </small>
+
+                </div>
+
+
+                <div class="slider-control">
+
+                    <input
+                        type="range"
+                        min="80"
+                        max="125"
+                        step="5"
+                        value="100"
+                        data-setting="uiScale"
+                        id="uiScale"
+                    >
+
+                    <span
+                        id="uiScaleValue"
+                        class="slider-value"
+                    >
+                        100%
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             AUDIO
+        =================================================== -->
+
+        <section class="settings-section">
+
+            <div class="section-heading">
+
+                <h2>
+                    Audio
+                </h2>
+
+                <p>
+                    Control game sound effects.
+                </p>
+
+            </div>
+
+
+            <label class="setting-row">
+
+                <span class="setting-info">
+
+                    <strong>
+                        Sound Effects
+                    </strong>
+
+                    <small>
+                        Enable game sound effects and notifications.
+                    </small>
+
+                </span>
+
+
+                <input
+                    type="checkbox"
+                    data-setting="soundEffects"
+                >
+
+                <span class="toggle"></span>
+
+            </label>
+
+        </section>
+
+
+        <!-- ==================================================
+             ACTIONS
+        =================================================== -->
+
+        <section class="settings-actions">
+
+            <button
+                type="button"
+                class="reset-button"
+                id="resetSettingsButton"
+            >
+                Reset to Defaults
+            </button>
+
+            <button
+                type="button"
+                class="done-button"
+                id="doneButton"
+            >
+                Done
+            </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             STATUS
+        =================================================== -->
+
+        <div
+            id="settingsStatus"
+            class="settings-status"
+            aria-live="polite"
+        ></div>
+
+
+    </div>
+
+
+    <!-- ======================================================
+         JAVASCRIPT
+    ======================================================= -->
+
+    <script
+        type="module"
+        src="./js/settings-page.js"
+    ></script>
+
+
+</body>
+
+</html>
