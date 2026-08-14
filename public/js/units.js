@@ -18,6 +18,10 @@ import {
     sendMoveToServer
 } from "./server.js";
 
+import {
+    unitIsLoading
+} from "./armamentSystem.js";
+
 
 // ============================================================
 // SELECTION STATE
@@ -53,7 +57,6 @@ function ensureUnitPanel() {
             "unitPanel"
         );
 
-
     if (!panel) {
 
         console.error(
@@ -63,12 +66,10 @@ function ensureUnitPanel() {
         return null;
     }
 
-
     let header =
         document.getElementById(
             "unitPanelHeader"
         );
-
 
     if (!header) {
 
@@ -85,12 +86,10 @@ function ensureUnitPanel() {
         );
     }
 
-
     let title =
         document.getElementById(
             "unitPanelTitle"
         );
-
 
     if (!title) {
 
@@ -110,12 +109,10 @@ function ensureUnitPanel() {
         );
     }
 
-
     let close =
         document.getElementById(
             "closeUnitPanel"
         );
-
 
     if (!close) {
 
@@ -141,16 +138,13 @@ function ensureUnitPanel() {
         );
     }
 
-
     close.onclick =
         closeUnitPanel;
-
 
     let list =
         document.getElementById(
             "unitList"
         );
-
 
     if (!list) {
 
@@ -166,7 +160,6 @@ function ensureUnitPanel() {
             list
         );
     }
-
 
     return panel;
 }
@@ -185,18 +178,15 @@ export function openUnitPanel(
     const panel =
         ensureUnitPanel();
 
-
     const titleElement =
         document.getElementById(
             "unitPanelTitle"
         );
 
-
     const list =
         document.getElementById(
             "unitList"
         );
-
 
     if (
         !panel ||
@@ -211,14 +201,11 @@ export function openUnitPanel(
         return;
     }
 
-
     titleElement.textContent =
         title;
 
-
     list.innerHTML =
         "";
-
 
     if (
         !units ||
@@ -230,22 +217,17 @@ export function openUnitPanel(
                 "div"
             );
 
-
         empty.className =
             "unitPanelEmpty";
 
-
         empty.textContent =
             "No units.";
-
 
         list.appendChild(
             empty
         );
 
-    }
-
-    else {
+    } else {
 
         units.forEach(
             unit => {
@@ -255,53 +237,54 @@ export function openUnitPanel(
                         "button"
                     );
 
-
                 button.type =
                     "button";
 
-
                 button.className =
                     `panel-unit ${unit.team || ""}`;
-
 
                 const name =
                     document.createElement(
                         "span"
                     );
 
-
                 name.className =
                     "panel-unit-name";
-
 
                 name.textContent =
                     unit.type ||
                     "Unknown Unit";
-
 
                 const movement =
                     document.createElement(
                         "span"
                     );
 
-
                 movement.className =
                     "panel-unit-move";
 
-
                 movement.textContent =
                     `Move ${unit.move ?? 0}`;
-
 
                 button.appendChild(
                     name
                 );
 
-
                 button.appendChild(
                     movement
                 );
 
+                if (
+                    unitIsLoading(unit)
+                ) {
+
+                    button.classList.add(
+                        "loading"
+                    );
+
+                    movement.textContent =
+                        "LOADING";
+                }
 
                 if (
                     selectedUnit &&
@@ -313,7 +296,6 @@ export function openUnitPanel(
                     );
                 }
 
-
                 button.addEventListener(
                     "click",
                     () => {
@@ -324,14 +306,12 @@ export function openUnitPanel(
                     }
                 );
 
-
                 list.appendChild(
                     button
                 );
             }
         );
     }
-
 
     panel.classList.add(
         "open"
@@ -349,7 +329,6 @@ export function closeUnitPanel() {
         document.getElementById(
             "unitPanel"
         );
-
 
     if (panel) {
 
@@ -371,7 +350,6 @@ function selectUnitFromPanel(
     let location =
         null;
 
-
     for (
         let r = 0;
         r < rows;
@@ -387,7 +365,6 @@ function selectUnitFromPanel(
             const stack =
                 board[r][c] || [];
 
-
             if (
                 stack.includes(unit)
             ) {
@@ -401,12 +378,10 @@ function selectUnitFromPanel(
             }
         }
 
-
         if (location) {
             break;
         }
     }
-
 
     if (!location) {
 
@@ -417,7 +392,6 @@ function selectUnitFromPanel(
 
         return;
     }
-
 
     selectedUnit = {
 
@@ -437,12 +411,25 @@ function selectUnitFromPanel(
     };
 
 
-    validMoves =
-        getValidMoves(
-            location.r,
-            location.c,
-            unit.move || 0
-        );
+    // --------------------------------------------------------
+    // LOADING UNITS CANNOT SELECT MOVEMENT OPTIONS
+    // --------------------------------------------------------
+
+    if (
+        unitIsLoading(unit)
+    ) {
+
+        validMoves = [];
+
+    } else {
+
+        validMoves =
+            getValidMoves(
+                location.r,
+                location.c,
+                unit.move || 0
+            );
+    }
 
 
     closeUnitPanel();
@@ -462,7 +449,6 @@ export function updateBoard() {
             "gameBoard"
         );
 
-
     if (!gameBoard) {
 
         console.error(
@@ -472,16 +458,13 @@ export function updateBoard() {
         return;
     }
 
-
     const wrappers =
         gameBoard.querySelectorAll(
             ".hex-wrapper"
         );
 
-
     let index =
         0;
-
 
     for (
         let r = 0;
@@ -498,40 +481,27 @@ export function updateBoard() {
             const wrapper =
                 wrappers[index++];
 
-
             if (!wrapper) {
                 continue;
             }
-
 
             const hex =
                 wrapper.querySelector(
                     ".hex"
                 );
 
-
             if (!hex) {
                 continue;
             }
-
 
             wrapper.classList.remove(
                 "selected-hex"
             );
 
-
-            // =================================================
-            // PRESERVE HEX NUMBER
-            // =================================================
-
             const hexNumber =
                 hex.querySelector(
                     ".hex-number"
                 );
-
-
-            // Remove units / FOB labels only.
-            // DO NOT remove the hex number.
 
             hex.querySelectorAll(
                 ".unit-count, .fob-label"
@@ -540,7 +510,6 @@ export function updateBoard() {
                     element.remove();
                 }
             );
-
 
             if (
                 hexNumber &&
@@ -551,7 +520,6 @@ export function updateBoard() {
                     hexNumber
                 );
             }
-
 
             hex.style.background =
                 "#333";
@@ -591,7 +559,6 @@ export function updateBoard() {
             const stack =
                 board[r][c] || [];
 
-
             if (
                 stack.length > 0
             ) {
@@ -601,14 +568,11 @@ export function updateBoard() {
                         "div"
                     );
 
-
                 count.className =
                     "unit-count";
 
-
                 count.textContent =
                     stack.length;
-
 
                 const teams =
                     [
@@ -623,7 +587,6 @@ export function updateBoard() {
                                 )
                         )
                     ];
-
 
                 if (
                     teams.length === 1
@@ -644,7 +607,6 @@ export function updateBoard() {
                     );
                 }
 
-
                 if (
                     isFobHex(r, c)
                 ) {
@@ -653,7 +615,6 @@ export function updateBoard() {
                         "fob-count"
                     );
                 }
-
 
                 hex.appendChild(
                     count
@@ -675,20 +636,16 @@ export function updateBoard() {
                         c
                     );
 
-
                 const label =
                     document.createElement(
                         "div"
                     );
 
-
                 label.className =
                     `fob-label ${team || ""}`;
 
-
                 label.textContent =
                     "FOB";
-
 
                 hex.appendChild(
                     label
@@ -696,7 +653,6 @@ export function updateBoard() {
             }
         }
     }
-
 
     highlightSelectedUnitHex();
 }
@@ -731,7 +687,6 @@ export function onHexClick(
     const stack =
         board[r][c] || [];
 
-
     if (selectedUnit) {
 
         if (
@@ -746,7 +701,6 @@ export function onHexClick(
             return;
         }
 
-
         if (
             selectedUnit.r === r &&
             selectedUnit.c === c
@@ -756,7 +710,6 @@ export function onHexClick(
 
             return;
         }
-
 
         if (
             stack.length > 0
@@ -773,12 +726,10 @@ export function onHexClick(
             return;
         }
 
-
         clearSelection();
 
         return;
     }
-
 
     if (
         stack.length > 0
@@ -792,7 +743,6 @@ export function onHexClick(
 
         return;
     }
-
 
     clearSelection();
 }
@@ -810,7 +760,6 @@ function openStackPanel(
 
     let title;
 
-
     if (
         isFobHex(r, c)
     ) {
@@ -821,20 +770,16 @@ function openStackPanel(
                 c
             );
 
-
         title =
             `${String(
                 team || ""
             ).toUpperCase()} FOB`;
 
-    }
-
-    else {
+    } else {
 
         title =
             `UNITS AT ${r}, ${c}`;
     }
-
 
     openUnitPanel(
         title,
@@ -856,23 +801,19 @@ function highlightSelectedUnitHex() {
         return;
     }
 
-
     const gameBoard =
         document.getElementById(
             "gameBoard"
         );
 
-
     if (!gameBoard) {
         return;
     }
-
 
     const wrapper =
         gameBoard.querySelector(
             `.hex-wrapper[data-row="${selectedUnit.r}"][data-col="${selectedUnit.c}"]`
         );
-
 
     if (wrapper) {
 
@@ -896,6 +837,27 @@ export async function moveSelectedUnit(
         return;
     }
 
+    const unit =
+        selectedUnit.unit;
+
+
+    // ========================================================
+    // LOADING UNITS CANNOT MOVE
+    // ========================================================
+
+    if (
+        unitIsLoading(unit)
+    ) {
+
+        alert(
+            `${unit.type} is loading an armament and cannot move this round.`
+        );
+
+        clearSelection();
+
+        return;
+    }
+
 
     if (!isValidMove(r, c)) {
 
@@ -905,7 +867,6 @@ export async function moveSelectedUnit(
 
         return;
     }
-
 
     if (
         board[r][c].length >=
@@ -919,22 +880,15 @@ export async function moveSelectedUnit(
         return;
     }
 
-
     const fromR =
         selectedUnit.r;
-
 
     const fromC =
         selectedUnit.c;
 
 
-    const unit =
-        selectedUnit.unit;
-
-
     const fromStack =
         board[fromR][fromC];
-
 
     const destinationStack =
         board[r][c];
@@ -944,7 +898,6 @@ export async function moveSelectedUnit(
         fromStack.indexOf(
             unit
         );
-
 
     if (
         unitIndex === -1
@@ -985,19 +938,15 @@ export async function moveSelectedUnit(
         1
     );
 
-
     destinationStack.push(
         unit
     );
 
-
     selectedUnit =
         null;
 
-
     validMoves =
         [];
-
 
     closeUnitPanel();
 
@@ -1010,21 +959,17 @@ export async function moveSelectedUnit(
             movePayload
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "Move failed:",
             error
         );
 
-
         const movedIndex =
             destinationStack.indexOf(
                 unit
             );
-
 
         if (
             movedIndex !== -1
@@ -1036,16 +981,13 @@ export async function moveSelectedUnit(
             );
         }
 
-
         fromStack.splice(
             unitIndex,
             0,
             unit
         );
 
-
         updateBoard();
-
 
         alert(
             "The move could not be submitted."
@@ -1063,10 +1005,8 @@ export function clearSelection() {
     selectedUnit =
         null;
 
-
     validMoves =
         [];
-
 
     closeUnitPanel();
 
