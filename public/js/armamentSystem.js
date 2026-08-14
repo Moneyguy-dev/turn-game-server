@@ -451,7 +451,9 @@ export async function loadArmament(
         await saveArmamentLoadout(
             unit,
             r,
-            c
+            c,
+            armament,
+            "load"
         );
 
     } catch (error) {
@@ -540,7 +542,9 @@ export async function unloadArmament(
         await saveArmamentLoadout(
             unit,
             r,
-            c
+            c,
+            armament,
+            "unload"
         );
 
     } catch (error) {

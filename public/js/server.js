@@ -69,7 +69,7 @@ function getUnitId(
 
 
     /*
-     * Prefer an ID that already exists on the unit.
+     * Prefer an existing unit ID.
      */
 
     if (
@@ -96,10 +96,6 @@ function getUnitId(
     }
 
 
-    /*
-     * Some units may use a UID.
-     */
-
     if (
         unit.uid !== undefined &&
         unit.uid !== null &&
@@ -113,11 +109,7 @@ function getUnitId(
 
 
     /*
-     * If older units do not have an ID, create a
-     * deterministic fallback from their team, type,
-     * and board position.
-     *
-     * This also gives the server a unitId to work with.
+     * Fallback for older units without IDs.
      */
 
     if (
@@ -259,13 +251,6 @@ function normalizeBoard(
     serverBoard
 ) {
 
-    /*
-     * Always keep the client board exactly
-     * rows x cols.
-     *
-     * Every hex gets an array.
-     */
-
     for (
         let r = 0;
         r < rows;
@@ -323,10 +308,6 @@ export async function loadGameStateFromServer() {
             );
 
 
-        // ----------------------------------------------------
-        // BOARD
-        // ----------------------------------------------------
-
         if (
             state &&
             state.board
@@ -338,10 +319,6 @@ export async function loadGameStateFromServer() {
         }
 
 
-        // ----------------------------------------------------
-        // TURN LOCKS
-        // ----------------------------------------------------
-
         window.turnLocked =
             state?.turnLocked || {
                 red: false,
@@ -349,18 +326,10 @@ export async function loadGameStateFromServer() {
             };
 
 
-        // ----------------------------------------------------
-        // CURRENT TURN
-        // ----------------------------------------------------
-
         window.currentTurnPlayer =
             state?.currentTurnPlayer ||
             "red";
 
-
-        // ----------------------------------------------------
-        // COMPLETE STATE
-        // ----------------------------------------------------
 
         window.gameState =
             state;
@@ -452,7 +421,9 @@ export async function sendMoveToServer(
 export async function saveArmamentLoadout(
     unit,
     r,
-    c
+    c,
+    armament,
+    action = "load"
 ) {
 
     if (!unit) {
@@ -470,6 +441,14 @@ export async function saveArmamentLoadout(
 
         throw new Error(
             "Unit board position is required."
+        );
+    }
+
+
+    if (!armament) {
+
+        throw new Error(
+            "No armament was provided."
         );
     }
 
@@ -493,9 +472,15 @@ export async function saveArmamentLoadout(
     }
 
 
-    /*
-     * The server requires a unitId.
-     */
+    if (
+        unit.team !== playerId
+    ) {
+
+        throw new Error(
+            "You cannot modify the opposing team's units."
+        );
+    }
+
 
     const unitId =
         getUnitId(
@@ -513,9 +498,20 @@ export async function saveArmamentLoadout(
     }
 
 
-    /*
-     * Make sure the local loadout is always an array.
-     */
+    const armamentId =
+        armament.id;
+
+
+    if (
+        armamentId === undefined ||
+        armamentId === null
+    ) {
+
+        throw new Error(
+            "Unable to determine armament ID."
+        );
+    }
+
 
     const armaments =
         Array.isArray(
@@ -526,12 +522,8 @@ export async function saveArmamentLoadout(
 
 
     /*
-     * IMPORTANT:
-     *
-     * Send BOTH the unitId and the complete unit.
-     *
-     * This supports servers that validate either
-     * unitId or unit.
+     * Send the specific armament as well as
+     * the resulting complete loadout.
      */
 
     const payload = {
@@ -540,11 +532,12 @@ export async function saveArmamentLoadout(
 
         playerId,
 
+        action,
+
         unitId,
 
         unit: {
             ...unit,
-
             armaments
         },
 
@@ -557,6 +550,10 @@ export async function saveArmamentLoadout(
         r,
 
         c,
+
+        armamentId,
+
+        armament,
 
         armaments
     };
@@ -580,11 +577,6 @@ export async function saveArmamentLoadout(
         result
     );
 
-
-    /*
-     * If the server returns the updated board,
-     * immediately synchronize the local board.
-     */
 
     if (
         result &&
