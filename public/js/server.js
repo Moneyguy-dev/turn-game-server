@@ -18,6 +18,122 @@ const SERVER_URL =
 
 
 // ============================================================
+// FOB LOCATIONS
+// ============================================================
+//
+// These MUST match the actual FOB squares on your board.
+//
+// Blue FOB:
+//     r 15
+//     c 15
+//
+// Red FOB:
+//     r 3
+//     c 10
+// ============================================================
+
+const FOB_LOCATIONS = {
+
+    blue: {
+        r: 15,
+        c: 15
+    },
+
+    red: {
+        r: 3,
+        c: 10
+    }
+
+};
+
+
+// ============================================================
+// GET FOB LOCATION
+// ============================================================
+
+export function getFOBLocation(team) {
+
+    return (
+        FOB_LOCATIONS[team] ||
+        null
+    );
+
+}
+
+
+// ============================================================
+// CHECK UNIT IS AT FOB
+// ============================================================
+//
+// A unit is considered to be at its FOB ONLY when the
+// coordinates passed to this function match that team's FOB.
+//
+// Aircraft are NOT automatically considered airborne.
+//
+// An aircraft sitting on its FOB is NOT airborne.
+// ============================================================
+
+export function isUnitAtFOB(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+
+        return false;
+
+    }
+
+
+    const fob =
+        getFOBLocation(
+            unit.team
+        );
+
+
+    if (!fob) {
+
+        return false;
+
+    }
+
+
+    return (
+        Number(r) === Number(fob.r) &&
+        Number(c) === Number(fob.c)
+    );
+
+}
+
+
+// ============================================================
+// CHECK UNIT IS AIRBORNE
+// ============================================================
+
+export function isUnitAirborne(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+
+        return false;
+
+    }
+
+
+    return !isUnitAtFOB(
+        unit,
+        r,
+        c
+    );
+
+}
+
+
+// ============================================================
 // GET GAME ID
 // ============================================================
 
@@ -28,10 +144,12 @@ export function getGameId() {
             window.location.search
         );
 
+
     return (
         params.get("gameId") ||
         "default"
     );
+
 }
 
 
@@ -46,10 +164,12 @@ export function getPlayerId() {
             window.location.search
         );
 
+
     return (
         params.get("mode") ||
         "spectator"
     );
+
 }
 
 
@@ -57,17 +177,16 @@ export function getPlayerId() {
 // GET UNIT ID
 // ============================================================
 //
-// Unit IDs are now expected to be permanent properties
-// of the unit object.
-//
-// There is deliberately NO position-based fallback.
-// A unit's ID must not change when it moves.
-//
+// Unit IDs are permanent.
+// No position-based fallback is used.
+// ============================================================
 
 export function getUnitId(unit) {
 
     if (!unit) {
+
         return null;
+
     }
 
 
@@ -80,6 +199,7 @@ export function getUnitId(unit) {
         return String(
             unit.id
         );
+
     }
 
 
@@ -92,6 +212,7 @@ export function getUnitId(unit) {
         return String(
             unit.unitId
         );
+
     }
 
 
@@ -104,20 +225,20 @@ export function getUnitId(unit) {
         return String(
             unit.uid
         );
+
     }
 
 
     return null;
+
 }
 
 
 // ============================================================
-// GET JSON HELPER
+// GET JSON
 // ============================================================
 
-async function getJson(
-    url
-) {
+async function getJson(url) {
 
     const response =
         await fetch(
@@ -141,15 +262,17 @@ async function getJson(
         throw new Error(
             `Server returned ${response.status}`
         );
+
     }
 
 
     return await response.json();
+
 }
 
 
 // ============================================================
-// POST JSON HELPER
+// POST JSON
 // ============================================================
 
 async function postJson(
@@ -172,9 +295,7 @@ async function postJson(
                 },
 
                 body:
-                    JSON.stringify(
-                        data
-                    )
+                    JSON.stringify(data)
             }
         );
 
@@ -198,6 +319,7 @@ async function postJson(
 
                 message =
                     errorData.error;
+
             }
 
             else if (
@@ -207,6 +329,7 @@ async function postJson(
 
                 message =
                     errorData.message;
+
             }
 
         } catch {
@@ -217,10 +340,12 @@ async function postJson(
         throw new Error(
             message
         );
+
     }
 
 
     return await response.json();
+
 }
 
 
@@ -245,6 +370,7 @@ function normalizeBoard(
         ) {
 
             board[r] = [];
+
         }
 
 
@@ -262,12 +388,15 @@ function normalizeBoard(
                 Array.isArray(value)
                     ? value
                     : [];
+
         }
+
     }
 
 
     board.length =
         rows;
+
 }
 
 
@@ -297,6 +426,7 @@ export async function loadGameStateFromServer() {
             normalizeBoard(
                 state.board
             );
+
         }
 
 
@@ -333,7 +463,9 @@ export async function loadGameStateFromServer() {
 
 
         throw error;
+
     }
+
 }
 
 
@@ -348,6 +480,7 @@ export async function sendMoveToServer(
     const gameId =
         getGameId();
 
+
     const playerId =
         getPlayerId();
 
@@ -357,21 +490,16 @@ export async function sendMoveToServer(
         throw new Error(
             "No move payload was provided."
         );
+
     }
 
 
-    /*
-     * Make sure the move contains a permanent
-     * unit ID.
-     */
-
-    if (
-        !movePayload.unitId
-    ) {
+    if (!movePayload.unitId) {
 
         throw new Error(
             "Move is missing unitId."
         );
+
     }
 
 
@@ -403,15 +531,44 @@ export async function sendMoveToServer(
         normalizeBoard(
             result.board
         );
+
     }
 
 
     return result;
+
 }
 
 
 // ============================================================
 // SAVE ARMAMENT LOADOUT
+// ============================================================
+//
+// IMPORTANT:
+//
+// Loading armaments is only allowed when the unit is
+// physically sitting on its team's FOB.
+//
+// Example:
+//
+// Blue unit at 15,15
+//     -> AT FOB
+//     -> CAN LOAD
+//
+// Blue unit at 14,15
+//     -> NOT AT FOB
+//     -> AIRBORNE
+//     -> CANNOT LOAD
+//
+// Red unit at 3,10
+//     -> AT FOB
+//     -> CAN LOAD
+//
+// Red unit anywhere else
+//     -> AIRBORNE
+//     -> CANNOT LOAD
+//
+// This check happens BEFORE the request is sent.
 // ============================================================
 
 export async function saveArmamentLoadout(
@@ -427,6 +584,7 @@ export async function saveArmamentLoadout(
         throw new Error(
             "No unit was provided."
         );
+
     }
 
 
@@ -438,6 +596,7 @@ export async function saveArmamentLoadout(
         throw new Error(
             "Unit board position is required."
         );
+
     }
 
 
@@ -446,6 +605,7 @@ export async function saveArmamentLoadout(
         throw new Error(
             "No armament was provided."
         );
+
     }
 
 
@@ -465,6 +625,7 @@ export async function saveArmamentLoadout(
         throw new Error(
             "You must be on the red or blue team."
         );
+
     }
 
 
@@ -475,8 +636,65 @@ export async function saveArmamentLoadout(
         throw new Error(
             "You cannot modify the opposing team's units."
         );
+
     }
 
+
+    // ========================================================
+    // FOB CHECK
+    // ========================================================
+    //
+    // Only perform this restriction for loading.
+    //
+    // This is important because unloading/cancelling a load
+    // should not accidentally become impossible simply because
+    // the unit has moved away from the FOB.
+    // ========================================================
+
+    if (action === "load") {
+
+        const fob =
+            getFOBLocation(
+                unit.team
+            );
+
+
+        if (!fob) {
+
+            throw new Error(
+                `No FOB location is configured for ${unit.team}.`
+            );
+
+        }
+
+
+        const atFOB =
+            isUnitAtFOB(
+                unit,
+                r,
+                c
+            );
+
+
+        if (!atFOB) {
+
+            throw new Error(
+                `${unit.type} is airborne and must return to its FOB before loading armaments.`
+            );
+
+        }
+
+
+        console.log(
+            `${unit.type} is confirmed AT FOB at (${r}, ${c}).`
+        );
+
+    }
+
+
+    // ========================================================
+    // UNIT ID
+    // ========================================================
 
     const unitId =
         getUnitId(
@@ -489,8 +707,13 @@ export async function saveArmamentLoadout(
         throw new Error(
             "Unable to determine unit ID."
         );
+
     }
 
+
+    // ========================================================
+    // ARMAMENT ID
+    // ========================================================
 
     const armamentId =
         armament.id;
@@ -504,8 +727,13 @@ export async function saveArmamentLoadout(
         throw new Error(
             "Unable to determine armament ID."
         );
+
     }
 
+
+    // ========================================================
+    // COPY LOADOUT ARRAYS
+    // ========================================================
 
     const armaments =
         Array.isArray(
@@ -523,6 +751,10 @@ export async function saveArmamentLoadout(
             : [];
 
 
+    // ========================================================
+    // CREATE PAYLOAD
+    // ========================================================
+
     const payload = {
 
         gameId,
@@ -538,7 +770,9 @@ export async function saveArmamentLoadout(
 
         unit: {
             ...unit,
+
             armaments,
+
             loadingArmaments
         },
 
@@ -548,10 +782,13 @@ export async function saveArmamentLoadout(
         unitTeam:
             unit.team,
 
+        // Current board position.
         r,
 
         c,
 
+        // Also provide from for compatibility with
+        // the existing server.
         from: {
             r,
             c
@@ -563,7 +800,27 @@ export async function saveArmamentLoadout(
 
         armaments,
 
-        loadingArmaments
+        loadingArmaments,
+
+        // Explicit FOB information.
+        //
+        // This makes the request unambiguous to the
+        // backend and gives the backend enough information
+        // to perform its own validation.
+        atFOB:
+            isUnitAtFOB(
+                unit,
+                r,
+                c
+            ),
+
+        airborne:
+            isUnitAirborne(
+                unit,
+                r,
+                c
+            )
+
     };
 
 
@@ -594,10 +851,12 @@ export async function saveArmamentLoadout(
         normalizeBoard(
             result.board
         );
+
     }
 
 
     return result;
+
 }
 
 
@@ -609,6 +868,7 @@ export async function submitTurnToServer() {
 
     const gameId =
         getGameId();
+
 
     const playerId =
         getPlayerId();
@@ -622,6 +882,7 @@ export async function submitTurnToServer() {
         throw new Error(
             "Invalid player."
         );
+
     }
 
 
@@ -659,6 +920,7 @@ export async function submitTurnToServer() {
         normalizeBoard(
             result.board
         );
+
     }
 
 
@@ -669,6 +931,7 @@ export async function submitTurnToServer() {
 
         window.turnLocked =
             result.turnLocked;
+
     }
 
 
@@ -679,10 +942,12 @@ export async function submitTurnToServer() {
 
         window.currentTurnPlayer =
             result.currentTurnPlayer;
+
     }
 
 
     return result;
+
 }
 
 
@@ -725,6 +990,7 @@ export async function continueTurnOnServer() {
         normalizeBoard(
             result.board
         );
+
     }
 
 
@@ -735,6 +1001,7 @@ export async function continueTurnOnServer() {
 
         window.turnLocked =
             result.turnLocked;
+
     }
 
 
@@ -745,10 +1012,12 @@ export async function continueTurnOnServer() {
 
         window.currentTurnPlayer =
             result.currentTurnPlayer;
+
     }
 
 
     return result;
+
 }
 
 
@@ -791,12 +1060,16 @@ export async function resetGameOnServer() {
         normalizeBoard(
             result.board
         );
+
     }
 
 
     window.turnLocked = {
+
         red: false,
+
         blue: false
+
     };
 
 
@@ -807,6 +1080,7 @@ export async function resetGameOnServer() {
 
         window.turnLocked =
             result.turnLocked;
+
     }
 
 
@@ -816,6 +1090,7 @@ export async function resetGameOnServer() {
 
 
     return result;
+
 }
 
 
@@ -832,8 +1107,11 @@ export async function checkServerConnection() {
 
 
         return {
+
             connected: true,
+
             state
+
         };
 
     } catch (error) {
@@ -845,8 +1123,13 @@ export async function checkServerConnection() {
 
 
         return {
+
             connected: false,
+
             error
+
         };
+
     }
+
 }
