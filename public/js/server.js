@@ -56,21 +56,20 @@ export function getPlayerId() {
 // ============================================================
 // GET UNIT ID
 // ============================================================
+//
+// Unit IDs are now expected to be permanent properties
+// of the unit object.
+//
+// There is deliberately NO position-based fallback.
+// A unit's ID must not change when it moves.
+//
 
-function getUnitId(
-    unit,
-    r,
-    c
-) {
+export function getUnitId(unit) {
 
     if (!unit) {
         return null;
     }
 
-
-    /*
-     * Prefer an existing unit ID.
-     */
 
     if (
         unit.id !== undefined &&
@@ -105,24 +104,6 @@ function getUnitId(
         return String(
             unit.uid
         );
-    }
-
-
-    /*
-     * Fallback for older units without IDs.
-     */
-
-    if (
-        typeof r === "number" &&
-        typeof c === "number"
-    ) {
-
-        return [
-            unit.team || "unknown",
-            unit.type || "unknown",
-            r,
-            c
-        ].join("-");
     }
 
 
@@ -379,6 +360,21 @@ export async function sendMoveToServer(
     }
 
 
+    /*
+     * Make sure the move contains a permanent
+     * unit ID.
+     */
+
+    if (
+        !movePayload.unitId
+    ) {
+
+        throw new Error(
+            "Move is missing unitId."
+        );
+    }
+
+
     const result =
         await postJson(
             `${SERVER_URL}/submitMove`,
@@ -484,9 +480,7 @@ export async function saveArmamentLoadout(
 
     const unitId =
         getUnitId(
-            unit,
-            r,
-            c
+            unit
         );
 
 
@@ -521,10 +515,13 @@ export async function saveArmamentLoadout(
             : [];
 
 
-    /*
-     * Send the specific armament as well as
-     * the resulting complete loadout.
-     */
+    const loadingArmaments =
+        Array.isArray(
+            unit.loadingArmaments
+        )
+            ? [...unit.loadingArmaments]
+            : [];
+
 
     const payload = {
 
@@ -532,13 +529,17 @@ export async function saveArmamentLoadout(
 
         playerId,
 
+        team:
+            unit.team,
+
         action,
 
         unitId,
 
         unit: {
             ...unit,
-            armaments
+            armaments,
+            loadingArmaments
         },
 
         unitType:
@@ -551,11 +552,18 @@ export async function saveArmamentLoadout(
 
         c,
 
+        from: {
+            r,
+            c
+        },
+
         armamentId,
 
         armament,
 
-        armaments
+        armaments,
+
+        loadingArmaments
     };
 
 
@@ -604,6 +612,17 @@ export async function submitTurnToServer() {
 
     const playerId =
         getPlayerId();
+
+
+    if (
+        playerId !== "red" &&
+        playerId !== "blue"
+    ) {
+
+        throw new Error(
+            "Invalid player."
+        );
+    }
 
 
     console.log(
