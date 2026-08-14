@@ -54,10 +54,97 @@ export function getPlayerId() {
 
 
 // ============================================================
+// GET UNIT ID
+// ============================================================
+
+function getUnitId(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+        return null;
+    }
+
+
+    /*
+     * Prefer an ID that already exists on the unit.
+     */
+
+    if (
+        unit.id !== undefined &&
+        unit.id !== null &&
+        String(unit.id).trim() !== ""
+    ) {
+
+        return String(
+            unit.id
+        );
+    }
+
+
+    if (
+        unit.unitId !== undefined &&
+        unit.unitId !== null &&
+        String(unit.unitId).trim() !== ""
+    ) {
+
+        return String(
+            unit.unitId
+        );
+    }
+
+
+    /*
+     * Some units may use a UID.
+     */
+
+    if (
+        unit.uid !== undefined &&
+        unit.uid !== null &&
+        String(unit.uid).trim() !== ""
+    ) {
+
+        return String(
+            unit.uid
+        );
+    }
+
+
+    /*
+     * If older units do not have an ID, create a
+     * deterministic fallback from their team, type,
+     * and board position.
+     *
+     * This also gives the server a unitId to work with.
+     */
+
+    if (
+        typeof r === "number" &&
+        typeof c === "number"
+    ) {
+
+        return [
+            unit.team || "unknown",
+            unit.type || "unknown",
+            r,
+            c
+        ].join("-");
+    }
+
+
+    return null;
+}
+
+
+// ============================================================
 // GET JSON HELPER
 // ============================================================
 
-async function getJson(url) {
+async function getJson(
+    url
+) {
 
     const response =
         await fetch(
@@ -112,7 +199,9 @@ async function postJson(
                 },
 
                 body:
-                    JSON.stringify(data)
+                    JSON.stringify(
+                        data
+                    )
             }
         );
 
@@ -404,15 +493,29 @@ export async function saveArmamentLoadout(
     }
 
 
-    if (
-        unit.team !== playerId
-    ) {
+    /*
+     * The server requires a unitId.
+     */
+
+    const unitId =
+        getUnitId(
+            unit,
+            r,
+            c
+        );
+
+
+    if (!unitId) {
 
         throw new Error(
-            "You cannot modify the opposing team's units."
+            "Unable to determine unit ID."
         );
     }
 
+
+    /*
+     * Make sure the local loadout is always an array.
+     */
 
     const armaments =
         Array.isArray(
@@ -422,26 +525,53 @@ export async function saveArmamentLoadout(
             : [];
 
 
+    /*
+     * IMPORTANT:
+     *
+     * Send BOTH the unitId and the complete unit.
+     *
+     * This supports servers that validate either
+     * unitId or unit.
+     */
+
+    const payload = {
+
+        gameId,
+
+        playerId,
+
+        unitId,
+
+        unit: {
+            ...unit,
+
+            armaments
+        },
+
+        unitType:
+            unit.type,
+
+        unitTeam:
+            unit.team,
+
+        r,
+
+        c,
+
+        armaments
+    };
+
+
+    console.log(
+        "Saving armament loadout:",
+        payload
+    );
+
+
     const result =
         await postJson(
             `${SERVER_URL}/updateArmament`,
-            {
-                gameId,
-
-                playerId,
-
-                unitType:
-                    unit.type,
-
-                unitTeam:
-                    unit.team,
-
-                r,
-
-                c,
-
-                armaments
-            }
+            payload
         );
 
 
