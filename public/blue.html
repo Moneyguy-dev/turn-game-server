@@ -3,40 +3,70 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Blue Forces</title>
 
-    <link rel="stylesheet" href="/styles.css">
+    <link
+        rel="stylesheet"
+        href="/styles.css"
+    >
 </head>
 
-<body>
+<body class="blue-page">
 
     <div id="layout">
 
+        <!-- =================================================
+             MAP
+        ================================================== -->
+
         <div id="mapContainer">
+
             <div id="gameBoard"></div>
+
         </div>
 
 
+        <!-- =================================================
+             MAP TOOLS
+        ================================================== -->
+
         <div id="mapToolsStrip">
 
-            <button id="zoomIn" class="mapToolBtn">
+            <button
+                id="zoomIn"
+                class="mapToolBtn"
+                type="button"
+            >
                 Zoom +
             </button>
 
-            <button id="zoomOut" class="mapToolBtn">
+            <button
+                id="zoomOut"
+                class="mapToolBtn"
+                type="button"
+            >
                 Zoom −
             </button>
 
-            <button id="zoomUnits" class="mapToolBtn">
+            <button
+                id="zoomUnits"
+                class="mapToolBtn"
+                type="button"
+            >
                 Zoom to Units
             </button>
 
         </div>
 
 
-        <!-- UNIT PANEL -->
+        <!-- =================================================
+             UNIT PANEL
+        ================================================== -->
 
         <div id="unitPanel">
 
@@ -48,7 +78,10 @@
 
                 <button
                     id="closeUnitPanel"
-                    class="closePanelBtn">
+                    class="closePanelBtn"
+                    type="button"
+                    aria-label="Close units panel"
+                >
                     ×
                 </button>
 
@@ -59,7 +92,9 @@
         </div>
 
 
-        <!-- FOB PANEL -->
+        <!-- =================================================
+             FOB PANEL
+        ================================================== -->
 
         <div id="fobPanel">
 
@@ -71,7 +106,10 @@
 
                 <button
                     id="closeFobPanel"
-                    class="closePanelBtn">
+                    class="closePanelBtn"
+                    type="button"
+                    aria-label="Close FOB panel"
+                >
                     ×
                 </button>
 
@@ -82,7 +120,9 @@
         </div>
 
 
-        <!-- HEX UNIT PANEL -->
+        <!-- =================================================
+             HEX UNIT PANEL
+        ================================================== -->
 
         <div id="hexUnitPanel">
 
@@ -94,7 +134,10 @@
 
                 <button
                     id="closeHexUnitPanel"
-                    class="closePanelBtn">
+                    class="closePanelBtn"
+                    type="button"
+                    aria-label="Close hex units panel"
+                >
                     ×
                 </button>
 
@@ -105,7 +148,9 @@
         </div>
 
 
-        <!-- ARMAMENTS POPUP -->
+        <!-- =================================================
+             ARMAMENTS PANEL
+        ================================================== -->
 
         <div id="armamentsPanel">
 
@@ -117,7 +162,10 @@
 
                 <button
                     id="closeArmamentsPanel"
-                    class="closePanelBtn">
+                    class="closePanelBtn"
+                    type="button"
+                    aria-label="Close armaments panel"
+                >
                     ×
                 </button>
 
@@ -132,6 +180,7 @@
                     </div>
 
                     <div class="armamentItem">
+
                         <div class="armamentName">
                             Air-to-Air Missiles
                         </div>
@@ -139,9 +188,11 @@
                         <div class="armamentDescription">
                             Standard air combat weapons.
                         </div>
+
                     </div>
 
                     <div class="armamentItem">
+
                         <div class="armamentName">
                             Air-to-Ground Missiles
                         </div>
@@ -149,6 +200,7 @@
                         <div class="armamentDescription">
                             Weapons designed for attacking ground targets.
                         </div>
+
                     </div>
 
                 </div>
@@ -161,6 +213,7 @@
                     </div>
 
                     <div class="armamentItem">
+
                         <div class="armamentName">
                             Anti-Ship Missiles
                         </div>
@@ -168,9 +221,11 @@
                         <div class="armamentDescription">
                             Long-range weapons for naval targets.
                         </div>
+
                     </div>
 
                     <div class="armamentItem">
+
                         <div class="armamentName">
                             Naval Guns
                         </div>
@@ -178,6 +233,7 @@
                         <div class="armamentDescription">
                             Ship-mounted direct-fire weapons.
                         </div>
+
                     </div>
 
                 </div>
@@ -190,6 +246,7 @@
                     </div>
 
                     <div class="armamentItem">
+
                         <div class="armamentName">
                             Cruise Missiles
                         </div>
@@ -197,9 +254,11 @@
                         <div class="armamentDescription">
                             Long-range precision strike weapons.
                         </div>
+
                     </div>
 
                     <div class="armamentItem">
+
                         <div class="armamentName">
                             Strategic Weapons
                         </div>
@@ -207,6 +266,7 @@
                         <div class="armamentDescription">
                             High-value strategic capabilities.
                         </div>
+
                     </div>
 
                 </div>
@@ -218,40 +278,64 @@
     </div>
 
 
-    <!-- BOTTOM MENU -->
+    <!-- =====================================================
+         BOTTOM MENU
+    ====================================================== -->
 
     <div id="bottomMenu">
 
-        <button id="backButton" class="menuBtn">
+        <button
+            id="backButton"
+            class="menuBtn"
+            type="button"
+        >
             Back
         </button>
 
-        <button id="logBook" class="menuBtn">
+        <button
+            id="logBook"
+            class="menuBtn"
+            type="button"
+        >
             Log Book
         </button>
 
-        <button id="armaments" class="menuBtn">
+        <button
+            id="armaments"
+            class="menuBtn"
+            type="button"
+        >
             Armaments
         </button>
 
-        <button id="unitsBtn" class="menuBtn">
+        <button
+            id="unitsBtn"
+            class="menuBtn"
+            type="button"
+        >
             Units ▸
         </button>
 
         <button
             id="submitTurn"
-            class="menuBtn"
-            style="background:#2a7;">
+            class="menuBtn submitBtn blueSubmit"
+            type="button"
+        >
             Submit
         </button>
 
     </div>
 
 
+    <!-- =====================================================
+         APPLICATION
+    ====================================================== -->
+
     <script
         type="module"
-        src="/script.js">
-    </script>
+        src="/script.js"
+    ></script>
 
 </body>
+
 </html>

@@ -1,49 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Choose a Side</title>
-    <link rel="stylesheet" href="/styles.css">
+
+    <link
+        rel="stylesheet"
+        href="/styles.css"
+    >
+
 </head>
 
-<body>
 
-    <div id="layout" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh;">
+<body class="side-select-page">
 
-        <h1 style="color:white; font-size:48px; margin-bottom:40px;">
+    <main id="sideSelect">
+
+        <h1>
             Choose Your Side
         </h1>
 
-        <button id="blueBtn" class="menuBtn" style="font-size:28px; padding:20px 40px; margin:20px;">
-            Blue Forces
-        </button>
 
-        <button id="redBtn" class="menuBtn" style="font-size:28px; padding:20px 40px; margin:20px;">
-            Red Forces
-        </button>
+        <div class="sideSelectButtons">
 
-        <button id="adminBtn" class="menuBtn" style="font-size:22px; padding:15px 30px; margin-top:60px; background:#555;">
-            Admin Control
-        </button>
+            <button
+                id="blueBtn"
+                class="menuBtn sideChoiceBtn blueChoiceBtn"
+                type="button"
+            >
+                Blue Forces
+            </button>
 
-        <div style="margin-top:40px; color:#aaa; font-size:16px;">
-            Spectators may view either side but cannot submit moves.
+
+            <button
+                id="redBtn"
+                class="menuBtn sideChoiceBtn redChoiceBtn"
+                type="button"
+            >
+                Red Forces
+            </button>
+
+
+            <button
+                id="adminBtn"
+                class="menuBtn adminChoiceBtn"
+                type="button"
+            >
+                Admin Control
+            </button>
+
         </div>
 
-    </div>
+
+        <p class="spectatorNotice">
+            Spectators may view either side but cannot submit moves.
+        </p>
+
+    </main>
+
 
     <script>
-        document.getElementById("blueBtn").onclick = () => {
-            window.location.href = "blue.html?mode=blue";
-        };
 
-        document.getElementById("redBtn").onclick = () => {
-            window.location.href = "red.html?mode=red";
-        };
+        document
+            .getElementById("blueBtn")
+            .addEventListener("click", () => {
 
-        document.getElementById("adminBtn").onclick = () => {
-            window.location.href = "admin.html?mode=all";
-        };
+                window.location.href =
+                    "blue.html?mode=blue";
+
+            });
+
+
+        document
+            .getElementById("redBtn")
+            .addEventListener("click", () => {
+
+                window.location.href =
+                    "red.html?mode=red";
+
+            });
+
+
+        document
+            .getElementById("adminBtn")
+            .addEventListener("click", () => {
+
+                window.location.href =
+                    "admin.html?mode=all";
+
+            });
+
     </script>
 
 </body>
+
 </html>
