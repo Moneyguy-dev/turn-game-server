@@ -25,6 +25,10 @@ import {
     initUI
 } from "./js/ui.js";
 
+import {
+    initArmamentUI
+} from "./js/armamentUI.js";
+
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -67,6 +71,13 @@ document.addEventListener(
         // ====================================================
 
         initUI();
+
+
+        // ====================================================
+        // ARMAMENT UI
+        // ====================================================
+
+        initArmamentUI();
 
 
         // ====================================================
