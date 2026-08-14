@@ -45,17 +45,13 @@ const COLS = 19;
 const startHexes = {
 
     blue: {
-
         r: 15,
         c: 15
-
     },
 
     red: {
-
         r: 3,
         c: 10
-
     }
 
 };
@@ -63,9 +59,6 @@ const startHexes = {
 
 // ============================================================
 // ARMAMENT PAGE EXCLUDED UNITS
-// ============================================================
-//
-// These units cannot load armaments at all.
 // ============================================================
 
 const ARMAMENT_EXCLUDED_UNITS = new Set([
@@ -83,9 +76,7 @@ const ARMAMENT_EXCLUDED_UNITS = new Set([
 // GITHUB PERSISTENCE
 // ============================================================
 
-async function saveGameStateToGitHub(
-    gameState
-) {
+async function saveGameStateToGitHub(gameState) {
 
     const username =
         process.env.GITHUB_USERNAME;
@@ -98,6 +89,21 @@ async function saveGameStateToGitHub(
 
     const filePath =
         "game-state.json";
+
+
+    if (
+        !username ||
+        !repo ||
+        !token
+    ) {
+
+        console.warn(
+            "⚠ GitHub persistence variables are not configured."
+        );
+
+        return;
+
+    }
 
 
     const apiUrl =
@@ -128,10 +134,11 @@ async function saveGameStateToGitHub(
                 apiUrl,
                 {
                     headers: {
-
                         Authorization:
-                            `token ${token}`
+                            `token ${token}`,
 
+                        Accept:
+                            "application/vnd.github+json"
                     }
                 }
             );
@@ -182,6 +189,9 @@ async function saveGameStateToGitHub(
                 Authorization:
                     `token ${token}`,
 
+                Accept:
+                    "application/vnd.github+json",
+
                 "Content-Type":
                     "application/json"
 
@@ -216,6 +226,21 @@ async function loadGameStateFromGitHub() {
         "game-state.json";
 
 
+    if (
+        !username ||
+        !repo ||
+        !token
+    ) {
+
+        console.warn(
+            "⚠ GitHub persistence variables are not configured."
+        );
+
+        return null;
+
+    }
+
+
     const apiUrl =
         `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
 
@@ -229,7 +254,10 @@ async function loadGameStateFromGitHub() {
                     headers: {
 
                         Authorization:
-                            `token ${token}`
+                            `token ${token}`,
+
+                        Accept:
+                            "application/vnd.github+json"
 
                     }
                 }
@@ -290,9 +318,7 @@ async function loadGameStateFromGitHub() {
 // GET / CREATE GAME
 // ============================================================
 
-function getGame(
-    gameId
-) {
+function getGame(gameId) {
 
     if (
         !games[gameId]
@@ -445,6 +471,55 @@ function createUnitId(
 
 
 // ============================================================
+// GET UNIT ID
+// ============================================================
+
+function getUnitId(unit) {
+
+    if (!unit) {
+        return null;
+    }
+
+
+    if (
+        unit.id !== undefined &&
+        unit.id !== null &&
+        String(unit.id).trim() !== ""
+    ) {
+
+        return String(unit.id);
+
+    }
+
+
+    if (
+        unit.unitId !== undefined &&
+        unit.unitId !== null &&
+        String(unit.unitId).trim() !== ""
+    ) {
+
+        return String(unit.unitId);
+
+    }
+
+
+    if (
+        unit.uid !== undefined &&
+        unit.uid !== null &&
+        String(unit.uid).trim() !== ""
+    ) {
+
+        return String(unit.uid);
+
+    }
+
+
+    return null;
+
+}
+
+
+// ============================================================
 // ADD UNIT
 // ============================================================
 
@@ -455,6 +530,29 @@ function addUnit(
     type,
     team
 ) {
+
+    if (
+        !board?.[r]?.[c]
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        !units[team] ||
+        !units[team][type]
+    ) {
+
+        console.error(
+            `⚠ Cannot spawn unknown unit ${team} ${type}`
+        );
+
+        return;
+
+    }
+
 
     board[r][c].push({
 
@@ -486,9 +584,7 @@ function addUnit(
 // SPAWN ALL UNITS
 // ============================================================
 
-function spawnAllUnits(
-    board
-) {
+function spawnAllUnits(board) {
 
     const blueStart =
         startHexes.blue;
@@ -576,17 +672,13 @@ function generateEmptyBoard() {
 
 
 // ============================================================
-// NORMALIZE EXISTING UNITS
+// NORMALIZE BOARD
 // ============================================================
 
-function normalizeBoardUnits(
-    board
-) {
+function normalizeBoardUnits(board) {
 
     if (
-        !Array.isArray(
-            board
-        )
+        !Array.isArray(board)
     ) {
 
         return;
@@ -596,49 +688,41 @@ function normalizeBoardUnits(
 
     for (
         let r = 0;
-        r < board.length;
+        r < ROWS;
         r++
     ) {
 
         if (
-            !Array.isArray(
-                board[r]
-            )
+            !Array.isArray(board[r])
         ) {
 
-            continue;
+            board[r] = [];
 
         }
 
 
         for (
             let c = 0;
-            c < board[r].length;
+            c < COLS;
             c++
         ) {
 
-            const stack =
-                board[r][c];
-
-
             if (
                 !Array.isArray(
-                    stack
+                    board[r][c]
                 )
             ) {
 
-                continue;
+                board[r][c] = [];
 
             }
 
 
-            stack.forEach(
+            board[r][c].forEach(
                 unit => {
 
                     if (!unit) {
-
                         return;
-
                     }
 
 
@@ -667,11 +751,11 @@ function normalizeBoardUnits(
 
 
                     if (
-                        unit.move === undefined &&
                         unit.team &&
                         unit.type &&
                         units[unit.team] &&
-                        units[unit.team][unit.type]
+                        units[unit.team][unit.type] &&
+                        unit.move === undefined
                     ) {
 
                         unit.move =
@@ -689,11 +773,7 @@ function normalizeBoardUnits(
                     // ------------------------------------------------
 
                     if (
-                        (
-                            unit.id === undefined ||
-                            unit.id === null ||
-                            String(unit.id).trim() === ""
-                        ) &&
+                        !getUnitId(unit) &&
                         unit.team &&
                         unit.type
                     ) {
@@ -713,11 +793,37 @@ function normalizeBoardUnits(
 
     }
 
+
+    board.length =
+        ROWS;
+
 }
 
 
 // ============================================================
 // FIND UNIT ON BOARD
+// ============================================================
+//
+// IMPORTANT:
+//
+// The client may send:
+//
+// unit: "F15E"
+//
+// OR:
+//
+// unit: {
+//     id: "blue-F15E",
+//     type: "F15E",
+//     team: "blue"
+// }
+//
+// The server supports both.
+//
+// The permanent unit ID is the primary identifier.
+//
+// The server searches the actual board to determine the
+// unit's real current position.
 // ============================================================
 
 function findUnitOnBoard(
@@ -726,7 +832,7 @@ function findUnitOnBoard(
 ) {
 
     if (
-        !board ||
+        !Array.isArray(board) ||
         !options
     ) {
 
@@ -735,7 +841,7 @@ function findUnitOnBoard(
     }
 
 
-    const {
+    let {
         team,
         unit,
         unitId,
@@ -743,16 +849,92 @@ function findUnitOnBoard(
     } = options;
 
 
-    function matches(
-        candidate
+    // --------------------------------------------------------
+    // NORMALIZE UNIT
+    // --------------------------------------------------------
+
+    let unitType = null;
+
+
+    if (
+        typeof unit === "string"
     ) {
 
-        if (!candidate) {
+        unitType =
+            unit;
 
-            return false;
+    }
+
+    else if (
+        unit &&
+        typeof unit === "object"
+    ) {
+
+        unitType =
+            unit.type ||
+            null;
+
+
+        if (
+            !unitId
+        ) {
+
+            unitId =
+                getUnitId(unit);
 
         }
 
+
+        if (
+            !team &&
+            unit.team
+        ) {
+
+            team =
+                unit.team;
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // NORMALIZE ID
+    // --------------------------------------------------------
+
+    if (
+        unitId !== undefined &&
+        unitId !== null &&
+        String(unitId).trim() !== ""
+    ) {
+
+        unitId =
+            String(unitId);
+
+    }
+
+    else {
+
+        unitId =
+            null;
+
+    }
+
+
+    // --------------------------------------------------------
+    // MATCH FUNCTION
+    // --------------------------------------------------------
+
+    function matches(candidate) {
+
+        if (!candidate) {
+            return false;
+        }
+
+
+        // ----------------------------------------------------
+        // TEAM
+        // ----------------------------------------------------
 
         if (
             team &&
@@ -764,41 +946,42 @@ function findUnitOnBoard(
         }
 
 
-        if (
-            unit &&
-            candidate.type !== unit
-        ) {
-
-            return false;
-
-        }
-
+        // ----------------------------------------------------
+        // PERMANENT ID
+        // ----------------------------------------------------
 
         if (
             unitId
         ) {
 
             const candidateId =
-                candidate.id ??
-                candidate.unitId ??
-                candidate.uid;
+                getUnitId(candidate);
 
 
             if (
-                candidateId !== undefined &&
-                candidateId !== null
+                candidateId
             ) {
 
-                if (
-                    String(candidateId) !==
+                return (
+                    String(candidateId) ===
                     String(unitId)
-                ) {
-
-                    return false;
-
-                }
+                );
 
             }
+
+        }
+
+
+        // ----------------------------------------------------
+        // FALLBACK TO TYPE
+        // ----------------------------------------------------
+
+        if (
+            unitType &&
+            candidate.type !== unitType
+        ) {
+
+            return false;
 
         }
 
@@ -823,13 +1006,11 @@ function findUnitOnBoard(
     ) {
 
         const stack =
-            board[from.r][from.c];
+            board[from.r]?.[from.c];
 
 
         if (
-            Array.isArray(
-                stack
-            )
+            Array.isArray(stack)
         ) {
 
             const index =
@@ -869,6 +1050,9 @@ function findUnitOnBoard(
     // --------------------------------------------------------
     // SEARCH ENTIRE BOARD
     // --------------------------------------------------------
+    //
+    // This is the authoritative location search.
+    // --------------------------------------------------------
 
     for (
         let r = 0;
@@ -883,13 +1067,11 @@ function findUnitOnBoard(
         ) {
 
             const stack =
-                board[r][c];
+                board[r]?.[c];
 
 
             if (
-                !Array.isArray(
-                    stack
-                )
+                !Array.isArray(stack)
             ) {
 
                 continue;
@@ -945,9 +1127,7 @@ function isUnitAtFOB(
 ) {
 
     if (!unit) {
-
         return false;
-
     }
 
 
@@ -958,17 +1138,13 @@ function isUnitAtFOB(
 
 
     if (!fob) {
-
         return false;
-
     }
 
 
     return (
-
-        r === fob.r &&
-        c === fob.c
-
+        Number(r) === Number(fob.r) &&
+        Number(c) === Number(fob.c)
     );
 
 }
@@ -994,7 +1170,7 @@ function isUnitAirborne(
 
 
 // ============================================================
-// APPLY MOVE
+// APPLY MOVE TO BOARD
 // ============================================================
 
 function applyMoveToBoard(
@@ -1024,7 +1200,6 @@ function applyMoveToBoard(
     if (
         !from ||
         !to ||
-        !unit ||
         !team
     ) {
 
@@ -1059,60 +1234,27 @@ function applyMoveToBoard(
     }
 
 
-    const fromStack =
-        board[from.r][from.c];
+    const found =
+        findUnitOnBoard(
+            board,
+            {
 
-    const toStack =
-        board[to.r][to.c];
+                team,
 
+                unit,
 
-    let idx = -1;
+                unitId,
 
+                from
 
-    // --------------------------------------------------------
-    // FIND BY PERMANENT ID FIRST
-    // --------------------------------------------------------
-
-    if (unitId) {
-
-        idx =
-            fromStack.findIndex(
-                u =>
-                    String(
-                        u.id ??
-                        u.unitId ??
-                        u.uid ??
-                        ""
-                    ) ===
-                    String(unitId) &&
-                    u.team === team
-            );
-
-    }
+            }
+        );
 
 
-    // --------------------------------------------------------
-    // FALL BACK TO TEAM + TYPE
-    // --------------------------------------------------------
-
-    if (idx === -1) {
-
-        idx =
-            fromStack.findIndex(
-                u =>
-                    u.type === unit &&
-                    u.team === team
-            );
-
-    }
-
-
-    if (
-        idx === -1
-    ) {
+    if (!found) {
 
         console.log(
-            "⚠ Unit not found:",
+            "⚠ Unit not found when resolving move:",
             move
         );
 
@@ -1122,7 +1264,13 @@ function applyMoveToBoard(
 
 
     const movingUnit =
-        fromStack[idx];
+        found.unit;
+
+    const fromStack =
+        found.stack;
+
+    const toStack =
+        board[to.r][to.c];
 
 
     // --------------------------------------------------------
@@ -1137,13 +1285,17 @@ function applyMoveToBoard(
     ) {
 
         console.log(
-            `⚠ ${team} ${unit} cannot move because it is loading an armament.`
+            `⚠ ${movingUnit.team} ${movingUnit.type} cannot move because it is loading an armament.`
         );
 
         return false;
 
     }
 
+
+    // --------------------------------------------------------
+    // DESTINATION CAPACITY
+    // --------------------------------------------------------
 
     if (
         toStack.length >= 4
@@ -1159,11 +1311,38 @@ function applyMoveToBoard(
     }
 
 
+    // --------------------------------------------------------
+    // REMOVE FROM ACTUAL LOCATION
+    // --------------------------------------------------------
+
+    const index =
+        fromStack.indexOf(
+            movingUnit
+        );
+
+
+    if (
+        index === -1
+    ) {
+
+        console.log(
+            "⚠ Moving unit disappeared before move resolution."
+        );
+
+        return false;
+
+    }
+
+
     fromStack.splice(
-        idx,
+        index,
         1
     );
 
+
+    // --------------------------------------------------------
+    // ADD TO DESTINATION
+    // --------------------------------------------------------
 
     toStack.push(
         movingUnit
@@ -1171,8 +1350,8 @@ function applyMoveToBoard(
 
 
     console.log(
-        `✔ ${team} ${unit} moved ` +
-        `from ${from.r},${from.c} ` +
+        `✔ ${movingUnit.team} ${movingUnit.type} moved ` +
+        `from ${found.r},${found.c} ` +
         `to ${to.r},${to.c}`
     );
 
@@ -1186,14 +1365,10 @@ function applyMoveToBoard(
 // RESOLVE LOADING
 // ============================================================
 
-function resolveLoading(
-    board
-) {
+function resolveLoading(board) {
 
     if (
-        !Array.isArray(
-            board
-        )
+        !Array.isArray(board)
     ) {
 
         return;
@@ -1203,35 +1378,22 @@ function resolveLoading(
 
     for (
         let r = 0;
-        r < board.length;
+        r < ROWS;
         r++
     ) {
 
-        if (
-            !Array.isArray(
-                board[r]
-            )
-        ) {
-
-            continue;
-
-        }
-
-
         for (
             let c = 0;
-            c < board[r].length;
+            c < COLS;
             c++
         ) {
 
             const stack =
-                board[r][c];
+                board[r]?.[c];
 
 
             if (
-                !Array.isArray(
-                    stack
-                )
+                !Array.isArray(stack)
             ) {
 
                 continue;
@@ -1243,9 +1405,7 @@ function resolveLoading(
                 unit => {
 
                     if (!unit) {
-
                         return;
-
                     }
 
 
@@ -1282,7 +1442,13 @@ function resolveLoading(
                     }
 
 
-                    unit.loadingArmaments.forEach(
+                    const loading =
+                        [
+                            ...unit.loadingArmaments
+                        ];
+
+
+                    loading.forEach(
                         armamentId => {
 
                             if (
@@ -1303,7 +1469,7 @@ function resolveLoading(
 
                     console.log(
                         `✔ ${unit.team} ${unit.type} finished loading:`,
-                        unit.loadingArmaments
+                        loading
                     );
 
 
@@ -1346,7 +1512,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // GAME
+            // GAME ID
             // ------------------------------------------------
 
             if (!gameId) {
@@ -1391,10 +1557,35 @@ app.post(
             }
 
 
+            // ------------------------------------------------
+            // EXTRACT UNIT INFORMATION
+            // ------------------------------------------------
+            //
+            // The client can send either a unit object or a
+            // unit type string.
+            // ------------------------------------------------
+
             const requestedTeam =
                 team ||
+                unit?.team ||
                 playerId;
 
+
+            const requestedUnitType =
+                typeof unit === "string"
+                    ? unit
+                    : unit?.type || null;
+
+
+            const requestedUnitId =
+                unitId ||
+                getUnitId(unit) ||
+                null;
+
+
+            // ------------------------------------------------
+            // TEAM VALIDATION
+            // ------------------------------------------------
 
             if (
                 requestedTeam !== "red" &&
@@ -1437,12 +1628,12 @@ app.post(
 
 
             // ------------------------------------------------
-            // UNIT
+            // UNIT VALIDATION
             // ------------------------------------------------
 
             if (
-                !unit &&
-                !unitId
+                !requestedUnitType &&
+                !requestedUnitId
             ) {
 
                 return res
@@ -1530,6 +1721,10 @@ app.post(
                 armament.id;
 
 
+            // ------------------------------------------------
+            // GET GAME
+            // ------------------------------------------------
+
             const game =
                 getGame(
                     gameId
@@ -1537,7 +1732,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // CREATE BOARD
+            // CREATE BOARD IF NECESSARY
             // ------------------------------------------------
 
             if (!game.board) {
@@ -1561,6 +1756,15 @@ app.post(
             // ------------------------------------------------
             // FIND UNIT
             // ------------------------------------------------
+            //
+            // IMPORTANT:
+            //
+            // The server searches the real board.
+            //
+            // The coordinates from the client are only used
+            // as an initial search location. If the unit is
+            // not there, the entire board is searched.
+            // ------------------------------------------------
 
             const found =
                 findUnitOnBoard(
@@ -1570,9 +1774,11 @@ app.post(
                         team:
                             requestedTeam,
 
-                        unit,
+                        unit:
+                            requestedUnitType,
 
-                        unitId,
+                        unitId:
+                            requestedUnitId,
 
                         from
 
@@ -1582,6 +1788,26 @@ app.post(
 
             if (!found) {
 
+                console.error(
+                    "❌ Unit not found on board:",
+                    {
+
+                        gameId,
+
+                        playerId,
+
+                        requestedTeam,
+
+                        requestedUnitType,
+
+                        requestedUnitId,
+
+                        from
+
+                    }
+                );
+
+
                 return res
                     .status(404)
                     .json({
@@ -1590,41 +1816,82 @@ app.post(
                             "error",
 
                         message:
-                            "Unit not found on the board"
+                            "Unit not found on the board",
+
+                        requestedTeam,
+
+                        requestedUnitType,
+
+                        requestedUnitId
 
                     });
 
             }
 
+
+            // ------------------------------------------------
+            // TARGET UNIT
+            // ------------------------------------------------
 
             const targetUnit =
                 found.unit;
 
 
             // ------------------------------------------------
-            // VERIFY PERMANENT ID IF PROVIDED
+            // VERIFY PERMANENT ID
             // ------------------------------------------------
 
             if (
-                unitId &&
-                String(
-                    targetUnit.id ??
-                    targetUnit.unitId ??
-                    targetUnit.uid ??
-                    ""
-                ) !==
-                String(unitId)
+                requestedUnitId
+            ) {
+
+                const targetUnitId =
+                    getUnitId(
+                        targetUnit
+                    );
+
+
+                if (
+                    !targetUnitId ||
+                    String(targetUnitId) !==
+                    String(requestedUnitId)
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            status:
+                                "error",
+
+                            message:
+                                "Unit ID does not match the unit on the board."
+
+                        });
+
+                }
+
+            }
+
+
+            // ------------------------------------------------
+            // VERIFY TEAM
+            // ------------------------------------------------
+
+            if (
+                targetUnit.team !==
+                requestedTeam
             ) {
 
                 return res
-                    .status(400)
+                    .status(403)
                     .json({
 
                         status:
                             "error",
 
                         message:
-                            "Unit ID does not match the unit on the board."
+                            "You cannot modify this unit."
 
                     });
 
@@ -1632,7 +1899,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // UNITS THAT CANNOT LOAD ARMAMENTS
+            // EXCLUDED UNITS
             // ------------------------------------------------
 
             if (
@@ -1657,50 +1924,105 @@ app.post(
 
 
             // ------------------------------------------------
-            // MUST BE AT OWN FOB FOR LOADING
+            // REAL SERVER LOCATION
+            // ------------------------------------------------
+            //
+            // THIS is the important part.
+            //
+            // found.r / found.c are where the unit actually
+            // exists on the server board.
+            // ------------------------------------------------
+
+            const actualR =
+                found.r;
+
+            const actualC =
+                found.c;
+
+
+            const atFOB =
+                isUnitAtFOB(
+                    targetUnit,
+                    actualR,
+                    actualC
+                );
+
+
+            const airborne =
+                !atFOB;
+
+
+            console.log(
+                "Armament location check:",
+                {
+
+                    unitId:
+                        getUnitId(targetUnit),
+
+                    unit:
+                        targetUnit.type,
+
+                    team:
+                        targetUnit.team,
+
+                    actualR,
+
+                    actualC,
+
+                    fob:
+                        startHexes[
+                            targetUnit.team
+                        ],
+
+                    atFOB,
+
+                    airborne
+
+                }
+            );
+
+
+            // ------------------------------------------------
+            // LOAD MUST BE AT FOB
             // ------------------------------------------------
 
             if (
-                resolvedAction === "load"
+                resolvedAction === "load" &&
+                !atFOB
             ) {
 
-                if (
-                    !isUnitAtFOB(
-                        targetUnit,
-                        found.r,
-                        found.c
-                    )
-                ) {
+                return res
+                    .status(403)
+                    .json({
 
-                    return res
-                        .status(403)
-                        .json({
+                        status:
+                            "error",
 
-                            status:
-                                "error",
+                        message:
+                            `${targetUnit.type} is airborne and must return to its FOB before loading armaments.`,
 
-                            message:
-                                `${targetUnit.type} is airborne and must return to its FOB before loading armaments.`,
+                        airborne:
+                            true,
 
-                            airborne:
-                                true,
+                        atFOB:
+                            false,
 
-                            atFOB:
-                                false,
+                        location: {
 
-                            location: {
+                            r:
+                                actualR,
 
-                                r:
-                                    found.r,
+                            c:
+                                actualC
 
-                                c:
-                                    found.c
+                        },
 
-                            }
+                        fob:
+                            startHexes[
+                                targetUnit.team
+                            ]
 
-                        });
-
-                }
+                    });
 
             }
 
@@ -1840,7 +2162,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // CANCEL LOAD
+            // CANCEL LOADING
             // ------------------------------------------------
 
             else if (
@@ -1893,7 +2215,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // SAVE
+            // SAVE GAME
             // ------------------------------------------------
 
             try {
@@ -1943,34 +2265,32 @@ app.post(
                 gameId,
 
                 unit: {
-
                     ...targetUnit
-
                 },
+
+                unitId:
+                    getUnitId(
+                        targetUnit
+                    ),
 
                 location: {
 
                     r:
-                        found.r,
+                        actualR,
 
                     c:
-                        found.c
+                        actualC
 
                 },
 
-                atFOB:
-                    isUnitAtFOB(
-                        targetUnit,
-                        found.r,
-                        found.c
-                    ),
+                atFOB,
 
-                airborne:
-                    isUnitAirborne(
-                        targetUnit,
-                        found.r,
-                        found.c
-                    ),
+                airborne,
+
+                fob:
+                    startHexes[
+                        targetUnit.team
+                    ],
 
                 board:
                     game.board,
@@ -2111,7 +2431,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // EACH SIDE MAY SUBMIT INDEPENDENTLY
+            // TURN LOCK
             // ------------------------------------------------
 
             if (
@@ -2132,6 +2452,10 @@ app.post(
 
             }
 
+
+            // ------------------------------------------------
+            // TEAM CHECK
+            // ------------------------------------------------
 
             if (
                 move.team !== playerId
@@ -2177,8 +2501,28 @@ app.post(
                 );
 
 
+            if (!found) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        status:
+                            "error",
+
+                        message:
+                            "Unit not found on the board."
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // LOADING UNITS CANNOT MOVE
+            // ------------------------------------------------
+
             if (
-                found &&
                 Array.isArray(
                     found.unit.loadingArmaments
                 ) &&
@@ -2193,12 +2537,16 @@ app.post(
                             "error",
 
                         message:
-                            `${move.unit} is loading an armament and cannot move this round.`
+                            `${found.unit.type} is loading an armament and cannot move this round.`
 
                     });
 
             }
 
+
+            // ------------------------------------------------
+            // STORE MOVE
+            // ------------------------------------------------
 
             game.pendingMoves.push({
 
@@ -2217,6 +2565,14 @@ app.post(
 
             });
 
+
+            game.lastMove =
+                move;
+
+
+            // ------------------------------------------------
+            // SAVE
+            // ------------------------------------------------
 
             try {
 
@@ -2358,10 +2714,6 @@ app.post(
             }
 
 
-            // ------------------------------------------------
-            // RED AND BLUE SUBMIT INDEPENDENTLY
-            // ------------------------------------------------
-
             game.turnLocked[playerId] =
                 true;
 
@@ -2427,23 +2779,6 @@ app.post(
 // ============================================================
 // CONTINUE / RESOLVE TURN
 // ============================================================
-//
-// IMPORTANT:
-//
-// Continue does NOT require both sides to have submitted.
-//
-// Therefore:
-//
-// RED submits
-// BLUE does nothing
-// CONTINUE is pressed
-//
-// Result:
-// RED's moves resolve.
-// BLUE simply has no moves this round.
-//
-// Same thing works in reverse.
-// ============================================================
 
 app.post(
     "/continueTurn",
@@ -2501,7 +2836,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // RESOLVE WHATEVER MOVES WERE SUBMITTED
+            // RESOLVE PENDING MOVES
             // ------------------------------------------------
 
             if (
@@ -2817,6 +3152,10 @@ app.get(
                 );
 
 
+            // ------------------------------------------------
+            // CREATE NEW BOARD
+            // ------------------------------------------------
+
             if (!game.board) {
 
                 game.board =
@@ -2829,6 +3168,10 @@ app.get(
 
             }
 
+
+            // ------------------------------------------------
+            // NORMALIZE GAME
+            // ------------------------------------------------
 
             if (
                 !Array.isArray(
@@ -2859,10 +3202,24 @@ app.get(
             }
 
 
+            if (
+                !game.currentTurnPlayer
+            ) {
+
+                game.currentTurnPlayer =
+                    "red";
+
+            }
+
+
             normalizeBoardUnits(
                 game.board
             );
 
+
+            // ------------------------------------------------
+            // RESPONSE
+            // ------------------------------------------------
 
             const safeGame = {
 
@@ -2937,10 +3294,25 @@ app.get(
             );
 
 
-            Object.values(
+            Object.entries(
                 games
             ).forEach(
-                game => {
+                ([gameId, game]) => {
+
+                    if (!game) {
+                        return;
+                    }
+
+
+                    if (
+                        !game.gameId
+                    ) {
+
+                        game.gameId =
+                            gameId;
+
+                    }
+
 
                     if (
                         !Array.isArray(
@@ -2949,6 +3321,18 @@ app.get(
                     ) {
 
                         game.pendingMoves =
+                            [];
+
+                    }
+
+
+                    if (
+                        !Array.isArray(
+                            game.moveHistory
+                        )
+                    ) {
+
+                        game.moveHistory =
                             [];
 
                     }
@@ -2967,22 +3351,6 @@ app.get(
                                 false
 
                         };
-
-                    }
-
-
-                    if (
-                        !game.gameId
-                    ) {
-
-                        game.gameId =
-                            Object.keys(
-                                games
-                            ).find(
-                                id =>
-                                    games[id] ===
-                                    game
-                            );
 
                     }
 
