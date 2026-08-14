@@ -20,12 +20,202 @@ import {
 
 
 // ============================================================
-// FIND ALL UNITS FOR TEAM
+// ARMAMENT PAGE RULES
+// ============================================================
+//
+// These units should NEVER appear on the Armaments page.
+//
+// They do not have the ability to load armaments.
 // ============================================================
 
-export function getUnitsForTeam(team) {
+const ARMAMENT_PAGE_EXCLUDED_UNITS = new Set([
+
+    "ARG",
+    "DDG80",
+    "KC135",
+    "Type052",
+    "Garrison"
+
+]);
+
+
+// ============================================================
+// FOB LOCATIONS
+// ============================================================
+//
+// A unit can only load armaments while sitting on
+// its own team's FOB.
+//
+// Blue FOB:
+//     r 15
+//     c 15
+//
+// Red FOB:
+//     r 3
+//     c 10
+// ============================================================
+
+const FOB_LOCATIONS = {
+
+    blue: {
+
+        r: 15,
+        c: 15
+
+    },
+
+    red: {
+
+        r: 3,
+        c: 10
+
+    }
+
+};
+
+
+// ============================================================
+// FIND FOB FOR TEAM
+// ============================================================
+
+export function getFOBLocation(
+    team
+) {
+
+    return (
+        FOB_LOCATIONS[team] ||
+        null
+    );
+
+}
+
+
+// ============================================================
+// CHECK UNIT IS AT FOB
+// ============================================================
+
+export function isUnitAtFOB(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+
+        return false;
+
+    }
+
+
+    const fob =
+        getFOBLocation(
+            unit.team
+        );
+
+
+    if (!fob) {
+
+        return false;
+
+    }
+
+
+    return (
+
+        r === fob.r &&
+        c === fob.c
+
+    );
+
+}
+
+
+// ============================================================
+// CHECK UNIT IS AIRBORNE
+// ============================================================
+//
+// Anything away from its own FOB is considered airborne.
+//
+// This applies to aircraft that have left the FOB.
+// ============================================================
+
+export function isUnitAirborne(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+
+        return false;
+
+    }
+
+
+    return !isUnitAtFOB(
+        unit,
+        r,
+        c
+    );
+
+}
+
+
+// ============================================================
+// CHECK UNIT CAN APPEAR ON ARMAMENTS PAGE
+// ============================================================
+
+export function canAppearOnArmamentsPage(
+    unit
+) {
+
+    if (!unit) {
+
+        return false;
+
+    }
+
+
+    if (
+        ARMAMENT_PAGE_EXCLUDED_UNITS.has(
+            unit.type
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+// ============================================================
+// FIND ALL UNITS FOR TEAM
+// ============================================================
+//
+// Only units that can actually use armaments are returned.
+//
+// Each result also includes:
+//
+//     atFOB
+//     airborne
+//     r
+//     c
+//
+// This allows the Armaments page to display:
+//     "AIRBORNE"
+// and disable loading.
+// ============================================================
+
+export function getUnitsForTeam(
+    team
+) {
 
     const result = [];
+
 
     for (
         let r = 0;
@@ -42,29 +232,88 @@ export function getUnitsForTeam(team) {
             const stack =
                 board[r]?.[c] || [];
 
-            stack.forEach(unit => {
 
-                const belongsToTeam =
-                    unit.team === team ||
-                    unit.team === "both";
+            stack.forEach(
+                unit => {
 
-                if (belongsToTeam) {
+                    if (!unit) {
 
-                    ensureUnitLoadout(unit);
+                        return;
 
-                    ensureUnitLoading(unit);
+                    }
+
+
+                    const belongsToTeam =
+                        unit.team === team ||
+                        unit.team === "both";
+
+
+                    if (!belongsToTeam) {
+
+                        return;
+
+                    }
+
+
+                    // ------------------------------------------------
+                    // DO NOT SHOW NON-ARMAMENT UNITS
+                    // ------------------------------------------------
+
+                    if (
+                        !canAppearOnArmamentsPage(
+                            unit
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    ensureUnitLoadout(
+                        unit
+                    );
+
+
+                    ensureUnitLoading(
+                        unit
+                    );
+
 
                     result.push({
+
                         unit,
+
                         r,
-                        c
+
+                        c,
+
+                        atFOB:
+                            isUnitAtFOB(
+                                unit,
+                                r,
+                                c
+                            ),
+
+                        airborne:
+                            isUnitAirborne(
+                                unit,
+                                r,
+                                c
+                            )
+
                     });
+
                 }
-            });
+            );
+
         }
+
     }
 
+
     return result;
+
 }
 
 
@@ -72,18 +321,30 @@ export function getUnitsForTeam(team) {
 // ENSURE LOADOUT
 // ============================================================
 
-export function ensureUnitLoadout(unit) {
+export function ensureUnitLoadout(
+    unit
+) {
 
     if (!unit) {
+
         return [];
+
     }
 
-    if (!Array.isArray(unit.armaments)) {
+
+    if (
+        !Array.isArray(
+            unit.armaments
+        )
+    ) {
 
         unit.armaments = [];
+
     }
 
+
     return unit.armaments;
+
 }
 
 
@@ -91,18 +352,30 @@ export function ensureUnitLoadout(unit) {
 // ENSURE LOADING STATE
 // ============================================================
 
-export function ensureUnitLoading(unit) {
+export function ensureUnitLoading(
+    unit
+) {
 
     if (!unit) {
+
         return [];
+
     }
 
-    if (!Array.isArray(unit.loadingArmaments)) {
+
+    if (
+        !Array.isArray(
+            unit.loadingArmaments
+        )
+    ) {
 
         unit.loadingArmaments = [];
+
     }
 
+
     return unit.loadingArmaments;
+
 }
 
 
@@ -110,16 +383,27 @@ export function ensureUnitLoading(unit) {
 // UNIT IS LOADING
 // ============================================================
 
-export function unitIsLoading(unit) {
+export function unitIsLoading(
+    unit
+) {
 
     if (!unit) {
+
         return false;
+
     }
 
-    const loading =
-        ensureUnitLoading(unit);
 
-    return loading.length > 0;
+    const loading =
+        ensureUnitLoading(
+            unit
+        );
+
+
+    return (
+        loading.length > 0
+    );
+
 }
 
 
@@ -132,11 +416,15 @@ export function unitHasLoadingArmament(
     armamentId
 ) {
 
-    ensureUnitLoading(unit);
+    ensureUnitLoading(
+        unit
+    );
+
 
     return unit.loadingArmaments.includes(
         armamentId
     );
+
 }
 
 
@@ -144,17 +432,21 @@ export function unitHasLoadingArmament(
 // UNIT CAPACITY
 // ============================================================
 
-export function getUnitCapacity(unit) {
+export function getUnitCapacity(
+    unit
+) {
 
     const data =
         getUnitCombatData(
             unit?.type
         );
 
+
     return (
         data?.maxArmaments ||
         0
     );
+
 }
 
 
@@ -162,17 +454,21 @@ export function getUnitCapacity(unit) {
 // UNIT CLASS
 // ============================================================
 
-export function getUnitClass(unit) {
+export function getUnitClass(
+    unit
+) {
 
     const data =
         getUnitCombatData(
             unit?.type
         );
 
+
     return (
         data?.unitClass ||
         "unknown"
     );
+
 }
 
 
@@ -191,7 +487,9 @@ export function canUnitUseArmament(
     ) {
 
         return false;
+
     }
+
 
     if (
         unit.team !== armament.team &&
@@ -199,7 +497,9 @@ export function canUnitUseArmament(
     ) {
 
         return false;
+
     }
+
 
     if (
         !Array.isArray(
@@ -208,7 +508,9 @@ export function canUnitUseArmament(
     ) {
 
         return false;
+
     }
+
 
     if (
         !armament.compatibleUnits.includes(
@@ -217,9 +519,12 @@ export function canUnitUseArmament(
     ) {
 
         return false;
+
     }
 
+
     return true;
+
 }
 
 
@@ -227,11 +532,7 @@ export function canUnitUseArmament(
 // COUNT TEAM ARMAMENT
 // ============================================================
 //
-// Only COMPLETELY LOADED armaments count
-// against the field inventory.
-//
-// Armaments that are currently loading are
-// not yet considered deployed.
+// Only completely loaded armaments count.
 // ============================================================
 
 export function countTeamArmament(
@@ -241,10 +542,12 @@ export function countTeamArmament(
 
     let count = 0;
 
+
     const units =
         getUnitsForTeam(
             team
         );
+
 
     units.forEach(
         ({ unit }) => {
@@ -253,15 +556,19 @@ export function countTeamArmament(
                 unit
             );
 
+
             count +=
                 unit.armaments.filter(
                     id =>
                         id === armamentId
                 ).length;
+
         }
     );
 
+
     return count;
+
 }
 
 
@@ -276,10 +583,12 @@ export function countTeamLoadingArmament(
 
     let count = 0;
 
+
     const units =
         getUnitsForTeam(
             team
         );
+
 
     units.forEach(
         ({ unit }) => {
@@ -288,25 +597,27 @@ export function countTeamLoadingArmament(
                 unit
             );
 
+
             count +=
                 unit.loadingArmaments.filter(
                     id =>
                         id === armamentId
                 ).length;
+
         }
     );
 
+
     return count;
+
 }
 
 
 // ============================================================
-// AVAILABLE AMOUNT
+// AVAILABLE ARMAMENT COUNT
 // ============================================================
 //
-// Loading armaments DO reserve inventory,
-// so two units cannot simultaneously begin
-// loading the final available copy.
+// Loading armaments reserve inventory.
 // ============================================================
 
 export function getAvailableArmamentCount(
@@ -315,8 +626,11 @@ export function getAvailableArmamentCount(
 ) {
 
     if (!armament) {
+
         return 0;
+
     }
+
 
     const loaded =
         countTeamArmament(
@@ -324,18 +638,24 @@ export function getAvailableArmamentCount(
             armament.id
         );
 
+
     const loading =
         countTeamLoadingArmament(
             team,
             armament.id
         );
 
+
     return Math.max(
+
         0,
+
         armament.maxOnField -
         loaded -
         loading
+
     );
+
 }
 
 
@@ -352,36 +672,108 @@ export function unitHasArmament(
         unit
     );
 
+
     return unit.armaments.includes(
         armamentId
     );
+
 }
 
 
 // ============================================================
-// CAN LOAD
+// CAN LOAD ARMAMENT
+// ============================================================
+//
+// IMPORTANT:
+//
+// r and c are required here because loading is only
+// allowed while the unit is physically on its FOB.
 // ============================================================
 
 export function canLoadArmament(
     unit,
-    armament
+    armament,
+    r,
+    c
 ) {
 
     if (!unit) {
 
         return {
+
             allowed: false,
-            reason: "No unit selected."
+
+            reason:
+                "No unit selected."
+
         };
+
     }
+
 
     if (!armament) {
 
         return {
+
             allowed: false,
-            reason: "No armament selected."
+
+            reason:
+                "No armament selected."
+
         };
+
     }
+
+
+    // --------------------------------------------------------
+    // EXCLUDED UNITS
+    // --------------------------------------------------------
+
+    if (
+        !canAppearOnArmamentsPage(
+            unit
+        )
+    ) {
+
+        return {
+
+            allowed: false,
+
+            reason:
+                `${unit.type} cannot load armaments.`
+
+        };
+
+    }
+
+
+    // --------------------------------------------------------
+    // MUST BE AT FOB
+    // --------------------------------------------------------
+
+    if (
+        !isUnitAtFOB(
+            unit,
+            r,
+            c
+        )
+    ) {
+
+        return {
+
+            allowed: false,
+
+            reason:
+                `${unit.type} is airborne and must return to its FOB before loading armaments.`
+
+        };
+
+    }
+
+
+    // --------------------------------------------------------
+    // TEAM
+    // --------------------------------------------------------
 
     if (
         unit.team !== armament.team &&
@@ -389,10 +781,20 @@ export function canLoadArmament(
     ) {
 
         return {
+
             allowed: false,
-            reason: "Wrong team."
+
+            reason:
+                "Wrong team."
+
         };
+
     }
+
+
+    // --------------------------------------------------------
+    // COMPATIBILITY
+    // --------------------------------------------------------
 
     if (
         !canUnitUseArmament(
@@ -402,37 +804,50 @@ export function canLoadArmament(
     ) {
 
         return {
+
             allowed: false,
+
             reason:
                 `${armament.name} is not compatible with ${unit.type}.`
+
         };
+
     }
+
 
     const capacity =
         getUnitCapacity(
             unit
         );
 
+
     const loaded =
         ensureUnitLoadout(
             unit
         ).length;
+
 
     const loading =
         ensureUnitLoading(
             unit
         ).length;
 
+
     if (
         loaded + loading >= capacity
     ) {
 
         return {
+
             allowed: false,
+
             reason:
                 `${unit.type} is already carrying or loading its maximum of ${capacity} armaments.`
+
         };
+
     }
+
 
     if (
         unitHasArmament(
@@ -442,11 +857,16 @@ export function canLoadArmament(
     ) {
 
         return {
+
             allowed: false,
+
             reason:
                 `${unit.type} already has ${armament.name}.`
+
         };
+
     }
+
 
     if (
         unitHasLoadingArmament(
@@ -456,11 +876,16 @@ export function canLoadArmament(
     ) {
 
         return {
+
             allowed: false,
+
             reason:
                 `${unit.type} is already loading ${armament.name}.`
+
         };
+
     }
+
 
     const available =
         getAvailableArmamentCount(
@@ -468,21 +893,31 @@ export function canLoadArmament(
             armament
         );
 
+
     if (
         available <= 0
     ) {
 
         return {
+
             allowed: false,
+
             reason:
                 `All ${armament.name} are already deployed or loading.`
+
         };
+
     }
 
+
     return {
+
         allowed: true,
+
         reason: ""
+
     };
+
 }
 
 
@@ -491,10 +926,9 @@ export function canLoadArmament(
 // ============================================================
 //
 // Loading takes the current round.
-// The armament is placed into loadingArmaments,
-// NOT armaments.
+// The armament enters loadingArmaments.
 //
-// This also marks the unit as unable to move.
+// The server independently verifies the FOB as well.
 // ============================================================
 
 export async function loadArmament(
@@ -507,27 +941,35 @@ export async function loadArmament(
     const check =
         canLoadArmament(
             unit,
-            armament
+            armament,
+            r,
+            c
         );
+
 
     if (!check.allowed) {
 
         throw new Error(
             check.reason
         );
+
     }
+
 
     ensureUnitLoadout(
         unit
     );
 
+
     ensureUnitLoading(
         unit
     );
 
+
     unit.loadingArmaments.push(
         armament.id
     );
+
 
     try {
 
@@ -546,6 +988,7 @@ export async function loadArmament(
                 armament.id
             );
 
+
         if (
             index !== -1
         ) {
@@ -554,12 +997,17 @@ export async function loadArmament(
                 index,
                 1
             );
+
         }
 
+
         throw error;
+
     }
 
+
     return true;
+
 }
 
 
@@ -567,8 +1015,8 @@ export async function loadArmament(
 // UNLOAD ARMAMENT
 // ============================================================
 //
-// Fully loaded armament can be unloaded.
-// A loading armament can also be cancelled.
+// Unloading can happen for loaded armaments.
+// Loading can also be cancelled.
 // ============================================================
 
 export async function unloadArmament(
@@ -586,11 +1034,14 @@ export async function unloadArmament(
         throw new Error(
             "Invalid unit or armament."
         );
+
     }
+
 
     ensureUnitLoadout(
         unit
     );
+
 
     ensureUnitLoading(
         unit
@@ -606,6 +1057,7 @@ export async function unloadArmament(
             armament.id
         );
 
+
     if (
         loadingIndex !== -1
     ) {
@@ -614,6 +1066,7 @@ export async function unloadArmament(
             loadingIndex,
             1
         );
+
 
         try {
 
@@ -633,10 +1086,14 @@ export async function unloadArmament(
                 armament.id
             );
 
+
             throw error;
+
         }
 
+
         return true;
+
     }
 
 
@@ -649,6 +1106,7 @@ export async function unloadArmament(
             armament.id
         );
 
+
     if (
         index === -1
     ) {
@@ -656,12 +1114,15 @@ export async function unloadArmament(
         throw new Error(
             `${armament.name} is not loaded.`
         );
+
     }
+
 
     unit.armaments.splice(
         index,
         1
     );
+
 
     try {
 
@@ -681,10 +1142,14 @@ export async function unloadArmament(
             armament.id
         );
 
+
         throw error;
+
     }
 
+
     return true;
+
 }
 
 
@@ -692,11 +1157,16 @@ export async function unloadArmament(
 // GET COMPATIBLE ARMAMENTS
 // ============================================================
 
-export function getCompatibleArmaments(unit) {
+export function getCompatibleArmaments(
+    unit
+) {
 
     if (!unit) {
+
         return [];
+
     }
+
 
     return getArmamentsForTeam(
         unit.team
@@ -707,6 +1177,7 @@ export function getCompatibleArmaments(unit) {
                 armament
             )
     );
+
 }
 
 
@@ -714,37 +1185,48 @@ export function getCompatibleArmaments(unit) {
 // GET COMBAT POWER
 // ============================================================
 //
-// Loading armaments do NOT contribute to combat
-// power until the turn resolves.
+// Loading armaments do not contribute until the turn resolves.
 // ============================================================
 
-export function getUnitCombatPower(unit) {
+export function getUnitCombatPower(
+    unit
+) {
 
     if (!unit) {
 
         return {
+
             air: 0,
+
             ground: 0,
+
             total: 0
+
         };
+
     }
+
 
     const data =
         getUnitCombatData(
             unit.type
         );
 
+
     let air =
         data?.baseAirCombat ||
         0;
+
 
     let ground =
         data?.baseGroundCombat ||
         0;
 
+
     ensureUnitLoadout(
         unit
     );
+
 
     unit.armaments.forEach(
         id => {
@@ -754,9 +1236,13 @@ export function getUnitCombatPower(unit) {
                     id
                 );
 
+
             if (!armament) {
+
                 return;
+
             }
+
 
             if (
                 armament.category ===
@@ -765,6 +1251,7 @@ export function getUnitCombatPower(unit) {
 
                 air +=
                     armament.combatPower;
+
             }
 
             else if (
@@ -774,6 +1261,7 @@ export function getUnitCombatPower(unit) {
 
                 ground +=
                     armament.combatPower;
+
             }
 
             else if (
@@ -786,9 +1274,12 @@ export function getUnitCombatPower(unit) {
 
                 ground +=
                     armament.combatPower;
+
             }
+
         }
     );
+
 
     return {
 
@@ -798,5 +1289,7 @@ export function getUnitCombatPower(unit) {
 
         total:
             air + ground
+
     };
+
 }

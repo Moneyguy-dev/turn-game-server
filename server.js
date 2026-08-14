@@ -9,11 +9,16 @@ const app = express();
 // EXPRESS SETUP
 // ============================================================
 
-app.use(express.json());
+app.use(
+    express.json()
+);
 
 app.use(
     express.static(
-        path.join(__dirname, "public")
+        path.join(
+            __dirname,
+            "public"
+        )
     )
 );
 
@@ -34,93 +39,74 @@ const COLS = 19;
 
 
 // ============================================================
-// SERVER CONFIG
+// FOB LOCATIONS
 // ============================================================
 
-const PORT =
-    process.env.PORT || 3000;
+const startHexes = {
 
+    blue: {
 
-// ============================================================
-// GITHUB CONFIG
-// ============================================================
+        r: 15,
+        c: 15
 
-const GITHUB_USERNAME =
-    process.env.GITHUB_USERNAME;
+    },
 
-const GITHUB_REPO =
-    process.env.GITHUB_REPO;
+    red: {
 
-const GITHUB_TOKEN =
-    process.env.GITHUB_TOKEN;
+        r: 3,
+        c: 10
 
-const GITHUB_FILE =
-    "game-state.json";
-
-
-// ============================================================
-// GITHUB API URL
-// ============================================================
-
-function getGitHubApiUrl() {
-
-    return (
-        `https://api.github.com/repos/` +
-        `${GITHUB_USERNAME}/` +
-        `${GITHUB_REPO}/contents/` +
-        `${GITHUB_FILE}`
-    );
-}
-
-
-// ============================================================
-// GITHUB HEADERS
-// ============================================================
-
-function getGitHubHeaders() {
-
-    const headers = {
-        Accept:
-            "application/vnd.github+json"
-    };
-
-    if (GITHUB_TOKEN) {
-
-        headers.Authorization =
-            `Bearer ${GITHUB_TOKEN}`;
     }
 
-    return headers;
-}
+};
 
 
 // ============================================================
-// SAVE GAME STATE TO GITHUB
+// ARMAMENT PAGE EXCLUDED UNITS
+// ============================================================
+//
+// These units cannot load armaments at all.
 // ============================================================
 
-async function saveGameStateToGitHub() {
+const ARMAMENT_EXCLUDED_UNITS = new Set([
 
-    if (
-        !GITHUB_USERNAME ||
-        !GITHUB_REPO ||
-        !GITHUB_TOKEN
-    ) {
+    "ARG",
+    "DDG80",
+    "KC135",
+    "Type052",
+    "Garrison"
 
-        console.log(
-            "ℹ GitHub persistence not configured."
-        );
+]);
 
-        return;
-    }
+
+// ============================================================
+// GITHUB PERSISTENCE
+// ============================================================
+
+async function saveGameStateToGitHub(
+    gameState
+) {
+
+    const username =
+        process.env.GITHUB_USERNAME;
+
+    const repo =
+        process.env.GITHUB_REPO;
+
+    const token =
+        process.env.GITHUB_TOKEN;
+
+    const filePath =
+        "game-state.json";
 
 
     const apiUrl =
-        getGitHubApiUrl();
+        `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
 
 
     const jsonString =
         JSON.stringify(
-            games,
+            gameState,
             null,
             2
         );
@@ -135,18 +121,18 @@ async function saveGameStateToGitHub() {
     let sha = null;
 
 
-    // --------------------------------------------------------
-    // GET EXISTING FILE SHA
-    // --------------------------------------------------------
-
     try {
 
         const existing =
             await axios.get(
                 apiUrl,
                 {
-                    headers:
-                        getGitHubHeaders()
+                    headers: {
+
+                        Authorization:
+                            `token ${token}`
+
+                    }
                 }
             );
 
@@ -162,13 +148,11 @@ async function saveGameStateToGitHub() {
         ) {
 
             throw err;
+
         }
+
     }
 
-
-    // --------------------------------------------------------
-    // CREATE / UPDATE FILE
-    // --------------------------------------------------------
 
     const payload = {
 
@@ -177,6 +161,7 @@ async function saveGameStateToGitHub() {
 
         content:
             contentEncoded
+
     };
 
 
@@ -184,6 +169,7 @@ async function saveGameStateToGitHub() {
 
         payload.sha =
             sha;
+
     }
 
 
@@ -191,8 +177,15 @@ async function saveGameStateToGitHub() {
         apiUrl,
         payload,
         {
-            headers:
-                getGitHubHeaders()
+            headers: {
+
+                Authorization:
+                    `token ${token}`,
+
+                "Content-Type":
+                    "application/json"
+
+            }
         }
     );
 
@@ -200,6 +193,7 @@ async function saveGameStateToGitHub() {
     console.log(
         "✔ Game state saved to GitHub"
     );
+
 }
 
 
@@ -209,32 +203,35 @@ async function saveGameStateToGitHub() {
 
 async function loadGameStateFromGitHub() {
 
-    if (
-        !GITHUB_USERNAME ||
-        !GITHUB_REPO ||
-        !GITHUB_TOKEN
-    ) {
+    const username =
+        process.env.GITHUB_USERNAME;
 
-        console.log(
-            "ℹ GitHub persistence not configured."
-        );
+    const repo =
+        process.env.GITHUB_REPO;
 
-        return null;
-    }
+    const token =
+        process.env.GITHUB_TOKEN;
+
+    const filePath =
+        "game-state.json";
 
 
     const apiUrl =
-        getGitHubApiUrl();
+        `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
 
 
     try {
 
-        const response =
+        const res =
             await axios.get(
                 apiUrl,
                 {
-                    headers:
-                        getGitHubHeaders()
+                    headers: {
+
+                        Authorization:
+                            `token ${token}`
+
+                    }
                 }
             );
 
@@ -242,13 +239,13 @@ async function loadGameStateFromGitHub() {
         const decoded =
             Buffer
                 .from(
-                    response.data.content,
+                    res.data.content,
                     "base64"
                 )
                 .toString("utf8");
 
 
-        const savedGames =
+        const gameState =
             JSON.parse(
                 decoded
             );
@@ -259,73 +256,33 @@ async function loadGameStateFromGitHub() {
         );
 
 
-        return savedGames;
+        return gameState;
 
     } catch (err) {
 
         if (
             err.response &&
-            err.response.status === 404
+            err.response.status !== 404
         ) {
 
-            console.log(
-                "ℹ No saved game state found on GitHub"
+            console.error(
+                "⚠ Failed loading game state from GitHub:",
+                err.message
             );
 
-            return null;
+        } else {
+
+            console.log(
+                "⚠ No saved game state found on GitHub"
+            );
+
         }
 
 
-        console.error(
-            "⚠ Failed loading game state from GitHub:",
-            err.message
-        );
-
-
         return null;
+
     }
-}
 
-
-// ============================================================
-// GAME CREATION
-// ============================================================
-
-function createGame(
-    gameId
-) {
-
-    return {
-
-        gameId,
-
-        board:
-            null,
-
-        lastMove:
-            null,
-
-        moveHistory:
-            [],
-
-        currentTurnPlayer:
-            "red",
-
-        unlockTime:
-            null,
-
-        turnLocked: {
-
-            red:
-                false,
-
-            blue:
-                false
-        },
-
-        pendingMoves:
-            []
-    };
 }
 
 
@@ -341,14 +298,45 @@ function getGame(
         !games[gameId]
     ) {
 
-        games[gameId] =
-            createGame(
-                gameId
-            );
+        games[gameId] = {
+
+            gameId,
+
+            board:
+                null,
+
+            lastMove:
+                null,
+
+            moveHistory:
+                [],
+
+            currentTurnPlayer:
+                "red",
+
+            unlockTime:
+                null,
+
+            turnLocked: {
+
+                red:
+                    false,
+
+                blue:
+                    false
+
+            },
+
+            pendingMoves:
+                []
+
+        };
+
     }
 
 
     return games[gameId];
+
 }
 
 
@@ -395,7 +383,9 @@ const units = {
         ARG: {
             move: 3
         }
+
     },
+
 
     red: {
 
@@ -434,41 +424,23 @@ const units = {
         ARG: {
             move: 3
         }
+
     }
+
 };
 
 
 // ============================================================
-// FOB LOCATIONS
+// PERMANENT UNIT ID
 // ============================================================
 
-const startHexes = {
-
-    blue: {
-
-        r: 15,
-        c: 15
-    },
-
-    red: {
-
-        r: 3,
-        c: 10
-    }
-};
-
-
-// ============================================================
-// GENERATE UNIT ID
-// ============================================================
-
-function makeUnitId(
+function createUnitId(
     team,
-    type,
-    index
+    type
 ) {
 
-    return `${team}-${type}-${index}`;
+    return `${team}-${type}`;
+
 }
 
 
@@ -481,25 +453,15 @@ function addUnit(
     r,
     c,
     type,
-    team,
-    index
+    team
 ) {
-
-    if (
-        !board?.[r]?.[c]
-    ) {
-
-        return;
-    }
-
 
     board[r][c].push({
 
         id:
-            makeUnitId(
+            createUnitId(
                 team,
-                type,
-                index
+                type
             ),
 
         type,
@@ -514,7 +476,9 @@ function addUnit(
 
         loadingArmaments:
             []
+
     });
+
 }
 
 
@@ -536,7 +500,7 @@ function spawnAllUnits(
     Object.keys(
         units.blue
     ).forEach(
-        (type, index) => {
+        type => {
 
             addUnit(
                 board,
@@ -545,10 +509,10 @@ function spawnAllUnits(
                 blueStart.c,
 
                 type,
-                "blue",
 
-                index
+                "blue"
             );
+
         }
     );
 
@@ -556,7 +520,7 @@ function spawnAllUnits(
     Object.keys(
         units.red
     ).forEach(
-        (type, index) => {
+        type => {
 
             addUnit(
                 board,
@@ -565,12 +529,13 @@ function spawnAllUnits(
                 redStart.c,
 
                 type,
-                "red",
 
-                index
+                "red"
             );
+
         }
     );
+
 }
 
 
@@ -599,46 +564,19 @@ function generateEmptyBoard() {
         ) {
 
             board[r][c] = [];
+
         }
+
     }
 
 
     return board;
+
 }
 
 
 // ============================================================
-// ENSURE BOARD EXISTS
-// ============================================================
-
-function ensureBoard(
-    game
-) {
-
-    if (
-        !game.board
-    ) {
-
-        game.board =
-            generateEmptyBoard();
-
-        spawnAllUnits(
-            game.board
-        );
-    }
-
-
-    normalizeBoardUnits(
-        game.board
-    );
-
-
-    return game.board;
-}
-
-
-// ============================================================
-// NORMALIZE BOARD
+// NORMALIZE EXISTING UNITS
 // ============================================================
 
 function normalizeBoardUnits(
@@ -646,14 +584,14 @@ function normalizeBoardUnits(
 ) {
 
     if (
-        !Array.isArray(board)
+        !Array.isArray(
+            board
+        )
     ) {
 
         return;
+
     }
-
-
-    let fallbackCounters = {};
 
 
     for (
@@ -669,6 +607,7 @@ function normalizeBoardUnits(
         ) {
 
             continue;
+
         }
 
 
@@ -683,10 +622,13 @@ function normalizeBoardUnits(
 
 
             if (
-                !Array.isArray(stack)
+                !Array.isArray(
+                    stack
+                )
             ) {
 
                 continue;
+
             }
 
 
@@ -694,7 +636,9 @@ function normalizeBoardUnits(
                 unit => {
 
                     if (!unit) {
+
                         return;
+
                     }
 
 
@@ -706,6 +650,7 @@ function normalizeBoardUnits(
 
                         unit.armaments =
                             [];
+
                     }
 
 
@@ -717,6 +662,7 @@ function normalizeBoardUnits(
 
                         unit.loadingArmaments =
                             [];
+
                     }
 
 
@@ -734,153 +680,39 @@ function normalizeBoardUnits(
                             ][
                                 unit.type
                             ].move;
+
                     }
 
 
                     // ------------------------------------------------
-                    // GIVE OLD UNITS AN ID
+                    // ADD PERMANENT ID TO OLD SAVED UNITS
                     // ------------------------------------------------
 
                     if (
-                        unit.id === undefined ||
-                        unit.id === null ||
-                        String(unit.id).trim() === ""
+                        (
+                            unit.id === undefined ||
+                            unit.id === null ||
+                            String(unit.id).trim() === ""
+                        ) &&
+                        unit.team &&
+                        unit.type
                     ) {
 
-                        const key =
-                            `${unit.team}-${unit.type}`;
-
-                        fallbackCounters[key] =
-                            (
-                                fallbackCounters[key] ||
-                                0
-                            ) + 1;
-
-
                         unit.id =
-                            makeUnitId(
+                            createUnitId(
                                 unit.team,
-                                unit.type,
-                                fallbackCounters[key]
+                                unit.type
                             );
+
                     }
+
                 }
             );
-        }
-    }
-}
 
-
-// ============================================================
-// EXTRACT UNIT TYPE
-// ============================================================
-//
-// Accepts:
-//
-// "F16"
-//
-// OR
-//
-// { type: "F16", ... }
-//
-// OR
-//
-// { unitType: "F16", ... }
-// ============================================================
-
-function getUnitType(
-    unit,
-    unitType
-) {
-
-    if (
-        typeof unit === "string"
-    ) {
-
-        return unit;
-    }
-
-
-    if (
-        unit &&
-        typeof unit === "object"
-    ) {
-
-        if (
-            unit.type
-        ) {
-
-            return unit.type;
         }
 
-
-        if (
-            unit.unitType
-        ) {
-
-            return unit.unitType;
-        }
     }
 
-
-    if (
-        typeof unitType === "string"
-    ) {
-
-        return unitType;
-    }
-
-
-    return null;
-}
-
-
-// ============================================================
-// EXTRACT UNIT ID
-// ============================================================
-
-function getUnitId(
-    unit,
-    unitId
-) {
-
-    if (
-        unitId !== undefined &&
-        unitId !== null &&
-        String(unitId).trim() !== ""
-    ) {
-
-        return String(
-            unitId
-        );
-    }
-
-
-    if (
-        unit &&
-        typeof unit === "object"
-    ) {
-
-        const id =
-            unit.id ??
-            unit.unitId ??
-            unit.uid;
-
-
-        if (
-            id !== undefined &&
-            id !== null &&
-            String(id).trim() !== ""
-        ) {
-
-            return String(
-                id
-            );
-        }
-    }
-
-
-    return null;
 }
 
 
@@ -890,37 +722,25 @@ function getUnitId(
 
 function findUnitOnBoard(
     board,
-    options = {}
+    options
 ) {
 
     if (
-        !board
+        !board ||
+        !options
     ) {
 
         return null;
+
     }
 
 
-    const team =
-        options.team;
-
-
-    const unitType =
-        getUnitType(
-            options.unit,
-            options.unitType
-        );
-
-
-    const requestedUnitId =
-        getUnitId(
-            options.unit,
-            options.unitId
-        );
-
-
-    const from =
-        options.from;
+    const {
+        team,
+        unit,
+        unitId,
+        from
+    } = options;
 
 
     function matches(
@@ -930,6 +750,7 @@ function findUnitOnBoard(
         if (!candidate) {
 
             return false;
+
         }
 
 
@@ -939,46 +760,56 @@ function findUnitOnBoard(
         ) {
 
             return false;
+
         }
 
 
         if (
-            unitType &&
-            candidate.type !== unitType
+            unit &&
+            candidate.type !== unit
         ) {
 
             return false;
+
         }
 
 
         if (
-            requestedUnitId
+            unitId
         ) {
 
             const candidateId =
-                getUnitId(
-                    candidate,
-                    null
-                );
+                candidate.id ??
+                candidate.unitId ??
+                candidate.uid;
 
 
             if (
-                candidateId &&
-                String(candidateId) !==
-                String(requestedUnitId)
+                candidateId !== undefined &&
+                candidateId !== null
             ) {
 
-                return false;
+                if (
+                    String(candidateId) !==
+                    String(unitId)
+                ) {
+
+                    return false;
+
+                }
+
             }
+
         }
 
 
         return true;
+
     }
 
 
     // --------------------------------------------------------
-    // SEARCH SPECIFIED LOCATION FIRST
+    // SEARCH PROVIDED LOCATION FIRST
     // --------------------------------------------------------
 
     if (
@@ -992,11 +823,13 @@ function findUnitOnBoard(
     ) {
 
         const stack =
-            board[from.r]?.[from.c];
+            board[from.r][from.c];
 
 
         if (
-            Array.isArray(stack)
+            Array.isArray(
+                stack
+            )
         ) {
 
             const index =
@@ -1023,9 +856,13 @@ function findUnitOnBoard(
 
                     c:
                         from.c
+
                 };
+
             }
+
         }
+
     }
 
 
@@ -1046,14 +883,17 @@ function findUnitOnBoard(
         ) {
 
             const stack =
-                board[r]?.[c];
+                board[r][c];
 
 
             if (
-                !Array.isArray(stack)
+                !Array.isArray(
+                    stack
+                )
             ) {
 
                 continue;
+
             }
 
 
@@ -1079,13 +919,77 @@ function findUnitOnBoard(
                     r,
 
                     c
+
                 };
+
             }
+
         }
+
     }
 
 
     return null;
+
+}
+
+
+// ============================================================
+// CHECK UNIT IS AT OWN FOB
+// ============================================================
+
+function isUnitAtFOB(
+    unit,
+    r,
+    c
+) {
+
+    if (!unit) {
+
+        return false;
+
+    }
+
+
+    const fob =
+        startHexes[
+            unit.team
+        ];
+
+
+    if (!fob) {
+
+        return false;
+
+    }
+
+
+    return (
+
+        r === fob.r &&
+        c === fob.c
+
+    );
+
+}
+
+
+// ============================================================
+// CHECK UNIT IS AIRBORNE
+// ============================================================
+
+function isUnitAirborne(
+    unit,
+    r,
+    c
+) {
+
+    return !isUnitAtFOB(
+        unit,
+        r,
+        c
+    );
+
 }
 
 
@@ -1104,6 +1008,7 @@ function applyMoveToBoard(
     ) {
 
         return true;
+
     }
 
 
@@ -1111,15 +1016,15 @@ function applyMoveToBoard(
         from,
         to,
         unit,
-        unitId,
-        unitType,
-        team
+        team,
+        unitId
     } = move;
 
 
     if (
         !from ||
         !to ||
+        !unit ||
         !team
     ) {
 
@@ -1129,6 +1034,7 @@ function applyMoveToBoard(
         );
 
         return false;
+
     }
 
 
@@ -1149,55 +1055,74 @@ function applyMoveToBoard(
         );
 
         return false;
+
     }
 
 
     const fromStack =
         board[from.r][from.c];
 
-
     const toStack =
         board[to.r][to.c];
 
 
-    const found =
-        findUnitOnBoard(
-            board,
-            {
-                team,
+    let idx = -1;
 
-                unit,
 
-                unitId,
+    // --------------------------------------------------------
+    // FIND BY PERMANENT ID FIRST
+    // --------------------------------------------------------
 
-                unitType,
+    if (unitId) {
 
-                from
-            }
-        );
+        idx =
+            fromStack.findIndex(
+                u =>
+                    String(
+                        u.id ??
+                        u.unitId ??
+                        u.uid ??
+                        ""
+                    ) ===
+                    String(unitId) &&
+                    u.team === team
+            );
+
+    }
+
+
+    // --------------------------------------------------------
+    // FALL BACK TO TEAM + TYPE
+    // --------------------------------------------------------
+
+    if (idx === -1) {
+
+        idx =
+            fromStack.findIndex(
+                u =>
+                    u.type === unit &&
+                    u.team === team
+            );
+
+    }
 
 
     if (
-        !found
+        idx === -1
     ) {
 
         console.log(
-            "⚠ Unit not found while applying move:",
-            {
-                team,
-                unit,
-                unitId,
-                unitType,
-                from
-            }
+            "⚠ Unit not found:",
+            move
         );
 
         return false;
+
     }
 
 
     const movingUnit =
-        found.unit;
+        fromStack[idx];
 
 
     // --------------------------------------------------------
@@ -1212,17 +1137,13 @@ function applyMoveToBoard(
     ) {
 
         console.log(
-            `⚠ ${team} ${movingUnit.type} ` +
-            `cannot move because it is loading.`
+            `⚠ ${team} ${unit} cannot move because it is loading an armament.`
         );
 
         return false;
+
     }
 
-
-    // --------------------------------------------------------
-    // DESTINATION CAPACITY
-    // --------------------------------------------------------
 
     if (
         toStack.length >= 4
@@ -1234,56 +1155,30 @@ function applyMoveToBoard(
         );
 
         return false;
+
     }
 
 
-    // --------------------------------------------------------
-    // REMOVE FROM ORIGINAL STACK
-    // --------------------------------------------------------
-
-    found.stack.splice(
-        found.index,
+    fromStack.splice(
+        idx,
         1
     );
 
-
-    // --------------------------------------------------------
-    // ADD TO DESTINATION
-    // --------------------------------------------------------
 
     toStack.push(
         movingUnit
     );
 
 
-    gameLogMove(
-        movingUnit,
-        from,
-        to
+    console.log(
+        `✔ ${team} ${unit} moved ` +
+        `from ${from.r},${from.c} ` +
+        `to ${to.r},${to.c}`
     );
 
 
     return true;
-}
 
-
-// ============================================================
-// LOG MOVE
-// ============================================================
-
-function gameLogMove(
-    unit,
-    from,
-    to
-) {
-
-    console.log(
-        `✔ ${unit.team} ${unit.type} ` +
-        `moved from ` +
-        `${from.r},${from.c} ` +
-        `to ` +
-        `${to.r},${to.c}`
-    );
 }
 
 
@@ -1296,10 +1191,13 @@ function resolveLoading(
 ) {
 
     if (
-        !Array.isArray(board)
+        !Array.isArray(
+            board
+        )
     ) {
 
         return;
+
     }
 
 
@@ -1316,6 +1214,7 @@ function resolveLoading(
         ) {
 
             continue;
+
         }
 
 
@@ -1330,10 +1229,13 @@ function resolveLoading(
 
 
             if (
-                !Array.isArray(stack)
+                !Array.isArray(
+                    stack
+                )
             ) {
 
                 continue;
+
             }
 
 
@@ -1341,7 +1243,9 @@ function resolveLoading(
                 unit => {
 
                     if (!unit) {
+
                         return;
+
                     }
 
 
@@ -1353,6 +1257,7 @@ function resolveLoading(
 
                         unit.armaments =
                             [];
+
                     }
 
 
@@ -1364,6 +1269,7 @@ function resolveLoading(
 
                         unit.loadingArmaments =
                             [];
+
                     }
 
 
@@ -1372,16 +1278,11 @@ function resolveLoading(
                     ) {
 
                         return;
+
                     }
 
 
-                    const loading =
-                        [
-                            ...unit.loadingArmaments
-                        ];
-
-
-                    loading.forEach(
+                    unit.loadingArmaments.forEach(
                         armamentId => {
 
                             if (
@@ -1393,24 +1294,29 @@ function resolveLoading(
                                 unit.armaments.push(
                                     armamentId
                                 );
+
                             }
+
                         }
                     );
 
 
                     console.log(
-                        `✔ ${unit.team} ` +
-                        `${unit.type} finished loading:`,
-                        loading
+                        `✔ ${unit.team} ${unit.type} finished loading:`,
+                        unit.loadingArmaments
                     );
 
 
                     unit.loadingArmaments =
                         [];
+
                 }
             );
+
         }
+
     }
+
 }
 
 
@@ -1427,25 +1333,20 @@ app.post(
 
         try {
 
-            const body =
-                req.body || {};
-
-
             const {
                 gameId,
                 playerId,
                 team,
                 unit,
                 unitId,
-                unitType,
                 from,
                 armament,
                 action
-            } = body;
+            } = req.body;
 
 
             // ------------------------------------------------
-            // VALIDATE GAME
+            // GAME
             // ------------------------------------------------
 
             if (!gameId) {
@@ -1459,15 +1360,18 @@ app.post(
 
                         message:
                             "Missing gameId"
+
                     });
+
             }
 
 
             // ------------------------------------------------
-            // VALIDATE PLAYER
+            // PLAYER
             // ------------------------------------------------
 
             if (
+                playerId !== undefined &&
                 playerId !== "red" &&
                 playerId !== "blue"
             ) {
@@ -1481,13 +1385,11 @@ app.post(
 
                         message:
                             "Invalid playerId"
+
                     });
+
             }
 
-
-            // ------------------------------------------------
-            // DETERMINE TEAM
-            // ------------------------------------------------
 
             const requestedTeam =
                 team ||
@@ -1508,11 +1410,14 @@ app.post(
 
                         message:
                             "Missing or invalid team"
+
                     });
+
             }
 
 
             if (
+                playerId &&
                 requestedTeam !== playerId
             ) {
 
@@ -1525,31 +1430,19 @@ app.post(
 
                         message:
                             "You can only update your own units."
+
                     });
+
             }
 
 
             // ------------------------------------------------
-            // GET UNIT TYPE
+            // UNIT
             // ------------------------------------------------
 
-            const resolvedUnitType =
-                getUnitType(
-                    unit,
-                    unitType
-                );
-
-
-            const resolvedUnitId =
-                getUnitId(
-                    unit,
-                    unitId
-                );
-
-
             if (
-                !resolvedUnitType &&
-                !resolvedUnitId
+                !unit &&
+                !unitId
             ) {
 
                 return res
@@ -1561,18 +1454,24 @@ app.post(
 
                         message:
                             "Missing unit or unitId"
+
                     });
+
             }
 
 
             // ------------------------------------------------
-            // VALIDATE ACTION
+            // ACTION
             // ------------------------------------------------
 
             const validActions = [
+
                 "load",
+
                 "unload",
+
                 "cancelLoad"
+
             ];
 
 
@@ -1596,39 +1495,20 @@ app.post(
 
                         message:
                             "Invalid armament action"
+
                     });
+
             }
 
 
             // ------------------------------------------------
-            // VALIDATE ARMAMENT
+            // ARMAMENT
             // ------------------------------------------------
 
             if (
-                armament === undefined ||
-                armament === null
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        status:
-                            "error",
-
-                        message:
-                            "Missing armament"
-                    });
-            }
-
-
-            const armamentId =
-                armament.id;
-
-
-            if (
-                armamentId === undefined ||
-                armamentId === null
+                !armament ||
+                armament.id === undefined ||
+                armament.id === null
             ) {
 
                 return res
@@ -1640,13 +1520,15 @@ app.post(
 
                         message:
                             "Missing armament ID"
+
                     });
+
             }
 
 
-            // ------------------------------------------------
-            // GET GAME
-            // ------------------------------------------------
+            const armamentId =
+                armament.id;
+
 
             const game =
                 getGame(
@@ -1654,8 +1536,25 @@ app.post(
                 );
 
 
-            ensureBoard(
-                game
+            // ------------------------------------------------
+            // CREATE BOARD
+            // ------------------------------------------------
+
+            if (!game.board) {
+
+                game.board =
+                    generateEmptyBoard();
+
+
+                spawnAllUnits(
+                    game.board
+                );
+
+            }
+
+
+            normalizeBoardUnits(
+                game.board
             );
 
 
@@ -1667,37 +1566,21 @@ app.post(
                 findUnitOnBoard(
                     game.board,
                     {
+
                         team:
                             requestedTeam,
 
                         unit,
 
-                        unitId:
-                            resolvedUnitId,
-
-                        unitType,
+                        unitId,
 
                         from
+
                     }
                 );
 
 
-            if (
-                !found
-            ) {
-
-                console.log(
-                    "⚠ updateArmament unit lookup failed:",
-                    {
-                        gameId,
-                        playerId,
-                        requestedTeam,
-                        resolvedUnitType,
-                        resolvedUnitId,
-                        from
-                    }
-                );
-
+            if (!found) {
 
                 return res
                     .status(404)
@@ -1707,23 +1590,10 @@ app.post(
                             "error",
 
                         message:
-                            "Unit not found on the board",
+                            "Unit not found on the board"
 
-                        debug: {
-
-                            team:
-                                requestedTeam,
-
-                            unitType:
-                                resolvedUnitType,
-
-                            unitId:
-                                resolvedUnitId,
-
-                            from:
-                                from || null
-                        }
                     });
+
             }
 
 
@@ -1732,28 +1602,106 @@ app.post(
 
 
             // ------------------------------------------------
-            // NORMALIZE ARMAMENT ARRAYS
+            // VERIFY PERMANENT ID IF PROVIDED
             // ------------------------------------------------
 
             if (
-                !Array.isArray(
-                    targetUnit.armaments
-                )
+                unitId &&
+                String(
+                    targetUnit.id ??
+                    targetUnit.unitId ??
+                    targetUnit.uid ??
+                    ""
+                ) !==
+                String(unitId)
             ) {
 
-                targetUnit.armaments =
-                    [];
+                return res
+                    .status(400)
+                    .json({
+
+                        status:
+                            "error",
+
+                        message:
+                            "Unit ID does not match the unit on the board."
+
+                    });
+
             }
 
 
+            // ------------------------------------------------
+            // UNITS THAT CANNOT LOAD ARMAMENTS
+            // ------------------------------------------------
+
             if (
-                !Array.isArray(
-                    targetUnit.loadingArmaments
+                ARMAMENT_EXCLUDED_UNITS.has(
+                    targetUnit.type
                 )
             ) {
 
-                targetUnit.loadingArmaments =
-                    [];
+                return res
+                    .status(403)
+                    .json({
+
+                        status:
+                            "error",
+
+                        message:
+                            `${targetUnit.type} cannot load armaments.`
+
+                    });
+
+            }
+
+
+            // ------------------------------------------------
+            // MUST BE AT OWN FOB FOR LOADING
+            // ------------------------------------------------
+
+            if (
+                resolvedAction === "load"
+            ) {
+
+                if (
+                    !isUnitAtFOB(
+                        targetUnit,
+                        found.r,
+                        found.c
+                    )
+                ) {
+
+                    return res
+                        .status(403)
+                        .json({
+
+                            status:
+                                "error",
+
+                            message:
+                                `${targetUnit.type} is airborne and must return to its FOB before loading armaments.`,
+
+                            airborne:
+                                true,
+
+                            atFOB:
+                                false,
+
+                            location: {
+
+                                r:
+                                    found.r,
+
+                                c:
+                                    found.c
+
+                            }
+
+                        });
+
+                }
+
             }
 
 
@@ -1762,9 +1710,32 @@ app.post(
             // ------------------------------------------------
 
             if (
-                resolvedAction ===
-                "load"
+                resolvedAction === "load"
             ) {
+
+                if (
+                    !Array.isArray(
+                        targetUnit.loadingArmaments
+                    )
+                ) {
+
+                    targetUnit.loadingArmaments =
+                        [];
+
+                }
+
+
+                if (
+                    !Array.isArray(
+                        targetUnit.armaments
+                    )
+                ) {
+
+                    targetUnit.armaments =
+                        [];
+
+                }
+
 
                 if (
                     targetUnit.armaments.includes(
@@ -1781,7 +1752,9 @@ app.post(
 
                             message:
                                 "Armament is already loaded on this unit."
+
                         });
+
                 }
 
 
@@ -1800,13 +1773,16 @@ app.post(
 
                             message:
                                 "Armament is already loading on this unit."
+
                         });
+
                 }
 
 
                 targetUnit.loadingArmaments.push(
                     armamentId
                 );
+
             }
 
 
@@ -1815,9 +1791,20 @@ app.post(
             // ------------------------------------------------
 
             else if (
-                resolvedAction ===
-                "unload"
+                resolvedAction === "unload"
             ) {
+
+                if (
+                    !Array.isArray(
+                        targetUnit.armaments
+                    )
+                ) {
+
+                    targetUnit.armaments =
+                        [];
+
+                }
+
 
                 const index =
                     targetUnit.armaments.indexOf(
@@ -1838,7 +1825,9 @@ app.post(
 
                             message:
                                 "Armament is not loaded on this unit."
+
                         });
+
                 }
 
 
@@ -1846,6 +1835,7 @@ app.post(
                     index,
                     1
                 );
+
             }
 
 
@@ -1854,9 +1844,20 @@ app.post(
             // ------------------------------------------------
 
             else if (
-                resolvedAction ===
-                "cancelLoad"
+                resolvedAction === "cancelLoad"
             ) {
+
+                if (
+                    !Array.isArray(
+                        targetUnit.loadingArmaments
+                    )
+                ) {
+
+                    targetUnit.loadingArmaments =
+                        [];
+
+                }
+
 
                 const index =
                     targetUnit.loadingArmaments.indexOf(
@@ -1877,7 +1878,9 @@ app.post(
 
                             message:
                                 "Armament is not currently loading."
+
                         });
+
                 }
 
 
@@ -1885,6 +1888,7 @@ app.post(
                     index,
                     1
                 );
+
             }
 
 
@@ -1894,7 +1898,9 @@ app.post(
 
             try {
 
-                await saveGameStateToGitHub();
+                await saveGameStateToGitHub(
+                    games
+                );
 
             } catch (err) {
 
@@ -1902,6 +1908,7 @@ app.post(
                     "⚠ Failed to save after armament update:",
                     err.message
                 );
+
 
                 return res
                     .status(500)
@@ -1912,7 +1919,9 @@ app.post(
 
                         message:
                             "Armament updated in memory but failed to save game state."
+
                     });
+
             }
 
 
@@ -1933,10 +1942,11 @@ app.post(
 
                 gameId,
 
-                unit:
-                    {
-                        ...targetUnit
-                    },
+                unit: {
+
+                    ...targetUnit
+
+                },
 
                 location: {
 
@@ -1945,7 +1955,22 @@ app.post(
 
                     c:
                         found.c
+
                 },
+
+                atFOB:
+                    isUnitAtFOB(
+                        targetUnit,
+                        found.r,
+                        found.c
+                    ),
+
+                airborne:
+                    isUnitAirborne(
+                        targetUnit,
+                        found.r,
+                        found.c
+                    ),
 
                 board:
                     game.board,
@@ -1958,6 +1983,7 @@ app.post(
 
                 pendingMoves:
                     game.pendingMoves.length
+
             });
 
         } catch (error) {
@@ -1977,24 +2003,17 @@ app.post(
 
                     message:
                         "Internal server error"
+
                 });
+
         }
+
     }
 );
 
 
 // ============================================================
 // SUBMIT MOVE
-// ============================================================
-//
-// IMPORTANT:
-//
-// There is intentionally NO check here that:
-//
-//     playerId === currentTurnPlayer
-//
-// Both teams may submit their moves independently.
-//
 // ============================================================
 
 app.post(
@@ -2010,8 +2029,7 @@ app.post(
                 gameId,
                 playerId,
                 move
-            } =
-                req.body || {};
+            } = req.body;
 
 
             if (!gameId) {
@@ -2025,7 +2043,9 @@ app.post(
 
                         message:
                             "Missing gameId"
+
                     });
+
             }
 
 
@@ -2043,7 +2063,9 @@ app.post(
 
                         message:
                             "Invalid playerId"
+
                     });
+
             }
 
 
@@ -2058,7 +2080,9 @@ app.post(
 
                         message:
                             "Missing move"
+
                     });
+
             }
 
 
@@ -2068,13 +2092,26 @@ app.post(
                 );
 
 
-            ensureBoard(
-                game
+            if (!game.board) {
+
+                game.board =
+                    generateEmptyBoard();
+
+
+                spawnAllUnits(
+                    game.board
+                );
+
+            }
+
+
+            normalizeBoardUnits(
+                game.board
             );
 
 
             // ------------------------------------------------
-            // EACH PLAYER CAN SUBMIT ONCE
+            // EACH SIDE MAY SUBMIT INDEPENDENTLY
             // ------------------------------------------------
 
             if (
@@ -2090,13 +2127,11 @@ app.post(
 
                         message:
                             `${playerId} has already submitted this turn`
+
                     });
+
             }
 
-
-            // ------------------------------------------------
-            // PLAYER MUST MOVE OWN TEAM
-            // ------------------------------------------------
 
             if (
                 move.team !== playerId
@@ -2111,18 +2146,21 @@ app.post(
 
                         message:
                             "You can only move your own units."
+
                     });
+
             }
 
 
             // ------------------------------------------------
-            // FIND UNIT
+            // FIND MOVING UNIT
             // ------------------------------------------------
 
             const found =
                 findUnitOnBoard(
                     game.board,
                     {
+
                         team:
                             playerId,
 
@@ -2132,74 +2170,15 @@ app.post(
                         unitId:
                             move.unitId,
 
-                        unitType:
-                            move.unitType,
-
                         from:
                             move.from
+
                     }
                 );
 
 
             if (
-                !found
-            ) {
-
-                console.log(
-                    "⚠ submitMove unit lookup failed:",
-                    {
-                        playerId,
-
-                        unit:
-                            move.unit,
-
-                        unitId:
-                            move.unitId,
-
-                        unitType:
-                            move.unitType,
-
-                        from:
-                            move.from
-                    }
-                );
-
-
-                return res
-                    .status(404)
-                    .json({
-
-                        status:
-                            "error",
-
-                        message:
-                            "Unit not found on the board",
-
-                        debug: {
-
-                            playerId,
-
-                            unit:
-                                move.unit,
-
-                            unitId:
-                                move.unitId,
-
-                            unitType:
-                                move.unitType,
-
-                            from:
-                                move.from
-                        }
-                    });
-            }
-
-
-            // ------------------------------------------------
-            // LOADING UNIT CANNOT MOVE
-            // ------------------------------------------------
-
-            if (
+                found &&
                 Array.isArray(
                     found.unit.loadingArmaments
                 ) &&
@@ -2214,61 +2193,36 @@ app.post(
                             "error",
 
                         message:
-                            `${found.unit.type} is loading an armament and cannot move this round.`
+                            `${move.unit} is loading an armament and cannot move this round.`
+
                     });
+
             }
 
 
-            // ------------------------------------------------
-            // STORE MOVE
-            // ------------------------------------------------
-
-            const storedMove = {
+            game.pendingMoves.push({
 
                 playerId,
 
-                move: {
+                move
 
-                    ...move,
-
-                    unit:
-                        found.unit.type,
-
-                    unitId:
-                        found.unit.id
-                }
-            };
+            });
 
 
-            game.pendingMoves.push(
-                storedMove
-            );
+            game.moveHistory.push({
 
+                playerId,
 
-            game.moveHistory.push(
-                storedMove
-            );
+                move
 
+            });
 
-            game.lastMove =
-                storedMove;
-
-
-            // ------------------------------------------------
-            // LOCK PLAYER
-            // ------------------------------------------------
-
-            game.turnLocked[playerId] =
-                true;
-
-
-            // ------------------------------------------------
-            // SAVE
-            // ------------------------------------------------
 
             try {
 
-                await saveGameStateToGitHub();
+                await saveGameStateToGitHub(
+                    games
+                );
 
             } catch (err) {
 
@@ -2276,6 +2230,7 @@ app.post(
                     "⚠ Failed to save after move:",
                     err.message
                 );
+
             }
 
 
@@ -2290,11 +2245,9 @@ app.post(
                 turnLocked:
                     game.turnLocked,
 
-                currentTurnPlayer:
-                    game.currentTurnPlayer,
-
                 pendingMoves:
                     game.pendingMoves.length
+
             });
 
         } catch (error) {
@@ -2314,20 +2267,17 @@ app.post(
 
                     message:
                         "Internal server error"
+
                 });
+
         }
+
     }
 );
 
 
 // ============================================================
 // SUBMIT TURN
-// ============================================================
-//
-// This simply marks that side as finished.
-//
-// It does NOT require it to be that side's "turn".
-//
 // ============================================================
 
 app.post(
@@ -2342,8 +2292,7 @@ app.post(
             const {
                 gameId,
                 playerId
-            } =
-                req.body || {};
+            } = req.body;
 
 
             if (!gameId) {
@@ -2357,7 +2306,9 @@ app.post(
 
                         message:
                             "Missing gameId"
+
                     });
+
             }
 
 
@@ -2375,7 +2326,9 @@ app.post(
 
                         message:
                             "Invalid playerId"
+
                     });
+
             }
 
 
@@ -2385,8 +2338,28 @@ app.post(
                 );
 
 
+            if (
+                game.turnLocked[playerId]
+            ) {
+
+                return res.json({
+
+                    status:
+                        "ok",
+
+                    message:
+                        `${playerId} already submitted`,
+
+                    turnLocked:
+                        game.turnLocked
+
+                });
+
+            }
+
+
             // ------------------------------------------------
-            // DO NOT REQUIRE CURRENT TURN
+            // RED AND BLUE SUBMIT INDEPENDENTLY
             // ------------------------------------------------
 
             game.turnLocked[playerId] =
@@ -2395,7 +2368,9 @@ app.post(
 
             try {
 
-                await saveGameStateToGitHub();
+                await saveGameStateToGitHub(
+                    games
+                );
 
             } catch (err) {
 
@@ -2403,6 +2378,7 @@ app.post(
                     "⚠ Failed to save after submitTurn:",
                     err.message
                 );
+
             }
 
 
@@ -2417,11 +2393,9 @@ app.post(
                 turnLocked:
                     game.turnLocked,
 
-                currentTurnPlayer:
-                    game.currentTurnPlayer,
-
                 pendingMoves:
                     game.pendingMoves.length
+
             });
 
         } catch (error) {
@@ -2441,8 +2415,11 @@ app.post(
 
                     message:
                         "Internal server error"
+
                 });
+
         }
+
     }
 );
 
@@ -2453,15 +2430,19 @@ app.post(
 //
 // IMPORTANT:
 //
-// ANYONE can call this endpoint.
+// Continue does NOT require both sides to have submitted.
 //
-// It does NOT require:
+// Therefore:
 //
-//     red === locked
-//     blue === locked
+// RED submits
+// BLUE does nothing
+// CONTINUE is pressed
 //
-// It simply resolves whatever moves have been submitted.
+// Result:
+// RED's moves resolve.
+// BLUE simply has no moves this round.
 //
+// Same thing works in reverse.
 // ============================================================
 
 app.post(
@@ -2475,8 +2456,7 @@ app.post(
 
             const {
                 gameId
-            } =
-                req.body || {};
+            } = req.body;
 
 
             if (!gameId) {
@@ -2490,7 +2470,9 @@ app.post(
 
                         message:
                             "Missing gameId"
+
                     });
+
             }
 
 
@@ -2500,67 +2482,53 @@ app.post(
                 );
 
 
-            ensureBoard(
-                game
-            );
+            if (!game.board) {
+
+                game.board =
+                    generateEmptyBoard();
 
 
-            console.log(
-                "Continuing turn:",
-                {
-                    gameId,
+                spawnAllUnits(
+                    game.board
+                );
 
-                    pendingMoves:
-                        game.pendingMoves.length,
+            }
 
-                    turnLocked:
-                        game.turnLocked
-                }
+
+            normalizeBoardUnits(
+                game.board
             );
 
 
             // ------------------------------------------------
-            // RESOLVE ALL PENDING MOVES
+            // RESOLVE WHATEVER MOVES WERE SUBMITTED
             // ------------------------------------------------
 
-            const pendingMoves =
+            if (
                 Array.isArray(
                     game.pendingMoves
-                )
-                    ? [
-                        ...game.pendingMoves
-                    ]
-                    : [];
-
-
-            for (
-                const entry
-                of pendingMoves
+                ) &&
+                game.pendingMoves.length > 0
             ) {
 
-                if (
-                    !entry ||
-                    !entry.move
+                const pendingMoves =
+                    [
+                        ...game.pendingMoves
+                    ];
+
+
+                for (
+                    const entry
+                    of pendingMoves
                 ) {
 
-                    continue;
-                }
-
-
-                const success =
                     applyMoveToBoard(
                         game.board,
                         entry.move
                     );
 
-
-                if (!success) {
-
-                    console.log(
-                        "⚠ Move failed during turn resolution:",
-                        entry.move
-                    );
                 }
+
             }
 
 
@@ -2582,7 +2550,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // UNLOCK BOTH PLAYERS
+            // UNLOCK BOTH SIDES
             // ------------------------------------------------
 
             game.turnLocked = {
@@ -2592,18 +2560,9 @@ app.post(
 
                 blue:
                     false
+
             };
 
-
-            // ------------------------------------------------
-            // KEEP TURN INFORMATION SIMPLE
-            // ------------------------------------------------
-            //
-            // Red remains the nominal starting player.
-            //
-            // More importantly, this value is NOT used to
-            // prevent either side from submitting moves.
-            //
 
             game.currentTurnPlayer =
                 "red";
@@ -2615,7 +2574,9 @@ app.post(
 
             try {
 
-                await saveGameStateToGitHub();
+                await saveGameStateToGitHub(
+                    games
+                );
 
             } catch (err) {
 
@@ -2623,6 +2584,7 @@ app.post(
                     "⚠ Failed to save after continueTurn:",
                     err.message
                 );
+
             }
 
 
@@ -2645,6 +2607,7 @@ app.post(
 
                 pendingMoves:
                     0
+
             });
 
         } catch (error) {
@@ -2664,8 +2627,11 @@ app.post(
 
                     message:
                         "Internal server error"
+
                 });
+
         }
+
     }
 );
 
@@ -2685,8 +2651,7 @@ app.post(
 
             const {
                 gameId
-            } =
-                req.body || {};
+            } = req.body;
 
 
             if (!gameId) {
@@ -2700,7 +2665,9 @@ app.post(
 
                         message:
                             "Missing gameId"
+
                     });
+
             }
 
 
@@ -2737,6 +2704,7 @@ app.post(
 
                 blue:
                     false
+
             };
 
 
@@ -2750,7 +2718,9 @@ app.post(
 
             try {
 
-                await saveGameStateToGitHub();
+                await saveGameStateToGitHub(
+                    games
+                );
 
             } catch (err) {
 
@@ -2758,6 +2728,7 @@ app.post(
                     "⚠ Failed to save after reset:",
                     err.message
                 );
+
             }
 
 
@@ -2777,6 +2748,7 @@ app.post(
 
                 currentTurnPlayer:
                     game.currentTurnPlayer
+
             });
 
         } catch (error) {
@@ -2796,8 +2768,11 @@ app.post(
 
                     message:
                         "Internal server error"
+
                 });
+
         }
+
     }
 );
 
@@ -2830,7 +2805,9 @@ app.get(
 
                         message:
                             "Missing gameId"
+
                     });
+
             }
 
 
@@ -2840,9 +2817,17 @@ app.get(
                 );
 
 
-            ensureBoard(
-                game
-            );
+            if (!game.board) {
+
+                game.board =
+                    generateEmptyBoard();
+
+
+                spawnAllUnits(
+                    game.board
+                );
+
+            }
 
 
             if (
@@ -2853,6 +2838,7 @@ app.get(
 
                 game.pendingMoves =
                     [];
+
             }
 
 
@@ -2867,17 +2853,15 @@ app.get(
 
                     blue:
                         false
+
                 };
+
             }
 
 
-            if (
-                !game.currentTurnPlayer
-            ) {
-
-                game.currentTurnPlayer =
-                    "red";
-            }
+            normalizeBoardUnits(
+                game.board
+            );
 
 
             const safeGame = {
@@ -2896,6 +2880,7 @@ app.get(
 
                 pendingMoves:
                     game.pendingMoves.length
+
             };
 
 
@@ -2920,42 +2905,17 @@ app.get(
 
                     message:
                         "Internal server error"
+
                 });
+
         }
+
     }
 );
 
 
 // ============================================================
-// HEALTH CHECK
-// ============================================================
-
-app.get(
-    "/",
-    (
-        req,
-        res
-    ) => {
-
-        res.json({
-
-            status:
-                "ok",
-
-            message:
-                "Turn game server is running",
-
-            games:
-                Object.keys(
-                    games
-                ).length
-        });
-    }
-);
-
-
-// ============================================================
-// LOAD SAVED GAMES
+// LOAD SAVED GAME
 // ============================================================
 
 (async () => {
@@ -2966,10 +2926,7 @@ app.get(
             await loadGameStateFromGitHub();
 
 
-        if (
-            saved &&
-            typeof saved === "object"
-        ) {
+        if (saved) {
 
             games =
                 saved;
@@ -2980,33 +2937,10 @@ app.get(
             );
 
 
-            Object.entries(
+            Object.values(
                 games
             ).forEach(
-                ([gameId, game]) => {
-
-                    if (
-                        !game ||
-                        typeof game !== "object"
-                    ) {
-
-                        games[gameId] =
-                            createGame(
-                                gameId
-                            );
-
-                        return;
-                    }
-
-
-                    if (
-                        !game.gameId
-                    ) {
-
-                        game.gameId =
-                            gameId;
-                    }
-
+                game => {
 
                     if (
                         !Array.isArray(
@@ -3016,17 +2950,7 @@ app.get(
 
                         game.pendingMoves =
                             [];
-                    }
 
-
-                    if (
-                        !Array.isArray(
-                            game.moveHistory
-                        )
-                    ) {
-
-                        game.moveHistory =
-                            [];
                     }
 
 
@@ -3041,27 +2965,25 @@ app.get(
 
                             blue:
                                 false
+
                         };
+
                     }
 
 
                     if (
-                        game.turnLocked.red ===
-                        undefined
+                        !game.gameId
                     ) {
 
-                        game.turnLocked.red =
-                            false;
-                    }
+                        game.gameId =
+                            Object.keys(
+                                games
+                            ).find(
+                                id =>
+                                    games[id] ===
+                                    game
+                            );
 
-
-                    if (
-                        game.turnLocked.blue ===
-                        undefined
-                    ) {
-
-                        game.turnLocked.blue =
-                            false;
                     }
 
 
@@ -3071,6 +2993,7 @@ app.get(
 
                         game.currentTurnPlayer =
                             "red";
+
                     }
 
 
@@ -3081,7 +3004,9 @@ app.get(
                         normalizeBoardUnits(
                             game.board
                         );
+
                     }
+
                 }
             );
 
@@ -3090,6 +3015,7 @@ app.get(
             console.log(
                 "ℹ Starting with empty game storage"
             );
+
         }
 
     } catch (error) {
@@ -3098,21 +3024,28 @@ app.get(
             "⚠ Failed to initialize saved games:",
             error
         );
+
     }
 
-
-    // --------------------------------------------------------
-    // START SERVER AFTER LOAD
-    // --------------------------------------------------------
-
-    app.listen(
-        PORT,
-        () => {
-
-            console.log(
-                `HTTP server running on port ${PORT}`
-            );
-        }
-    );
-
 })();
+
+
+// ============================================================
+// START SERVER
+// ============================================================
+
+const PORT =
+    process.env.PORT ||
+    3000;
+
+
+app.listen(
+    PORT,
+    () => {
+
+        console.log(
+            `HTTP server running on port ${PORT}`
+        );
+
+    }
+);
