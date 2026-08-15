@@ -10,16 +10,30 @@ html,
 body {
     width: 100%;
     height: 100%;
-
     margin: 0;
     padding: 0;
 
     background: #111;
-    color: white;
+    color: #fff;
 
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 
     overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.hidden {
+    display: none !important;
 }
 
 
@@ -33,26 +47,27 @@ body {
     width: 100%;
     height: calc(100vh - 50px);
 
+    min-height: 0;
+
     overflow: hidden;
 }
 
 
 /* =========================================================
-   MAP
+   MAP CONTAINER
 ========================================================= */
 
 #mapContainer {
     position: absolute;
 
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
 
     display: flex;
 
     justify-content: center;
     align-items: center;
+
+    background: #111;
 
     border: 4px solid #444;
     border-radius: 18px;
@@ -62,9 +77,9 @@ body {
 
     overflow: hidden;
 
-    background: #111;
-
     z-index: 1;
+
+    isolation: isolate;
 }
 
 
@@ -75,13 +90,15 @@ body {
 #gameBoard {
     position: relative;
 
-    flex-shrink: 0;
+    flex: 0 0 auto;
 
     transform-origin: center center;
 
     overflow: visible;
 
     pointer-events: auto;
+
+    user-select: none;
 }
 
 
@@ -108,9 +125,18 @@ body {
             0% 50%
         );
 
+    -webkit-clip-path:
+        polygon(
+            25% 0%,
+            75% 0%,
+            100% 50%,
+            75% 100%,
+            25% 100%,
+            0% 50%
+        );
+
     z-index: 1;
 }
-
 
 .hex-wrapper:hover {
     z-index: 10;
@@ -127,12 +153,12 @@ body {
     width: 100%;
     height: 100%;
 
-    background: #333;
-
     display: flex;
 
     justify-content: center;
     align-items: center;
+
+    background: #333;
 
     text-align: center;
 
@@ -144,9 +170,9 @@ body {
 
     transition:
         background 0.12s ease,
-        filter 0.12s ease;
+        filter 0.12s ease,
+        box-shadow 0.12s ease;
 }
-
 
 .hex-wrapper:hover .hex {
     filter: brightness(1.2);
@@ -161,12 +187,12 @@ body {
     z-index: 50;
 }
 
-
 .hex-wrapper.selected-hex .hex {
     background: #666 !important;
 
     box-shadow:
-        inset 0 0 0 3px yellow;
+        inset 0 0 0 3px yellow,
+        0 0 8px rgba(255, 255, 0, 0.35);
 }
 
 
@@ -184,38 +210,32 @@ body {
     pointer-events: none;
 
     clip-path: inherit;
+    -webkit-clip-path: inherit;
 
-    border:
-        4px solid transparent;
+    border: 4px solid transparent;
 
     box-sizing: border-box;
 
     z-index: 5;
 }
 
-
 .hex-wrapper.territory-natuna::after,
 .hex-wrapper.territory-palawan::after {
-    border-color:
-        rgba(180, 0, 255, 0.9);
+    border-color: rgba(180, 0, 255, 0.9);
 }
-
 
 .hex-wrapper.territory-taiwan::after,
 .hex-wrapper.territory-redsingle::after {
-    border-color:
-        rgba(255, 0, 0, 0.9);
+    border-color: rgba(255, 0, 0, 0.9);
 }
 
-
 .hex-wrapper.territory-bluesingle::after {
-    border-color:
-        rgba(0, 80, 255, 0.9);
+    border-color: rgba(0, 80, 255, 0.9);
 }
 
 
 /* =========================================================
-   HEX NAME / NUMBER
+   HEX TEXT
 ========================================================= */
 
 .hex-name,
@@ -228,7 +248,7 @@ body {
 
     pointer-events: none;
 
-    color: white;
+    color: #fff;
 
     font-weight: bold;
 
@@ -240,7 +260,7 @@ body {
 
 
 /* =========================================================
-   UNIT COUNT - ORIGINAL STACKED VIEW
+   UNIT COUNT
 ========================================================= */
 
 .unit-count {
@@ -249,8 +269,7 @@ body {
     left: 50%;
     top: 50%;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 
     min-width: 30px;
     height: 30px;
@@ -266,14 +285,14 @@ body {
 
     background: #555;
 
-    color: white;
+    color: #fff;
 
-    border:
-        2px solid #aaa;
+    border: 2px solid #aaa;
 
     font-size: 14px;
-
     font-weight: bold;
+
+    line-height: 1;
 
     z-index: 20;
 
@@ -283,30 +302,20 @@ body {
         0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
-
 .unit-count.blue {
     background: #1e3cff;
-
-    border-color:
-        #9aa8ff;
+    border-color: #9aa8ff;
 }
-
 
 .unit-count.red {
     background: #cc0000;
-
-    border-color:
-        #ff8888;
+    border-color: #ff8888;
 }
-
 
 .unit-count.mixed {
     background: #555;
-
-    border-color:
-        #ddd;
+    border-color: #ddd;
 }
-
 
 .unit-count.fob-count {
     width: 36px;
@@ -340,15 +349,13 @@ body {
 
     border-radius: 50%;
 
-    color: white;
+    color: #fff;
 
-    border:
-        2px solid #aaa;
+    border: 2px solid #aaa;
 
     background: #555;
 
     font-size: 7px;
-
     line-height: 8px;
 
     font-weight: bold;
@@ -362,6 +369,8 @@ body {
     text-overflow: ellipsis;
 
     word-break: break-word;
+
+    overflow-wrap: anywhere;
 
     user-select: none;
 
@@ -383,136 +392,93 @@ body {
 
 
 /* =========================================================
-   BLUE PIECE
+   UNIT COLORS
 ========================================================= */
 
 .unit-piece.blue {
     background: #1e3cff;
-
-    border-color:
-        #9aa8ff;
+    border-color: #9aa8ff;
 }
-
-
-/* =========================================================
-   RED PIECE
-========================================================= */
 
 .unit-piece.red {
     background: #cc0000;
-
-    border-color:
-        #ff8888;
+    border-color: #ff8888;
 }
-
-
-/* =========================================================
-   UNKNOWN / NEUTRAL PIECE
-========================================================= */
 
 .unit-piece.neutral {
     background: #555;
-
-    border-color:
-        #ddd;
+    border-color: #ddd;
 }
 
 
 /* =========================================================
-   PIECE POSITIONS
+   UNIT PIECE POSITIONS
 ========================================================= */
-
-/*
-   These positions create the "wrap around the hex"
-   appearance.
-
-              TOP
-
-       LEFT          RIGHT
-
-             CENTER
-
-             BOTTOM
-*/
 
 .unit-piece-top {
     left: 50%;
     top: -12px;
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
 }
-
 
 .unit-piece-left {
     left: -12px;
     top: 50%;
 
-    transform:
-        translateY(-50%);
+    transform: translateY(-50%);
 }
-
 
 .unit-piece-right {
     right: -12px;
     top: 50%;
 
-    transform:
-        translateY(-50%);
+    transform: translateY(-50%);
 }
-
 
 .unit-piece-bottom {
     left: 50%;
     bottom: -12px;
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
 }
 
 
 /* =========================================================
-   EXTRA WRAP POSITIONS
+   EXTRA UNIT POSITIONS
 ========================================================= */
 
 .unit-piece-top-left {
     left: 8%;
     top: 5%;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
-
 
 .unit-piece-top-right {
     right: 8%;
     top: 5%;
 
-    transform:
-        translate(50%, -50%);
+    transform: translate(50%, -50%);
 }
-
 
 .unit-piece-bottom-left {
     left: 8%;
     bottom: 5%;
 
-    transform:
-        translate(-50%, 50%);
+    transform: translate(-50%, 50%);
 }
-
 
 .unit-piece-bottom-right {
     right: 8%;
     bottom: 5%;
 
-    transform:
-        translate(50%, 50%);
+    transform: translate(50%, 50%);
 }
 
 
 /* =========================================================
-   LOADING PIECE
+   LOADING UNIT
 ========================================================= */
 
 .unit-piece.loading {
@@ -524,9 +490,7 @@ body {
         unitLoadingPulse 1s infinite;
 }
 
-
 @keyframes unitLoadingPulse {
-
     0% {
         filter: brightness(1);
     }
@@ -542,7 +506,7 @@ body {
 
 
 /* =========================================================
-   SELECTED PIECE
+   SELECTED UNIT
 ========================================================= */
 
 .unit-piece.selected {
@@ -555,33 +519,20 @@ body {
 
 
 /* =========================================================
-   INDIVIDUAL VIEW MODE
+   INDIVIDUAL UNIT VIEW
 ========================================================= */
-
-/*
-   The JS can put this class on #gameBoard when the
-   individual-unit switch is ON.
-*/
 
 #gameBoard.individual-unit-view .unit-count {
     display: none;
 }
 
-
 #gameBoard.individual-unit-view .unit-piece {
     display: flex;
 }
 
-
-/*
-   When individual mode is OFF, pieces are hidden and
-   the original stacked unit-count is shown.
-*/
-
 #gameBoard:not(.individual-unit-view) .unit-piece {
     display: none;
 }
-
 
 #gameBoard:not(.individual-unit-view) .unit-count {
     display: flex;
@@ -589,7 +540,7 @@ body {
 
 
 /* =========================================================
-   INDIVIDUAL UNIT VIEW SWITCH
+   INDIVIDUAL UNIT VIEW CONTROL
 ========================================================= */
 
 #individualUnitViewControl {
@@ -604,14 +555,11 @@ body {
 
     gap: 10px;
 
-    padding:
-        8px 12px;
+    padding: 8px 12px;
 
-    background:
-        rgba(17, 17, 17, 0.94);
+    background: rgba(17, 17, 17, 0.94);
 
-    border:
-        2px solid #444;
+    border: 2px solid #444;
 
     border-radius: 10px;
 
@@ -623,31 +571,19 @@ body {
     user-select: none;
 }
 
-
-/* =========================================================
-   SWITCH LABEL
-========================================================= */
-
 #individualUnitViewLabel {
-    color: white;
+    color: #fff;
 
     font-size: 13px;
-
     font-weight: bold;
 
     white-space: nowrap;
 }
 
-
-/* =========================================================
-   SWITCH STATUS TEXT
-========================================================= */
-
 #individualUnitViewStatus {
     color: #aaa;
 
     font-size: 11px;
-
     font-weight: bold;
 
     min-width: 24px;
@@ -656,14 +592,29 @@ body {
 }
 
 
-#individualUnitViewControl.on
-#individualUnitViewStatus {
+/*
+   FIX:
+   Original selector was:
+
+   #individualUnitViewControl.on
+   #individualUnitViewStatus
+
+   which requires a descendant selector.
+
+   This supports both class-based JS and checkbox-based state.
+*/
+
+#individualUnitViewControl.on #individualUnitViewStatus {
+    color: #8fa0ff;
+}
+
+#individualUnitViewControl.active #individualUnitViewStatus {
     color: #8fa0ff;
 }
 
 
 /* =========================================================
-   SWITCH
+   INDIVIDUAL UNIT SWITCH
 ========================================================= */
 
 .individual-unit-switch {
@@ -676,7 +627,6 @@ body {
 
     flex-shrink: 0;
 }
-
 
 .individual-unit-switch input {
     position: absolute;
@@ -695,21 +645,23 @@ body {
 .individual-unit-slider {
     position: absolute;
 
-    cursor: pointer;
-
     inset: 0;
+
+    display: block;
+
+    cursor: pointer;
 
     background: #444;
 
-    border:
-        2px solid #666;
+    border: 2px solid #666;
 
     border-radius: 30px;
 
     transition:
         background 0.2s ease,
         border-color 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
 }
 
 
@@ -728,7 +680,7 @@ body {
     left: 2px;
     top: 2px;
 
-    background: white;
+    background: #fff;
 
     border-radius: 50%;
 
@@ -744,22 +696,17 @@ body {
    SWITCH ON
 ========================================================= */
 
-.individual-unit-switch input:checked
-+ .individual-unit-slider {
+.individual-unit-switch input:checked + .individual-unit-slider {
     background: #1e3cff;
 
-    border-color:
-        #6f7dff;
+    border-color: #6f7dff;
 
     box-shadow:
         0 0 8px rgba(30, 60, 255, 0.5);
 }
 
-
-.individual-unit-switch input:checked
-+ .individual-unit-slider::before {
-    transform:
-        translateX(22px);
+.individual-unit-switch input:checked + .individual-unit-slider::before {
+    transform: translateX(22px);
 }
 
 
@@ -767,8 +714,7 @@ body {
    SWITCH HOVER
 ========================================================= */
 
-.individual-unit-switch:hover
-.individual-unit-slider {
+.individual-unit-switch:hover .individual-unit-slider {
     filter: brightness(1.15);
 }
 
@@ -777,13 +723,10 @@ body {
    SWITCH FOCUS
 ========================================================= */
 
-.individual-unit-switch input:focus-visible
-+ .individual-unit-slider {
-    outline:
-        2px solid white;
+.individual-unit-switch input:focus-visible + .individual-unit-slider {
+    outline: 2px solid #fff;
 
-    outline-offset:
-        2px;
+    outline-offset: 2px;
 }
 
 
@@ -797,8 +740,7 @@ body {
     left: 50%;
     bottom: 5px;
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
 
     font-size: 8px;
 
@@ -811,14 +753,12 @@ body {
     pointer-events: none;
 
     text-shadow:
-        0 1px 3px black;
+        0 1px 3px #000;
 }
-
 
 .fob-label.blue {
     color: #9aa8ff;
 }
-
 
 .fob-label.red {
     color: #ff9999;
@@ -831,7 +771,6 @@ body {
 
 .sidePanelHeader {
     height: 60px;
-
     min-height: 60px;
 
     display: flex;
@@ -840,15 +779,12 @@ body {
 
     justify-content: space-between;
 
-    padding:
-        0 12px;
+    padding: 0 12px;
 
     background: #222;
 
-    border-bottom:
-        2px solid #444;
+    border-bottom: 2px solid #444;
 }
-
 
 .closePanelBtn {
     width: 36px;
@@ -860,26 +796,37 @@ body {
 
     background: #444;
 
-    color: white;
+    color: #fff;
 
     font-size: 24px;
-
     line-height: 36px;
 
     cursor: pointer;
-}
 
+    transition:
+        background 0.15s ease,
+        filter 0.15s ease;
+}
 
 .closePanelBtn:hover {
     background: #666;
+
+    filter: brightness(1.1);
+}
+
+.closePanelBtn:active {
+    filter: brightness(0.9);
 }
 
 
 /* =========================================================
-   UNIT PANEL
+   COMMON SIDE PANEL BEHAVIOR
 ========================================================= */
 
-#unitPanel {
+#unitPanel,
+#fobPanel,
+#hexUnitPanel,
+#armamentsPanel {
     position: absolute;
 
     top: 0;
@@ -888,42 +835,54 @@ body {
     width: 300px;
     height: 100%;
 
-    background:
-        rgba(25, 25, 25, 0.98);
+    display: flex;
+    flex-direction: column;
 
-    border-right:
-        2px solid #555;
+    background: rgba(25, 25, 25, 0.98);
+
+    border-right: 2px solid #555;
 
     box-shadow:
         5px 0 20px rgba(0, 0, 0, 0.6);
 
-    transform:
-        translateX(-100%);
+    transform: translateX(-100%);
 
     transition:
         transform 0.25s ease;
 
     overflow-y: auto;
+    overflow-x: hidden;
 
     z-index: 200;
+
+    -webkit-overflow-scrolling: touch;
 }
 
-
-#unitPanel.open {
-    transform:
-        translateX(0);
-}
-
-
-#unitPanelTitle {
-    margin: 0;
-
-    font-size: 18px;
+#unitPanel.open,
+#fobPanel.open,
+#hexUnitPanel.open,
+#armamentsPanel.open {
+    transform: translateX(0);
 }
 
 
 /* =========================================================
-   UNIT LIST
+   PANEL TITLES
+========================================================= */
+
+#unitPanelTitle,
+#fobPanelTitle,
+#hexUnitPanelTitle,
+#armamentsPanelTitle {
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   UNIT PANEL
 ========================================================= */
 
 #unitList {
@@ -949,52 +908,51 @@ body {
     display: flex;
 
     justify-content: space-between;
-
     align-items: center;
 
     gap: 10px;
 
-    padding:
-        10px 12px;
+    padding: 10px 12px;
 
-    border:
-        2px solid #555;
+    border: 2px solid #555;
 
     border-radius: 7px;
 
     background: #333;
 
-    color: white;
+    color: #fff;
 
     cursor: pointer;
 
     text-align: left;
 
     font-size: 15px;
-
     font-weight: bold;
-}
 
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease,
+        filter 0.15s ease,
+        border-color 0.15s ease;
+}
 
 .panel-unit:hover {
     background: #555;
 
-    transform:
-        translateX(3px);
+    transform: translateX(3px);
 }
 
+.panel-unit:active {
+    filter: brightness(0.9);
+}
 
 .panel-unit.blue {
-    border-left:
-        6px solid #1e3cff;
+    border-left: 6px solid #1e3cff;
 }
-
 
 .panel-unit.red {
-    border-left:
-        6px solid #cc0000;
+    border-left: 6px solid #cc0000;
 }
-
 
 .panel-unit.selected {
     border-color: yellow;
@@ -1003,8 +961,9 @@ body {
         0 0 8px rgba(255, 255, 0, 0.5);
 }
 
-
 .panel-unit-name {
+    min-width: 0;
+
     overflow: hidden;
 
     text-overflow: ellipsis;
@@ -1012,12 +971,12 @@ body {
     white-space: nowrap;
 }
 
-
 .panel-unit-move {
+    flex-shrink: 0;
+
     color: #aaa;
 
     font-size: 11px;
-
     font-weight: normal;
 
     white-space: nowrap;
@@ -1041,49 +1000,6 @@ body {
    FOB PANEL
 ========================================================= */
 
-#fobPanel {
-    position: absolute;
-
-    top: 0;
-    left: 0;
-
-    width: 300px;
-    height: 100%;
-
-    background:
-        rgba(25, 25, 25, 0.98);
-
-    border-right:
-        2px solid #555;
-
-    box-shadow:
-        5px 0 20px rgba(0, 0, 0, 0.6);
-
-    transform:
-        translateX(-100%);
-
-    transition:
-        transform 0.25s ease;
-
-    overflow-y: auto;
-
-    z-index: 200;
-}
-
-
-#fobPanel.open {
-    transform:
-        translateX(0);
-}
-
-
-#fobPanelTitle {
-    font-size: 18px;
-
-    font-weight: bold;
-}
-
-
 #fobList {
     display: flex;
 
@@ -1099,49 +1015,6 @@ body {
    HEX UNIT PANEL
 ========================================================= */
 
-#hexUnitPanel {
-    position: absolute;
-
-    top: 0;
-    left: 0;
-
-    width: 300px;
-    height: 100%;
-
-    background:
-        rgba(25, 25, 25, 0.98);
-
-    border-right:
-        2px solid #555;
-
-    box-shadow:
-        5px 0 20px rgba(0, 0, 0, 0.6);
-
-    transform:
-        translateX(-100%);
-
-    transition:
-        transform 0.25s ease;
-
-    overflow-y: auto;
-
-    z-index: 250;
-}
-
-
-#hexUnitPanel.open {
-    transform:
-        translateX(0);
-}
-
-
-#hexUnitPanelTitle {
-    font-size: 18px;
-
-    font-weight: bold;
-}
-
-
 #hexUnitList {
     display: flex;
 
@@ -1154,62 +1027,76 @@ body {
 
 
 /* =========================================================
-   ZOOM STRIP
+   ZOOM / MAP TOOLS
 ========================================================= */
 
 #mapToolsStrip {
     position: absolute;
 
     left: 50%;
-
     bottom: 10px;
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
 
     display: flex;
 
     justify-content: center;
-
     align-items: center;
 
     gap: 10px;
 
+    max-width: calc(100% - 20px);
+
     padding: 8px;
 
-    background:
-        rgba(17, 17, 17, 0.9);
+    background: rgba(17, 17, 17, 0.9);
 
-    border:
-        2px solid #333;
+    border: 2px solid #333;
 
     border-radius: 10px;
 
     z-index: 100;
+
+    white-space: nowrap;
 }
 
-
 .mapToolBtn {
+    min-height: 38px;
+
     background: #333;
 
-    color: white;
+    color: #fff;
 
-    border:
-        2px solid #555;
+    border: 2px solid #555;
 
-    padding:
-        8px 14px;
+    padding: 8px 14px;
 
     border-radius: 7px;
 
     font-size: 14px;
 
     cursor: pointer;
-}
 
+    transition:
+        background 0.15s ease,
+        filter 0.15s ease,
+        border-color 0.15s ease;
+}
 
 .mapToolBtn:hover {
     background: #555;
+
+    filter: brightness(1.1);
+}
+
+.mapToolBtn:active {
+    filter: brightness(0.9);
+}
+
+.mapToolBtn:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
 }
 
 
@@ -1218,35 +1105,37 @@ body {
 ========================================================= */
 
 #bottomMenu {
-    height: 50px;
+    position: relative;
 
-    background: #111;
+    height: 50px;
+    min-height: 50px;
 
     display: flex;
 
     justify-content: space-between;
-
     align-items: center;
 
-    padding:
-        0 15px;
+    gap: 10px;
 
-    border-top:
-        2px solid #333;
+    padding: 0 15px;
 
-    position: relative;
+    background: #111;
+
+    border-top: 2px solid #333;
 
     z-index: 500;
+
+    overflow: hidden;
 }
 
-
 .menuBtn {
+    min-height: 36px;
+
     background: #444;
 
-    color: white;
+    color: #fff;
 
-    padding:
-        10px 18px;
+    padding: 10px 18px;
 
     border: none;
 
@@ -1258,9 +1147,9 @@ body {
 
     transition:
         background 0.15s ease,
-        filter 0.15s ease;
+        filter 0.15s ease,
+        transform 0.1s ease;
 }
-
 
 .menuBtn:hover {
     background: #555;
@@ -1268,16 +1157,18 @@ body {
     filter: brightness(1.1);
 }
 
-
 .menuBtn:active {
     filter: brightness(0.9);
-}
 
+    transform: translateY(1px);
+}
 
 .menuBtn:disabled {
     opacity: 0.5;
 
     cursor: not-allowed;
+
+    transform: none;
 }
 
 
@@ -1286,6 +1177,8 @@ body {
 ========================================================= */
 
 #diagOverlay {
+    position: relative;
+
     user-select: none;
 
     pointer-events: none;
@@ -1295,48 +1188,11 @@ body {
 
 
 /* =========================================================
-   ARMAMENT MENU
+   ARMAMENTS PANEL
 ========================================================= */
-
-#armamentsPanel {
-    position: absolute;
-
-    top: 0;
-    left: 0;
-
-    width: 300px;
-    height: 100%;
-
-    background:
-        rgba(25, 25, 25, 0.98);
-
-    border-right:
-        2px solid #555;
-
-    box-shadow:
-        5px 0 20px rgba(0, 0, 0, 0.6);
-
-    transform:
-        translateX(-100%);
-
-    transition:
-        transform 0.25s ease;
-
-    overflow-y: auto;
-
-    z-index: 250;
-}
-
-
-#armamentsPanel.open {
-    transform:
-        translateX(0);
-}
-
 
 .armamentsHeader {
     height: 60px;
-
     min-height: 60px;
 
     display: flex;
@@ -1345,22 +1201,12 @@ body {
 
     justify-content: space-between;
 
-    padding:
-        0 12px;
+    padding: 0 12px;
 
     background: #222;
 
-    border-bottom:
-        2px solid #444;
+    border-bottom: 2px solid #444;
 }
-
-
-#armamentsPanelTitle {
-    font-size: 18px;
-
-    font-weight: bold;
-}
-
 
 #armamentsList {
     display: flex;
@@ -1372,10 +1218,8 @@ body {
     padding: 12px;
 }
 
-
 .armamentCategory {
-    border:
-        1px solid #444;
+    border: 1px solid #444;
 
     border-radius: 8px;
 
@@ -1384,44 +1228,33 @@ body {
     overflow: hidden;
 }
 
-
 .armamentCategoryTitle {
-    padding:
-        10px 12px;
+    padding: 10px 12px;
 
     background: #333;
 
-    border-bottom:
-        1px solid #444;
+    border-bottom: 1px solid #444;
 
     font-size: 14px;
-
     font-weight: bold;
 }
 
-
 .armamentItem {
-    padding:
-        10px 12px;
+    padding: 10px 12px;
 
-    border-bottom:
-        1px solid #3d3d3d;
+    border-bottom: 1px solid #3d3d3d;
 }
-
 
 .armamentItem:last-child {
     border-bottom: none;
 }
 
-
 .armamentName {
     font-size: 13px;
-
     font-weight: bold;
 
-    color: white;
+    color: #fff;
 }
-
 
 .armamentDescription {
     margin-top: 4px;
@@ -1442,6 +1275,8 @@ body.side-select-page {
     width: 100%;
     height: 100vh;
 
+    min-height: 100vh;
+
     margin: 0;
     padding: 0;
 
@@ -1451,11 +1286,11 @@ body.side-select-page {
     align-items: center;
 
     background: #111;
-    color: white;
+
+    color: #fff;
 
     overflow: hidden;
 }
-
 
 #sideSelect {
     width: min(90vw, 600px);
@@ -1471,16 +1306,13 @@ body.side-select-page {
     text-align: center;
 }
 
-
 #sideSelect h1 {
-    margin:
-        0 0 30px 0;
+    margin: 0 0 30px 0;
 
     font-size: 32px;
 
     font-weight: bold;
 }
-
 
 .sideSelectButtons {
     width: 100%;
@@ -1514,44 +1346,42 @@ body.side-select-page {
     justify-content: center;
 
     text-align: center;
+
+    cursor: pointer;
 }
 
 
 /* =========================================================
-   BLUE SIDE BUTTON
+   BLUE SIDE
 ========================================================= */
 
 .blueChoiceBtn {
-    border:
-        2px solid #1e3cff;
+    border: 2px solid #1e3cff;
 
-    background:
-        #172050;
+    background: #172050;
+
+    color: #fff;
 }
 
-
 .blueChoiceBtn:hover {
-    background:
-        #23306f;
+    background: #23306f;
 }
 
 
 /* =========================================================
-   RED SIDE BUTTON
+   RED SIDE
 ========================================================= */
 
 .redChoiceBtn {
-    border:
-        2px solid #cc0000;
+    border: 2px solid #cc0000;
 
-    background:
-        #501717;
+    background: #501717;
+
+    color: #fff;
 }
 
-
 .redChoiceBtn:hover {
-    background:
-        #6f2323;
+    background: #6f2323;
 }
 
 
@@ -1560,17 +1390,15 @@ body.side-select-page {
 ========================================================= */
 
 .adminChoiceBtn {
-    border:
-        2px solid #777;
+    border: 2px solid #777;
 
-    background:
-        #333;
+    background: #333;
+
+    color: #fff;
 }
 
-
 .adminChoiceBtn:hover {
-    background:
-        #4a4a4a;
+    background: #4a4a4a;
 }
 
 
@@ -1579,8 +1407,7 @@ body.side-select-page {
 ========================================================= */
 
 .spectatorNotice {
-    margin:
-        25px 0 0 0;
+    margin: 25px 0 0 0;
 
     color: #888;
 
@@ -1591,7 +1418,51 @@ body.side-select-page {
 
 
 /* =========================================================
-   RESPONSIVE
+   SCROLLBARS
+========================================================= */
+
+#unitPanel,
+#fobPanel,
+#hexUnitPanel,
+#armamentsPanel {
+    scrollbar-width: thin;
+
+    scrollbar-color: #555 #1c1c1c;
+}
+
+#unitPanel::-webkit-scrollbar,
+#fobPanel::-webkit-scrollbar,
+#hexUnitPanel::-webkit-scrollbar,
+#armamentsPanel::-webkit-scrollbar {
+    width: 8px;
+}
+
+#unitPanel::-webkit-scrollbar-track,
+#fobPanel::-webkit-scrollbar-track,
+#hexUnitPanel::-webkit-scrollbar-track,
+#armamentsPanel::-webkit-scrollbar-track {
+    background: #1c1c1c;
+}
+
+#unitPanel::-webkit-scrollbar-thumb,
+#fobPanel::-webkit-scrollbar-thumb,
+#hexUnitPanel::-webkit-scrollbar-thumb,
+#armamentsPanel::-webkit-scrollbar-thumb {
+    background: #555;
+
+    border-radius: 4px;
+}
+
+#unitPanel::-webkit-scrollbar-thumb:hover,
+#fobPanel::-webkit-scrollbar-thumb:hover,
+#hexUnitPanel::-webkit-scrollbar-thumb:hover,
+#armamentsPanel::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLET
 ========================================================= */
 
 @media (max-width: 800px) {
@@ -1603,24 +1474,23 @@ body.side-select-page {
         width: 260px;
     }
 
-
     .mapToolBtn {
-        padding:
-            7px 10px;
+        padding: 7px 10px;
 
         font-size: 12px;
     }
 
-
     .menuBtn {
-        padding:
-            8px 10px;
+        padding: 8px 10px;
 
         font-size: 13px;
     }
-
 }
 
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+========================================================= */
 
 @media (max-width: 600px) {
 
@@ -1628,11 +1498,9 @@ body.side-select-page {
         width: 90vw;
     }
 
-
     #sideSelect h1 {
         font-size: 26px;
     }
-
 
     .sideChoiceBtn,
     .adminChoiceBtn {
@@ -1648,17 +1516,16 @@ body.side-select-page {
         top: 8px;
         right: 8px;
 
-        padding:
-            6px 8px;
+        padding: 6px 8px;
 
         gap: 7px;
-    }
 
+        max-width: calc(100% - 16px);
+    }
 
     #individualUnitViewLabel {
         font-size: 11px;
     }
-
 
     #individualUnitViewStatus {
         font-size: 9px;
@@ -1683,53 +1550,92 @@ body.side-select-page {
         line-height: 7px;
     }
 
-
     .unit-piece-top {
         top: -8px;
     }
-
 
     .unit-piece-left {
         left: -8px;
     }
 
-
     .unit-piece-right {
         right: -8px;
     }
-
 
     .unit-piece-bottom {
         bottom: -8px;
     }
 
+
+    /* -----------------------------------------
+       MAP TOOLS
+    ----------------------------------------- */
+
+    #mapToolsStrip {
+        bottom: 7px;
+
+        gap: 5px;
+
+        padding: 5px;
+
+        max-width: calc(100% - 14px);
+
+        overflow-x: auto;
+    }
+
+    .mapToolBtn {
+        min-height: 34px;
+
+        padding: 6px 9px;
+
+        font-size: 11px;
+    }
+
+
+    /* -----------------------------------------
+       BOTTOM MENU
+    ----------------------------------------- */
+
+    #bottomMenu {
+        padding: 0 8px;
+
+        gap: 6px;
+    }
+
+    .menuBtn {
+        padding: 7px 9px;
+
+        font-size: 12px;
+    }
 }
 
 
 /* =========================================================
-   VERY SMALL SCREENS
+   RESPONSIVE — VERY SMALL SCREENS
 ========================================================= */
 
 @media (max-width: 420px) {
 
     #individualUnitViewControl {
-        padding:
-            5px 6px;
+        padding: 5px 6px;
 
         gap: 5px;
     }
-
 
     #individualUnitViewLabel {
         font-size: 10px;
     }
 
+    #individualUnitViewStatus {
+        min-width: 18px;
+
+        font-size: 8px;
+    }
 
     .individual-unit-switch {
         width: 42px;
         height: 24px;
     }
-
 
     .individual-unit-slider::before {
         width: 16px;
@@ -1739,13 +1645,10 @@ body.side-select-page {
         top: 2px;
     }
 
-
     .individual-unit-switch input:checked
     + .individual-unit-slider::before {
-        transform:
-            translateX(18px);
+        transform: translateX(18px);
     }
-
 
     .unit-piece {
         width: 30px;
@@ -1754,9 +1657,86 @@ body.side-select-page {
         min-width: 30px;
         min-height: 30px;
 
+        padding: 2px;
+
         font-size: 5px;
 
         line-height: 6px;
     }
 
+    .mapToolBtn {
+        padding: 5px 7px;
+
+        font-size: 10px;
+    }
+
+    .menuBtn {
+        padding: 6px 7px;
+
+        font-size: 11px;
+    }
+
+    #unitPanel,
+    #fobPanel,
+    #hexUnitPanel,
+    #armamentsPanel {
+        width: min(260px, 85vw);
+    }
+}
+
+
+/* =========================================================
+   LANDSCAPE PHONE
+========================================================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+    #individualUnitViewControl {
+        top: 5px;
+        right: 5px;
+
+        padding: 4px 7px;
+    }
+
+    #mapToolsStrip {
+        bottom: 5px;
+
+        padding: 4px;
+    }
+
+    .mapToolBtn {
+        padding: 5px 8px;
+
+        font-size: 10px;
+    }
+
+    #bottomMenu {
+        height: 44px;
+        min-height: 44px;
+    }
+
+    .menuBtn {
+        padding: 5px 8px;
+
+        font-size: 11px;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+
+        transition-duration: 0.01ms !important;
+    }
 }

@@ -2,6 +2,8 @@
 // MAIN APPLICATION
 // ============================================================
 
+import "./individualUnits.js";
+
 import {
     initGrid,
     rebuildGrid,
