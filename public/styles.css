@@ -292,6 +292,379 @@ body {
     border-width: 3px;
 }
 
+/* =========================================================
+   INDIVIDUAL UNIT PIECES
+========================================================= */
+
+.unit-piece {
+    position: absolute;
+
+    width: 38px;
+    height: 38px;
+
+    min-width: 38px;
+    min-height: 38px;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 3px;
+
+    border-radius: 50%;
+
+    color: white;
+
+    border: 2px solid #aaa;
+
+    background: #555;
+
+    font-size: 7px;
+
+    line-height: 8px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+    white-space: normal;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    word-break: break-word;
+
+    user-select: none;
+
+    pointer-events: none;
+
+    z-index: 20;
+
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.7);
+
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.9);
+
+    transition:
+        transform 0.12s ease,
+        filter 0.12s ease;
+}
+
+
+/* =========================================================
+   BLUE PIECE
+========================================================= */
+
+.unit-piece.blue {
+    background: #1e3cff;
+
+    border-color: #9aa8ff;
+}
+
+
+/* =========================================================
+   RED PIECE
+========================================================= */
+
+.unit-piece.red {
+    background: #cc0000;
+
+    border-color: #ff8888;
+}
+
+
+/* =========================================================
+   UNKNOWN / NEUTRAL PIECE
+========================================================= */
+
+.unit-piece.neutral {
+    background: #555;
+
+    border-color: #ddd;
+}
+
+
+/* =========================================================
+   PIECE POSITIONS
+========================================================= */
+
+.unit-piece-top {
+    left: 50%;
+    top: -10px;
+
+    transform:
+        translateX(-50%);
+}
+
+
+.unit-piece-left {
+    left: -10px;
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+}
+
+
+.unit-piece-right {
+    right: -10px;
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+}
+
+
+.unit-piece-bottom {
+    left: 50%;
+    bottom: -10px;
+
+    transform:
+        translateX(-50%);
+}
+
+
+/* =========================================================
+   LOADING PIECE
+========================================================= */
+
+.unit-piece.loading {
+    opacity: 0.65;
+
+    border-style: dashed;
+
+    animation:
+        unitLoadingPulse 1s infinite;
+}
+
+
+@keyframes unitLoadingPulse {
+
+    0% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.35);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
+
+/* =========================================================
+   SELECTED PIECE
+========================================================= */
+
+.unit-piece.selected {
+    border-color: yellow;
+
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 0, 0.8),
+        0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+
+/* =========================================================
+   INDIVIDUAL UNIT VIEW SWITCH
+========================================================= */
+
+#individualUnitViewControl {
+    position: absolute;
+
+    top: 10px;
+    right: 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding:
+        8px 12px;
+
+    background:
+        rgba(17, 17, 17, 0.92);
+
+    border:
+        2px solid #444;
+
+    border-radius: 10px;
+
+    z-index: 150;
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+
+#individualUnitViewLabel {
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   SWITCH
+========================================================= */
+
+.individual-unit-switch {
+    position: relative;
+
+    display: inline-block;
+
+    width: 48px;
+    height: 26px;
+
+    flex-shrink: 0;
+}
+
+
+.individual-unit-switch input {
+    opacity: 0;
+
+    width: 0;
+    height: 0;
+}
+
+
+.individual-unit-slider {
+    position: absolute;
+
+    cursor: pointer;
+
+    inset: 0;
+
+    background: #444;
+
+    border:
+        2px solid #666;
+
+    border-radius: 30px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.individual-unit-slider::before {
+    content: "";
+
+    position: absolute;
+
+    width: 18px;
+    height: 18px;
+
+    left: 2px;
+    top: 2px;
+
+    background: white;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 1px 4px rgba(0, 0, 0, 0.6);
+
+    transition:
+        transform 0.2s ease;
+}
+
+
+/* =========================================================
+   SWITCH ON
+========================================================= */
+
+.individual-unit-switch input:checked
++ .individual-unit-slider {
+    background: #1e3cff;
+
+    border-color: #6f7dff;
+}
+
+
+.individual-unit-switch input:checked
++ .individual-unit-slider::before {
+    transform:
+        translateX(22px);
+}
+
+
+/* =========================================================
+   SWITCH HOVER
+========================================================= */
+
+.individual-unit-switch:hover
+.individual-unit-slider {
+    filter: brightness(1.15);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    #individualUnitViewControl {
+        top: 8px;
+        right: 8px;
+
+        padding:
+            6px 8px;
+
+        gap: 7px;
+    }
+
+
+    #individualUnitViewLabel {
+        font-size: 11px;
+    }
+
+
+    .unit-piece {
+        width: 34px;
+        height: 34px;
+
+        min-width: 34px;
+        min-height: 34px;
+
+        font-size: 6px;
+
+        line-height: 7px;
+    }
+
+
+    .unit-piece-top {
+        top: -7px;
+    }
+
+
+    .unit-piece-left {
+        left: -7px;
+    }
+
+
+    .unit-piece-right {
+        right: -7px;
+    }
+
+
+    .unit-piece-bottom {
+        bottom: -7px;
+    }
+}
 
 /* =========================================================
    FOB LABEL

@@ -15,7 +15,8 @@ import {
 } from "./fob.js";
 
 import {
-    sendMoveToServer
+    sendMoveToServer,
+    getUnitId
 } from "./server.js";
 
 import {
@@ -32,6 +33,111 @@ export let selectedUnit = null;
 export let validMoves = [];
 
 export const MAX_UNITS_PER_HEX = 4;
+
+
+// ============================================================
+// INDIVIDUAL UNIT DISPLAY
+// ============================================================
+//
+// OFF:
+//
+//     [ 3 ]
+//
+// ON:
+//
+//       [F16]
+//   [F35] 42 [TANK]
+//
+// The actual board data never changes.
+// This is display-only.
+// ============================================================
+
+const INDIVIDUAL_UNIT_VIEW_KEY =
+    "turnGameIndividualUnitView";
+
+
+export let individualUnitView =
+    loadIndividualUnitView();
+
+
+// ============================================================
+// LOAD DISPLAY SETTING
+// ============================================================
+
+function loadIndividualUnitView() {
+
+    try {
+
+        return (
+            localStorage.getItem(
+                INDIVIDUAL_UNIT_VIEW_KEY
+            ) === "true"
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Could not load individual unit view setting:",
+            error
+        );
+
+        return false;
+    }
+}
+
+
+// ============================================================
+// SET DISPLAY MODE
+// ============================================================
+
+export function setIndividualUnitView(
+    enabled
+) {
+
+    individualUnitView =
+        Boolean(enabled);
+
+
+    try {
+
+        localStorage.setItem(
+            INDIVIDUAL_UNIT_VIEW_KEY,
+            String(individualUnitView)
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Could not save individual unit view setting:",
+            error
+        );
+    }
+
+
+    updateBoard();
+}
+
+
+// ============================================================
+// TOGGLE DISPLAY MODE
+// ============================================================
+
+export function toggleIndividualUnitView() {
+
+    setIndividualUnitView(
+        !individualUnitView
+    );
+}
+
+
+// ============================================================
+// GET DISPLAY MODE
+// ============================================================
+
+export function isIndividualUnitViewEnabled() {
+
+    return individualUnitView;
+}
 
 
 // ============================================================
@@ -66,10 +172,12 @@ function ensureUnitPanel() {
         return null;
     }
 
+
     let header =
         document.getElementById(
             "unitPanelHeader"
         );
+
 
     if (!header) {
 
@@ -81,15 +189,20 @@ function ensureUnitPanel() {
         header.id =
             "unitPanelHeader";
 
+        header.className =
+            "sidePanelHeader";
+
         panel.prepend(
             header
         );
     }
 
+
     let title =
         document.getElementById(
             "unitPanelTitle"
         );
+
 
     if (!title) {
 
@@ -109,10 +222,12 @@ function ensureUnitPanel() {
         );
     }
 
+
     let close =
         document.getElementById(
             "closeUnitPanel"
         );
+
 
     if (!close) {
 
@@ -138,13 +253,16 @@ function ensureUnitPanel() {
         );
     }
 
+
     close.onclick =
         closeUnitPanel;
+
 
     let list =
         document.getElementById(
             "unitList"
         );
+
 
     if (!list) {
 
@@ -160,6 +278,7 @@ function ensureUnitPanel() {
             list
         );
     }
+
 
     return panel;
 }
@@ -178,15 +297,18 @@ export function openUnitPanel(
     const panel =
         ensureUnitPanel();
 
+
     const titleElement =
         document.getElementById(
             "unitPanelTitle"
         );
 
+
     const list =
         document.getElementById(
             "unitList"
         );
+
 
     if (
         !panel ||
@@ -201,11 +323,14 @@ export function openUnitPanel(
         return;
     }
 
+
     titleElement.textContent =
         title;
 
+
     list.innerHTML =
         "";
+
 
     if (
         !units ||
@@ -217,11 +342,14 @@ export function openUnitPanel(
                 "div"
             );
 
+
         empty.className =
             "unitPanelEmpty";
 
+
         empty.textContent =
             "No units.";
+
 
         list.appendChild(
             empty
@@ -237,42 +365,53 @@ export function openUnitPanel(
                         "button"
                     );
 
+
                 button.type =
                     "button";
 
+
                 button.className =
                     `panel-unit ${unit.team || ""}`;
+
 
                 const name =
                     document.createElement(
                         "span"
                     );
 
+
                 name.className =
                     "panel-unit-name";
+
 
                 name.textContent =
                     unit.type ||
                     "Unknown Unit";
+
 
                 const movement =
                     document.createElement(
                         "span"
                     );
 
+
                 movement.className =
                     "panel-unit-move";
 
+
                 movement.textContent =
                     `Move ${unit.move ?? 0}`;
+
 
                 button.appendChild(
                     name
                 );
 
+
                 button.appendChild(
                     movement
                 );
+
 
                 if (
                     unitIsLoading(unit)
@@ -282,9 +421,11 @@ export function openUnitPanel(
                         "loading"
                     );
 
+
                     movement.textContent =
                         "LOADING";
                 }
+
 
                 if (
                     selectedUnit &&
@@ -296,6 +437,7 @@ export function openUnitPanel(
                     );
                 }
 
+
                 button.addEventListener(
                     "click",
                     () => {
@@ -303,8 +445,10 @@ export function openUnitPanel(
                         selectUnitFromPanel(
                             unit
                         );
+
                     }
                 );
+
 
                 list.appendChild(
                     button
@@ -312,6 +456,7 @@ export function openUnitPanel(
             }
         );
     }
+
 
     panel.classList.add(
         "open"
@@ -329,6 +474,7 @@ export function closeUnitPanel() {
         document.getElementById(
             "unitPanel"
         );
+
 
     if (panel) {
 
@@ -350,6 +496,7 @@ function selectUnitFromPanel(
     let location =
         null;
 
+
     for (
         let r = 0;
         r < rows;
@@ -365,6 +512,7 @@ function selectUnitFromPanel(
             const stack =
                 board[r][c] || [];
 
+
             if (
                 stack.includes(unit)
             ) {
@@ -378,10 +526,12 @@ function selectUnitFromPanel(
             }
         }
 
+
         if (location) {
             break;
         }
     }
+
 
     if (!location) {
 
@@ -392,6 +542,7 @@ function selectUnitFromPanel(
 
         return;
     }
+
 
     selectedUnit = {
 
@@ -449,6 +600,7 @@ export function updateBoard() {
             "gameBoard"
         );
 
+
     if (!gameBoard) {
 
         console.error(
@@ -458,13 +610,16 @@ export function updateBoard() {
         return;
     }
 
+
     const wrappers =
         gameBoard.querySelectorAll(
             ".hex-wrapper"
         );
 
+
     let index =
         0;
+
 
     for (
         let r = 0;
@@ -481,53 +636,48 @@ export function updateBoard() {
             const wrapper =
                 wrappers[index++];
 
+
             if (!wrapper) {
                 continue;
             }
+
 
             const hex =
                 wrapper.querySelector(
                     ".hex"
                 );
 
+
             if (!hex) {
                 continue;
             }
+
 
             wrapper.classList.remove(
                 "selected-hex"
             );
 
-            const hexNumber =
-                hex.querySelector(
-                    ".hex-number"
-                );
+
+            // ------------------------------------------------
+            // REMOVE OLD UNIT VISUALS
+            // ------------------------------------------------
 
             hex.querySelectorAll(
-                ".unit-count, .fob-label"
+                ".unit-count, .unit-piece, .fob-label"
             ).forEach(
                 element => {
                     element.remove();
                 }
             );
 
-            if (
-                hexNumber &&
-                !hex.contains(hexNumber)
-            ) {
 
-                hex.appendChild(
-                    hexNumber
-                );
-            }
+            // ------------------------------------------------
+            // VALID MOVES
+            // ------------------------------------------------
 
             hex.style.background =
                 "#333";
 
-
-            // =================================================
-            // VALID MOVES
-            // =================================================
 
             if (
                 isValidMove(r, c)
@@ -538,9 +688,9 @@ export function updateBoard() {
             }
 
 
-            // =================================================
+            // ------------------------------------------------
             // HEX CLICK
-            // =================================================
+            // ------------------------------------------------
 
             wrapper.onclick =
                 () => {
@@ -552,79 +702,42 @@ export function updateBoard() {
                 };
 
 
-            // =================================================
+            // ------------------------------------------------
             // UNITS AT HEX
-            // =================================================
+            // ------------------------------------------------
 
             const stack =
                 board[r][c] || [];
+
 
             if (
                 stack.length > 0
             ) {
 
-                const count =
-                    document.createElement(
-                        "div"
-                    );
-
-                count.className =
-                    "unit-count";
-
-                count.textContent =
-                    stack.length;
-
-                const teams =
-                    [
-                        ...new Set(
-                            stack
-                                .map(
-                                    unit =>
-                                        unit.team
-                                )
-                                .filter(
-                                    Boolean
-                                )
-                        )
-                    ];
-
                 if (
-                    teams.length === 1
+                    individualUnitView
                 ) {
 
-                    count.classList.add(
-                        teams[0]
+                    renderIndividualUnitPieces(
+                        hex,
+                        stack
                     );
 
-                }
+                } else {
 
-                else if (
-                    teams.length > 1
-                ) {
-
-                    count.classList.add(
-                        "mixed"
+                    renderStackCount(
+                        hex,
+                        stack,
+                        r,
+                        c
                     );
                 }
-
-                if (
-                    isFobHex(r, c)
-                ) {
-
-                    count.classList.add(
-                        "fob-count"
-                    );
-                }
-
-                hex.appendChild(
-                    count
-                );
             }
 
 
-            // =================================================
+            // ------------------------------------------------
             // FOB LABEL
-            // =================================================
+            // ------------------------------------------------
 
             if (
                 isFobHex(r, c)
@@ -636,16 +749,20 @@ export function updateBoard() {
                         c
                     );
 
+
                 const label =
                     document.createElement(
                         "div"
                     );
 
+
                 label.className =
                     `fob-label ${team || ""}`;
 
+
                 label.textContent =
                     "FOB";
+
 
                 hex.appendChild(
                     label
@@ -654,7 +771,195 @@ export function updateBoard() {
         }
     }
 
+
     highlightSelectedUnitHex();
+}
+
+
+// ============================================================
+// RENDER NORMAL STACK COUNT
+// ============================================================
+
+function renderStackCount(
+    hex,
+    stack,
+    r,
+    c
+) {
+
+    const count =
+        document.createElement(
+            "div"
+        );
+
+
+    count.className =
+        "unit-count";
+
+
+    count.textContent =
+        stack.length;
+
+
+    const teams =
+        [
+            ...new Set(
+                stack
+                    .map(
+                        unit =>
+                            unit.team
+                    )
+                    .filter(
+                        Boolean
+                    )
+            )
+        ];
+
+
+    if (
+        teams.length === 1
+    ) {
+
+        count.classList.add(
+            teams[0]
+        );
+
+    }
+
+    else if (
+        teams.length > 1
+    ) {
+
+        count.classList.add(
+            "mixed"
+        );
+    }
+
+
+    if (
+        isFobHex(r, c)
+    ) {
+
+        count.classList.add(
+            "fob-count"
+        );
+    }
+
+
+    hex.appendChild(
+        count
+    );
+}
+
+
+// ============================================================
+// RENDER INDIVIDUAL UNIT PIECES
+// ============================================================
+//
+// Maximum stack is four units.
+//
+// Positions:
+//
+//                 0
+//
+//             [ UNIT ]
+//
+//        [ UNIT ]  HEX  [ UNIT ]
+//
+//             [ UNIT ]
+//
+// For 1–4 units we use the first N positions.
+// ============================================================
+
+function renderIndividualUnitPieces(
+    hex,
+    stack
+) {
+
+    const positions = [
+        "top",
+        "left",
+        "right",
+        "bottom"
+    ];
+
+
+    stack.forEach(
+        (unit, index) => {
+
+            const piece =
+                document.createElement(
+                    "div"
+                );
+
+
+            piece.className =
+                "unit-piece";
+
+
+            const team =
+                unit.team ||
+                "neutral";
+
+
+            piece.classList.add(
+                team
+            );
+
+
+            piece.classList.add(
+                `unit-piece-${positions[index] || "bottom"}`
+            );
+
+
+            // ------------------------------------------------
+            // UNIT NAME
+            // ------------------------------------------------
+
+            piece.textContent =
+                unit.type ||
+                "UNIT";
+
+
+            piece.title =
+                unit.type ||
+                "Unknown Unit";
+
+
+            // ------------------------------------------------
+            // LOADING STATE
+            // ------------------------------------------------
+
+            if (
+                unitIsLoading(unit)
+            ) {
+
+                piece.classList.add(
+                    "loading"
+                );
+            }
+
+
+            // ------------------------------------------------
+            // SELECTED UNIT
+            // ------------------------------------------------
+
+            if (
+                selectedUnit &&
+                selectedUnit.unit === unit
+            ) {
+
+                piece.classList.add(
+                    "selected"
+                );
+            }
+
+
+            hex.appendChild(
+                piece
+            );
+        }
+    );
 }
 
 
@@ -687,6 +992,7 @@ export function onHexClick(
     const stack =
         board[r][c] || [];
 
+
     if (selectedUnit) {
 
         if (
@@ -701,6 +1007,7 @@ export function onHexClick(
             return;
         }
 
+
         if (
             selectedUnit.r === r &&
             selectedUnit.c === c
@@ -711,11 +1018,13 @@ export function onHexClick(
             return;
         }
 
+
         if (
             stack.length > 0
         ) {
 
             clearSelection();
+
 
             openStackPanel(
                 r,
@@ -723,13 +1032,16 @@ export function onHexClick(
                 stack
             );
 
+
             return;
         }
+
 
         clearSelection();
 
         return;
     }
+
 
     if (
         stack.length > 0
@@ -743,6 +1055,7 @@ export function onHexClick(
 
         return;
     }
+
 
     clearSelection();
 }
@@ -760,6 +1073,7 @@ function openStackPanel(
 
     let title;
 
+
     if (
         isFobHex(r, c)
     ) {
@@ -769,6 +1083,7 @@ function openStackPanel(
                 r,
                 c
             );
+
 
         title =
             `${String(
@@ -780,6 +1095,7 @@ function openStackPanel(
         title =
             `UNITS AT ${r}, ${c}`;
     }
+
 
     openUnitPanel(
         title,
@@ -801,19 +1117,23 @@ function highlightSelectedUnitHex() {
         return;
     }
 
+
     const gameBoard =
         document.getElementById(
             "gameBoard"
         );
 
+
     if (!gameBoard) {
         return;
     }
+
 
     const wrapper =
         gameBoard.querySelector(
             `.hex-wrapper[data-row="${selectedUnit.r}"][data-col="${selectedUnit.c}"]`
         );
+
 
     if (wrapper) {
 
@@ -837,6 +1157,7 @@ export async function moveSelectedUnit(
         return;
     }
 
+
     const unit =
         selectedUnit.unit;
 
@@ -853,6 +1174,7 @@ export async function moveSelectedUnit(
             `${unit.type} is loading an armament and cannot move this round.`
         );
 
+
         clearSelection();
 
         return;
@@ -868,6 +1190,7 @@ export async function moveSelectedUnit(
         return;
     }
 
+
     if (
         board[r][c].length >=
         MAX_UNITS_PER_HEX
@@ -880,8 +1203,10 @@ export async function moveSelectedUnit(
         return;
     }
 
+
     const fromR =
         selectedUnit.r;
+
 
     const fromC =
         selectedUnit.c;
@@ -889,6 +1214,7 @@ export async function moveSelectedUnit(
 
     const fromStack =
         board[fromR][fromC];
+
 
     const destinationStack =
         board[r][c];
@@ -899,6 +1225,7 @@ export async function moveSelectedUnit(
             unit
         );
 
+
     if (
         unitIndex === -1
     ) {
@@ -907,11 +1234,43 @@ export async function moveSelectedUnit(
             "Selected unit no longer exists."
         );
 
+
         clearSelection();
 
         return;
     }
 
+
+    // ========================================================
+    // UNIT ID
+    // ========================================================
+
+    const unitId =
+        getUnitId(
+            unit
+        );
+
+
+    if (!unitId) {
+
+        alert(
+            "This unit does not have a valid unit ID and cannot be moved."
+        );
+
+
+        console.error(
+            "Move blocked because unit has no ID:",
+            unit
+        );
+
+
+        return;
+    }
+
+
+    // ========================================================
+    // MOVE PAYLOAD
+    // ========================================================
 
     const movePayload = {
 
@@ -929,35 +1288,52 @@ export async function moveSelectedUnit(
             unit.type,
 
         team:
-            unit.team
+            unit.team,
+
+        // IMPORTANT:
+        // server.js requires this.
+        unitId
     };
 
+
+    // ========================================================
+    // LOCAL MOVE
+    // ========================================================
 
     fromStack.splice(
         unitIndex,
         1
     );
 
+
     destinationStack.push(
         unit
     );
 
+
     selectedUnit =
         null;
 
+
     validMoves =
         [];
+
 
     closeUnitPanel();
 
     updateBoard();
 
 
+    // ========================================================
+    // SERVER MOVE
+    // ========================================================
+
     try {
 
         await sendMoveToServer(
             movePayload
         );
+
 
     } catch (error) {
 
@@ -966,10 +1342,16 @@ export async function moveSelectedUnit(
             error
         );
 
+
+        // ----------------------------------------------------
+        // ROLLBACK
+        // ----------------------------------------------------
+
         const movedIndex =
             destinationStack.indexOf(
                 unit
             );
+
 
         if (
             movedIndex !== -1
@@ -981,13 +1363,16 @@ export async function moveSelectedUnit(
             );
         }
 
+
         fromStack.splice(
             unitIndex,
             0,
             unit
         );
 
+
         updateBoard();
+
 
         alert(
             "The move could not be submitted."
@@ -1005,10 +1390,13 @@ export function clearSelection() {
     selectedUnit =
         null;
 
+
     validMoves =
         [];
 
+
     closeUnitPanel();
+
 
     updateBoard();
 }

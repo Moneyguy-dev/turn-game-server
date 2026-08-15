@@ -81,6 +81,55 @@ document.addEventListener(
 
 
         // ====================================================
+        // UNIT DISPLAY MODE
+        //
+        // OFF = existing stacked/grouped view
+        // ON  = individual circular unit pieces
+        // ====================================================
+
+        const unitDisplayToggle =
+            document.getElementById(
+                "unitDisplayToggle"
+            );
+
+
+        if (unitDisplayToggle) {
+
+            // Make sure the initial body state matches
+            // the actual position of the switch.
+
+            document.body.classList.toggle(
+                "individual-unit-view",
+                unitDisplayToggle.checked
+            );
+
+
+            unitDisplayToggle.addEventListener(
+                "change",
+                () => {
+
+                    const individualView =
+                        unitDisplayToggle.checked;
+
+
+                    document.body.classList.toggle(
+                        "individual-unit-view",
+                        individualView
+                    );
+
+
+                    // Redraw the board immediately so the
+                    // visual change happens without refresh.
+
+                    updateBoard();
+
+                }
+            );
+
+        }
+
+
+        // ====================================================
         // SERVER STATE
         // ====================================================
 
@@ -190,7 +239,12 @@ document.addEventListener(
                         );
 
 
+                        // Reload the new server state.
+
                         await loadGameStateFromServer();
+
+
+                        // Redraw everything.
 
                         updateBoard();
 
@@ -218,6 +272,7 @@ document.addEventListener(
                     }
                 }
             );
+
         }
 
 
@@ -232,6 +287,9 @@ document.addEventListener(
 
                     await loadGameStateFromServer();
 
+
+                    // Keep the current display mode.
+
                     updateBoard();
 
                     renderTerritories();
@@ -242,6 +300,7 @@ document.addEventListener(
                         "Auto refresh failed:",
                         error
                     );
+
                 }
 
             },
@@ -279,6 +338,7 @@ document.addEventListener(
                         },
                         150
                     );
+
             }
         );
 

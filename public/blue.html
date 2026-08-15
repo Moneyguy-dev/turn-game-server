@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -14,6 +15,154 @@
         rel="stylesheet"
         href="/styles.css"
     >
+
+    <style>
+        /* =====================================================
+           INDIVIDUAL UNIT DISPLAY
+        ====================================================== */
+
+        #unitDisplayToggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            margin-right: 10px;
+            font-size: 12px;
+            color: #ccc;
+            user-select: none;
+        }
+
+        #unitDisplayToggleText {
+            white-space: nowrap;
+        }
+
+        .unitDisplaySwitch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+
+        .unitDisplaySwitch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .unitDisplaySlider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #444;
+            border: 1px solid #777;
+            border-radius: 22px;
+            transition: 0.2s ease;
+        }
+
+        .unitDisplaySlider::before {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 2px;
+            top: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s ease;
+        }
+
+        .unitDisplaySwitch input:checked + .unitDisplaySlider {
+            background: #1e3cff;
+            border-color: #8090ff;
+        }
+
+        .unitDisplaySwitch input:checked + .unitDisplaySlider::before {
+            transform: translateX(20px);
+        }
+
+        /* =====================================================
+           INDIVIDUAL UNIT PIECES
+        ====================================================== */
+
+        .individual-unit-piece {
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 3px;
+
+            border-radius: 50%;
+
+            background: #555;
+            border: 2px solid #aaa;
+
+            color: white;
+
+            font-size: 7px;
+            font-weight: bold;
+
+            line-height: 1;
+            text-align: center;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            z-index: 30;
+
+            pointer-events: none;
+
+            transform:
+                translate(-50%, -50%)
+                translate(var(--unit-x), var(--unit-y));
+
+            box-shadow:
+                0 2px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .individual-unit-piece.blue {
+            background: #1e3cff;
+            border-color: #9aa8ff;
+        }
+
+        .individual-unit-piece.red {
+            background: #cc0000;
+            border-color: #ff8888;
+        }
+
+        .individual-unit-piece.mixed {
+            background: #555;
+            border-color: #ddd;
+        }
+
+        .individual-units-mode .unit-count {
+            display: none !important;
+        }
+
+        .individual-units-mode .individual-unit-piece {
+            display: flex;
+        }
+
+        @media (max-width: 600px) {
+
+            #unitDisplayToggleText {
+                display: none;
+            }
+
+            .individual-unit-piece {
+                width: 29px;
+                height: 29px;
+                font-size: 6px;
+            }
+        }
+    </style>
 </head>
 
 <body class="blue-page">
@@ -75,6 +224,27 @@
                 <span id="unitPanelTitle">
                     Units
                 </span>
+
+                <!-- UNIT DISPLAY SWITCH -->
+
+                <div id="unitDisplayToggle">
+
+                    <span id="unitDisplayToggleText">
+                        Individual
+                    </span>
+
+                    <label class="unitDisplaySwitch">
+
+                        <input
+                            type="checkbox"
+                            id="individualUnitsToggle"
+                        >
+
+                        <span class="unitDisplaySlider"></span>
+
+                    </label>
+
+                </div>
 
                 <button
                     id="closeUnitPanel"
@@ -330,6 +500,282 @@
     <!-- =====================================================
          APPLICATION
     ====================================================== -->
+
+    <script type="module">
+        import {
+            board,
+            rows,
+            cols
+        } from "/js/grid.js";
+
+
+        const STORAGE_KEY =
+            "blue-individual-unit-display";
+
+
+        let individualMode =
+            localStorage.getItem(STORAGE_KEY) === "true";
+
+
+        function applyIndividualMode() {
+
+            const gameBoard =
+                document.getElementById("gameBoard");
+
+            const toggle =
+                document.getElementById("individualUnitsToggle");
+
+            if (!gameBoard) {
+                return;
+            }
+
+            gameBoard.classList.toggle(
+                "individual-units-mode",
+                individualMode
+            );
+
+            if (toggle) {
+                toggle.checked =
+                    individualMode;
+            }
+
+            renderIndividualUnits();
+        }
+
+
+        function renderIndividualUnits() {
+
+            const gameBoard =
+                document.getElementById("gameBoard");
+
+            if (!gameBoard) {
+                return;
+            }
+
+
+            gameBoard
+                .querySelectorAll(
+                    ".individual-unit-piece"
+                )
+                .forEach(
+                    element => element.remove()
+                );
+
+
+            if (!individualMode) {
+                return;
+            }
+
+
+            for (
+                let r = 0;
+                r < rows;
+                r++
+            ) {
+
+                for (
+                    let c = 0;
+                    c < cols;
+                    c++
+                ) {
+
+                    const stack =
+                        board?.[r]?.[c] || [];
+
+
+                    if (
+                        !Array.isArray(stack) ||
+                        stack.length === 0
+                    ) {
+                        continue;
+                    }
+
+
+                    const wrapper =
+                        gameBoard.querySelector(
+                            `.hex-wrapper[data-row="${r}"][data-col="${c}"]`
+                        );
+
+
+                    if (!wrapper) {
+                        continue;
+                    }
+
+
+                    const hex =
+                        wrapper.querySelector(".hex");
+
+
+                    if (!hex) {
+                        continue;
+                    }
+
+
+                    const count =
+                        stack.length;
+
+
+                    stack.forEach(
+                        (unit, index) => {
+
+                            const piece =
+                                document.createElement(
+                                    "div"
+                                );
+
+
+                            piece.className =
+                                "individual-unit-piece";
+
+
+                            if (unit.team) {
+
+                                piece.classList.add(
+                                    unit.team
+                                );
+
+                            }
+
+
+                            piece.textContent =
+                                unit.type ||
+                                unit.name ||
+                                "Unit";
+
+
+                            const angle =
+                                (
+                                    (Math.PI * 2) /
+                                    count
+                                ) * index;
+
+
+                            const radius =
+                                count === 1
+                                    ? 0
+                                    : 26;
+
+
+                            const x =
+                                Math.cos(angle) *
+                                radius;
+
+
+                            const y =
+                                Math.sin(angle) *
+                                radius;
+
+
+                            piece.style.setProperty(
+                                "--unit-x",
+                                `${x}px`
+                            );
+
+
+                            piece.style.setProperty(
+                                "--unit-y",
+                                `${y}px`
+                            );
+
+
+                            hex.appendChild(
+                                piece
+                            );
+
+                        }
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        function initializeToggle() {
+
+            const toggle =
+                document.getElementById(
+                    "individualUnitsToggle"
+                );
+
+
+            if (!toggle) {
+                return;
+            }
+
+
+            toggle.checked =
+                individualMode;
+
+
+            toggle.addEventListener(
+                "change",
+                () => {
+
+                    individualMode =
+                        toggle.checked;
+
+
+                    localStorage.setItem(
+                        STORAGE_KEY,
+                        String(individualMode)
+                    );
+
+
+                    applyIndividualMode();
+
+                }
+            );
+
+
+            applyIndividualMode();
+
+
+            /*
+             * The main game redraws the board when:
+             *
+             * - game state loads
+             * - a unit moves
+             * - the window resizes
+             * - turns are submitted
+             *
+             * This keeps the individual pieces synchronized
+             * with those redraws without changing the existing
+             * game modules.
+             */
+
+            setInterval(
+                () => {
+
+                    if (individualMode) {
+                        renderIndividualUnits();
+                    }
+
+                },
+                300
+            );
+
+        }
+
+
+        if (
+            document.readyState ===
+            "loading"
+        ) {
+
+            document.addEventListener(
+                "DOMContentLoaded",
+                initializeToggle
+            );
+
+        } else {
+
+            initializeToggle();
+
+        }
+    </script>
+
 
     <script
         type="module"

@@ -5,50 +5,75 @@ import {
 } from "./server.js";
 
 import {
-    updateBoard
+    updateBoard,
+    setIndividualUnitView,
+    isIndividualUnitViewEnabled
 } from "./units.js";
 
 
 let currentZoom = 1;
 
 
+// ============================================================
+// INITIALIZE UI
+// ============================================================
+
 export function initUI() {
 
     const zoomInBtn =
         document.getElementById("zoomIn");
 
+
     const zoomOutBtn =
         document.getElementById("zoomOut");
+
 
     const zoomUnitsBtn =
         document.getElementById("zoomUnits");
 
+
     const unitsBtn =
         document.getElementById("unitsBtn");
+
 
     const unitPanel =
         document.getElementById("unitPanel");
 
+
     const armamentsButton =
         document.getElementById("armaments");
+
 
     const armamentsPanel =
         document.getElementById("armamentsPanel");
 
+
     const closeArmamentsPanel =
         document.getElementById("closeArmamentsPanel");
+
 
     const backButton =
         document.getElementById("backButton");
 
+
     const submitButton =
         document.getElementById("submitTurn");
+
 
     const continueButton =
         document.getElementById("continueTurn");
 
 
-    /* ZOOM IN */
+    // ========================================================
+    // INDIVIDUAL UNIT VIEW SWITCH
+    // ========================================================
+
+    initIndividualUnitViewSwitch();
+
+
+    // ========================================================
+    // ZOOM IN
+    // ========================================================
 
     if (zoomInBtn) {
 
@@ -60,12 +85,15 @@ export function initUI() {
                     3
                 );
 
+
             applyZoom();
         };
     }
 
 
-    /* ZOOM OUT */
+    // ========================================================
+    // ZOOM OUT
+    // ========================================================
 
     if (zoomOutBtn) {
 
@@ -77,12 +105,15 @@ export function initUI() {
                     0.3
                 );
 
+
             applyZoom();
         };
     }
 
 
-    /* ZOOM TO UNITS */
+    // ========================================================
+    // ZOOM TO UNITS
+    // ========================================================
 
     if (zoomUnitsBtn) {
 
@@ -91,29 +122,43 @@ export function initUI() {
     }
 
 
-    /* UNITS */
+    // ========================================================
+    // UNITS
+    // ========================================================
 
-    if (unitsBtn && unitPanel) {
+    if (
+        unitsBtn &&
+        unitPanel
+    ) {
 
         unitsBtn.onclick = () => {
 
-            unitPanel.classList.toggle("open");
+            unitPanel.classList.toggle(
+                "open"
+            );
+
 
             if (
                 armamentsPanel
             ) {
-                armamentsPanel.classList.remove("open");
+
+                armamentsPanel.classList.remove(
+                    "open"
+                );
             }
         };
     }
 
 
-    /* CLOSE UNITS */
+    // ========================================================
+    // CLOSE UNITS
+    // ========================================================
 
     const closeUnitPanel =
         document.getElementById(
             "closeUnitPanel"
         );
+
 
     if (closeUnitPanel) {
 
@@ -126,7 +171,9 @@ export function initUI() {
     }
 
 
-    /* ARMAMENTS */
+    // ========================================================
+    // ARMAMENTS
+    // ========================================================
 
     if (
         armamentsButton &&
@@ -139,6 +186,7 @@ export function initUI() {
                 "open"
             );
 
+
             armamentsPanel.classList.add(
                 "open"
             );
@@ -146,7 +194,9 @@ export function initUI() {
     }
 
 
-    /* CLOSE ARMAMENTS */
+    // ========================================================
+    // CLOSE ARMAMENTS
+    // ========================================================
 
     if (closeArmamentsPanel) {
 
@@ -159,7 +209,9 @@ export function initUI() {
     }
 
 
-    /* BACK */
+    // ========================================================
+    // BACK
+    // ========================================================
 
     if (backButton) {
 
@@ -173,22 +225,28 @@ export function initUI() {
 
             } else {
 
-                window.location.href = "/";
+                window.location.href =
+                    "/";
             }
         };
     }
 
 
-    /* SUBMIT */
+    // ========================================================
+    // SUBMIT
+    // ========================================================
 
     if (submitButton) {
 
         submitButton.onclick =
             async () => {
 
-                if (submitButton.disabled) {
+                if (
+                    submitButton.disabled
+                ) {
                     return;
                 }
+
 
                 if (
                     !confirm(
@@ -198,32 +256,44 @@ export function initUI() {
                     return;
                 }
 
+
                 submitButton.disabled =
                     true;
 
+
                 submitButton.textContent =
                     "Submitting...";
+
 
                 try {
 
                     await submitTurnToServer();
 
+
                     await loadGameStateFromServer();
 
+
                     updateBoard();
+
 
                     submitButton.textContent =
                         "Submitted";
 
-                    setTimeout(() => {
 
-                        submitButton.disabled =
-                            false;
+                    setTimeout(
+                        () => {
 
-                        submitButton.textContent =
-                            "Submit";
+                            submitButton.disabled =
+                                false;
 
-                    }, 1000);
+
+                            submitButton.textContent =
+                                "Submit";
+
+                        },
+                        1000
+                    );
+
 
                 } catch (error) {
 
@@ -232,12 +302,15 @@ export function initUI() {
                         error
                     );
 
+
                     alert(
                         "Submit failed. Check the server."
                     );
 
+
                     submitButton.disabled =
                         false;
+
 
                     submitButton.textContent =
                         "Submit";
@@ -246,7 +319,9 @@ export function initUI() {
     }
 
 
-    /* CONTINUE */
+    // ========================================================
+    // CONTINUE
+    // ========================================================
 
     if (continueButton) {
 
@@ -259,19 +334,25 @@ export function initUI() {
                     return;
                 }
 
+
                 continueButton.disabled =
                     true;
 
+
                 continueButton.textContent =
                     "Continuing...";
+
 
                 try {
 
                     await continueTurnOnServer();
 
+
                     await loadGameStateFromServer();
 
+
                     updateBoard();
+
 
                 } catch (error) {
 
@@ -280,14 +361,17 @@ export function initUI() {
                         error
                     );
 
+
                     alert(
                         "Continue failed. Check the server."
                     );
+
 
                 } finally {
 
                     continueButton.disabled =
                         false;
+
 
                     continueButton.textContent =
                         "Continue";
@@ -296,9 +380,102 @@ export function initUI() {
     }
 
 
+    // ========================================================
+    // DIAGNOSTIC
+    // ========================================================
+
     createDiagnosticOverlay();
 }
 
+
+// ============================================================
+// INDIVIDUAL UNIT VIEW SWITCH
+// ============================================================
+
+function initIndividualUnitViewSwitch() {
+
+    const toggle =
+        document.getElementById(
+            "individualUnitView"
+        );
+
+
+    const label =
+        document.getElementById(
+            "individualUnitViewLabel"
+        );
+
+
+    if (!toggle) {
+
+        console.warn(
+            "Individual unit view switch was not found."
+        );
+
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // LOAD SAVED STATE
+    // --------------------------------------------------------
+
+    toggle.checked =
+        isIndividualUnitViewEnabled();
+
+
+    updateIndividualUnitViewLabel(
+        toggle.checked,
+        label
+    );
+
+
+    // --------------------------------------------------------
+    // CHANGE EVENT
+    // --------------------------------------------------------
+
+    toggle.addEventListener(
+        "change",
+        () => {
+
+            setIndividualUnitView(
+                toggle.checked
+            );
+
+
+            updateIndividualUnitViewLabel(
+                toggle.checked,
+                label
+            );
+        }
+    );
+}
+
+
+// ============================================================
+// SWITCH LABEL
+// ============================================================
+
+function updateIndividualUnitViewLabel(
+    enabled,
+    label
+) {
+
+    if (!label) {
+        return;
+    }
+
+
+    label.textContent =
+        enabled
+            ? "Individual Units: ON"
+            : "Individual Units: OFF";
+}
+
+
+// ============================================================
+// APPLY ZOOM
+// ============================================================
 
 function applyZoom() {
 
@@ -307,14 +484,20 @@ function applyZoom() {
             "gameBoard"
         );
 
+
     if (!gameBoard) {
         return;
     }
+
 
     gameBoard.style.transform =
         `scale(${currentZoom})`;
 }
 
+
+// ============================================================
+// ZOOM TO UNITS
+// ============================================================
 
 function zoomToUnits() {
 
@@ -323,14 +506,17 @@ function zoomToUnits() {
             "gameBoard"
         );
 
+
     if (!gameBoard) {
         return;
     }
 
+
     const occupied =
         gameBoard.querySelectorAll(
-            ".unit-count"
+            ".unit-count, .unit-piece"
         );
+
 
     if (
         occupied.length === 0
@@ -340,68 +526,95 @@ function zoomToUnits() {
             "There are no units on the map."
         );
 
+
         return;
     }
 
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
 
-    occupied.forEach(element => {
+    let minX =
+        Infinity;
 
-        const rect =
-            element.getBoundingClientRect();
 
-        minX =
-            Math.min(
-                minX,
-                rect.left
-            );
+    let maxX =
+        -Infinity;
 
-        maxX =
-            Math.max(
-                maxX,
-                rect.right
-            );
 
-        minY =
-            Math.min(
-                minY,
-                rect.top
-            );
+    let minY =
+        Infinity;
 
-        maxY =
-            Math.max(
-                maxY,
-                rect.bottom
-            );
-    });
+
+    let maxY =
+        -Infinity;
+
+
+    occupied.forEach(
+        element => {
+
+            const rect =
+                element.getBoundingClientRect();
+
+
+            minX =
+                Math.min(
+                    minX,
+                    rect.left
+                );
+
+
+            maxX =
+                Math.max(
+                    maxX,
+                    rect.right
+                );
+
+
+            minY =
+                Math.min(
+                    minY,
+                    rect.top
+                );
+
+
+            maxY =
+                Math.max(
+                    maxY,
+                    rect.bottom
+                );
+        }
+    );
+
 
     const width =
         maxX - minX;
 
+
     const height =
         maxY - minY;
+
 
     if (
         width <= 0 ||
         height <= 0
     ) {
+
         return;
     }
+
 
     const availableWidth =
         window.innerWidth * 0.8;
 
+
     const availableHeight =
         (window.innerHeight - 100) * 0.8;
+
 
     currentZoom =
         Math.min(
             availableWidth / width,
             availableHeight / height
         );
+
 
     currentZoom =
         Math.max(
@@ -412,9 +625,14 @@ function zoomToUnits() {
             )
         );
 
+
     applyZoom();
 }
 
+
+// ============================================================
+// DIAGNOSTIC OVERLAY
+// ============================================================
 
 export function createDiagnosticOverlay() {
 
@@ -423,15 +641,21 @@ export function createDiagnosticOverlay() {
             "diagOverlay"
         );
 
+
     if (existing) {
         return;
     }
 
+
     const diag =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     diag.id =
         "diagOverlay";
+
 
     Object.assign(
         diag.style,
@@ -451,8 +675,10 @@ export function createDiagnosticOverlay() {
         }
     );
 
+
     diag.textContent =
         "Diagnostic Overlay Active";
+
 
     document.body.appendChild(
         diag
