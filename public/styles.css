@@ -136,7 +136,7 @@ body {
 
     text-align: center;
 
-    overflow: hidden;
+    overflow: visible;
 
     user-select: none;
 
@@ -215,7 +215,32 @@ body {
 
 
 /* =========================================================
-   UNIT COUNT
+   HEX NAME / NUMBER
+========================================================= */
+
+.hex-name,
+.hex-number,
+.hex-label,
+.hex-id {
+    position: relative;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+    color: white;
+
+    font-weight: bold;
+
+    text-align: center;
+
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+
+/* =========================================================
+   UNIT COUNT - ORIGINAL STACKED VIEW
 ========================================================= */
 
 .unit-count {
@@ -292,6 +317,7 @@ body {
     border-width: 3px;
 }
 
+
 /* =========================================================
    INDIVIDUAL UNIT PIECES
 ========================================================= */
@@ -310,13 +336,14 @@ body {
     justify-content: center;
     align-items: center;
 
-    padding: 3px;
+    padding: 4px;
 
     border-radius: 50%;
 
     color: white;
 
-    border: 2px solid #aaa;
+    border:
+        2px solid #aaa;
 
     background: #555;
 
@@ -350,7 +377,8 @@ body {
 
     transition:
         transform 0.12s ease,
-        filter 0.12s ease;
+        filter 0.12s ease,
+        opacity 0.12s ease;
 }
 
 
@@ -361,7 +389,8 @@ body {
 .unit-piece.blue {
     background: #1e3cff;
 
-    border-color: #9aa8ff;
+    border-color:
+        #9aa8ff;
 }
 
 
@@ -372,7 +401,8 @@ body {
 .unit-piece.red {
     background: #cc0000;
 
-    border-color: #ff8888;
+    border-color:
+        #ff8888;
 }
 
 
@@ -383,7 +413,8 @@ body {
 .unit-piece.neutral {
     background: #555;
 
-    border-color: #ddd;
+    border-color:
+        #ddd;
 }
 
 
@@ -391,9 +422,22 @@ body {
    PIECE POSITIONS
 ========================================================= */
 
+/*
+   These positions create the "wrap around the hex"
+   appearance.
+
+              TOP
+
+       LEFT          RIGHT
+
+             CENTER
+
+             BOTTOM
+*/
+
 .unit-piece-top {
     left: 50%;
-    top: -10px;
+    top: -12px;
 
     transform:
         translateX(-50%);
@@ -401,7 +445,7 @@ body {
 
 
 .unit-piece-left {
-    left: -10px;
+    left: -12px;
     top: 50%;
 
     transform:
@@ -410,7 +454,7 @@ body {
 
 
 .unit-piece-right {
-    right: -10px;
+    right: -12px;
     top: 50%;
 
     transform:
@@ -420,10 +464,50 @@ body {
 
 .unit-piece-bottom {
     left: 50%;
-    bottom: -10px;
+    bottom: -12px;
 
     transform:
         translateX(-50%);
+}
+
+
+/* =========================================================
+   EXTRA WRAP POSITIONS
+========================================================= */
+
+.unit-piece-top-left {
+    left: 8%;
+    top: 5%;
+
+    transform:
+        translate(-50%, -50%);
+}
+
+
+.unit-piece-top-right {
+    right: 8%;
+    top: 5%;
+
+    transform:
+        translate(50%, -50%);
+}
+
+
+.unit-piece-bottom-left {
+    left: 8%;
+    bottom: 5%;
+
+    transform:
+        translate(-50%, 50%);
+}
+
+
+.unit-piece-bottom-right {
+    right: 8%;
+    bottom: 5%;
+
+    transform:
+        translate(50%, 50%);
 }
 
 
@@ -471,6 +555,40 @@ body {
 
 
 /* =========================================================
+   INDIVIDUAL VIEW MODE
+========================================================= */
+
+/*
+   The JS can put this class on #gameBoard when the
+   individual-unit switch is ON.
+*/
+
+#gameBoard.individual-unit-view .unit-count {
+    display: none;
+}
+
+
+#gameBoard.individual-unit-view .unit-piece {
+    display: flex;
+}
+
+
+/*
+   When individual mode is OFF, pieces are hidden and
+   the original stacked unit-count is shown.
+*/
+
+#gameBoard:not(.individual-unit-view) .unit-piece {
+    display: none;
+}
+
+
+#gameBoard:not(.individual-unit-view) .unit-count {
+    display: flex;
+}
+
+
+/* =========================================================
    INDIVIDUAL UNIT VIEW SWITCH
 ========================================================= */
 
@@ -490,7 +608,7 @@ body {
         8px 12px;
 
     background:
-        rgba(17, 17, 17, 0.92);
+        rgba(17, 17, 17, 0.94);
 
     border:
         2px solid #444;
@@ -501,8 +619,14 @@ body {
 
     box-shadow:
         0 3px 10px rgba(0, 0, 0, 0.5);
+
+    user-select: none;
 }
 
+
+/* =========================================================
+   SWITCH LABEL
+========================================================= */
 
 #individualUnitViewLabel {
     color: white;
@@ -512,6 +636,29 @@ body {
     font-weight: bold;
 
     white-space: nowrap;
+}
+
+
+/* =========================================================
+   SWITCH STATUS TEXT
+========================================================= */
+
+#individualUnitViewStatus {
+    color: #aaa;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    min-width: 24px;
+
+    text-align: center;
+}
+
+
+#individualUnitViewControl.on
+#individualUnitViewStatus {
+    color: #8fa0ff;
 }
 
 
@@ -532,12 +679,18 @@ body {
 
 
 .individual-unit-switch input {
+    position: absolute;
+
     opacity: 0;
 
     width: 0;
     height: 0;
 }
 
+
+/* =========================================================
+   SWITCH TRACK
+========================================================= */
 
 .individual-unit-slider {
     position: absolute;
@@ -555,9 +708,14 @@ body {
 
     transition:
         background 0.2s ease,
-        border-color 0.2s ease;
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
+
+/* =========================================================
+   SWITCH KNOB
+========================================================= */
 
 .individual-unit-slider::before {
     content: "";
@@ -590,7 +748,11 @@ body {
 + .individual-unit-slider {
     background: #1e3cff;
 
-    border-color: #6f7dff;
+    border-color:
+        #6f7dff;
+
+    box-shadow:
+        0 0 8px rgba(30, 60, 255, 0.5);
 }
 
 
@@ -612,59 +774,18 @@ body {
 
 
 /* =========================================================
-   MOBILE
+   SWITCH FOCUS
 ========================================================= */
 
-@media (max-width: 600px) {
+.individual-unit-switch input:focus-visible
++ .individual-unit-slider {
+    outline:
+        2px solid white;
 
-    #individualUnitViewControl {
-        top: 8px;
-        right: 8px;
-
-        padding:
-            6px 8px;
-
-        gap: 7px;
-    }
-
-
-    #individualUnitViewLabel {
-        font-size: 11px;
-    }
-
-
-    .unit-piece {
-        width: 34px;
-        height: 34px;
-
-        min-width: 34px;
-        min-height: 34px;
-
-        font-size: 6px;
-
-        line-height: 7px;
-    }
-
-
-    .unit-piece-top {
-        top: -7px;
-    }
-
-
-    .unit-piece-left {
-        left: -7px;
-    }
-
-
-    .unit-piece-right {
-        right: -7px;
-    }
-
-
-    .unit-piece-bottom {
-        bottom: -7px;
-    }
+    outline-offset:
+        2px;
 }
+
 
 /* =========================================================
    FOB LABEL
@@ -1175,9 +1296,142 @@ body {
 
 /* =========================================================
    ARMAMENT MENU
-   ---------------------------------------------------------
-   The actual Armament UI is generated by armamentUI.js.
 ========================================================= */
+
+#armamentsPanel {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 300px;
+    height: 100%;
+
+    background:
+        rgba(25, 25, 25, 0.98);
+
+    border-right:
+        2px solid #555;
+
+    box-shadow:
+        5px 0 20px rgba(0, 0, 0, 0.6);
+
+    transform:
+        translateX(-100%);
+
+    transition:
+        transform 0.25s ease;
+
+    overflow-y: auto;
+
+    z-index: 250;
+}
+
+
+#armamentsPanel.open {
+    transform:
+        translateX(0);
+}
+
+
+.armamentsHeader {
+    height: 60px;
+
+    min-height: 60px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding:
+        0 12px;
+
+    background: #222;
+
+    border-bottom:
+        2px solid #444;
+}
+
+
+#armamentsPanelTitle {
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+
+#armamentsList {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+
+    padding: 12px;
+}
+
+
+.armamentCategory {
+    border:
+        1px solid #444;
+
+    border-radius: 8px;
+
+    background: #292929;
+
+    overflow: hidden;
+}
+
+
+.armamentCategoryTitle {
+    padding:
+        10px 12px;
+
+    background: #333;
+
+    border-bottom:
+        1px solid #444;
+
+    font-size: 14px;
+
+    font-weight: bold;
+}
+
+
+.armamentItem {
+    padding:
+        10px 12px;
+
+    border-bottom:
+        1px solid #3d3d3d;
+}
+
+
+.armamentItem:last-child {
+    border-bottom: none;
+}
+
+
+.armamentName {
+    font-size: 13px;
+
+    font-weight: bold;
+
+    color: white;
+}
+
+
+.armamentDescription {
+    margin-top: 4px;
+
+    color: #999;
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
 
 
 /* =========================================================
@@ -1344,7 +1598,8 @@ body.side-select-page {
 
     #unitPanel,
     #fobPanel,
-    #hexUnitPanel {
+    #hexUnitPanel,
+    #armamentsPanel {
         width: 260px;
     }
 
@@ -1382,6 +1637,126 @@ body.side-select-page {
     .sideChoiceBtn,
     .adminChoiceBtn {
         width: min(100%, 280px);
+    }
+
+
+    /* -----------------------------------------
+       INDIVIDUAL UNIT SWITCH
+    ----------------------------------------- */
+
+    #individualUnitViewControl {
+        top: 8px;
+        right: 8px;
+
+        padding:
+            6px 8px;
+
+        gap: 7px;
+    }
+
+
+    #individualUnitViewLabel {
+        font-size: 11px;
+    }
+
+
+    #individualUnitViewStatus {
+        font-size: 9px;
+    }
+
+
+    /* -----------------------------------------
+       UNIT PIECES
+    ----------------------------------------- */
+
+    .unit-piece {
+        width: 34px;
+        height: 34px;
+
+        min-width: 34px;
+        min-height: 34px;
+
+        padding: 3px;
+
+        font-size: 6px;
+
+        line-height: 7px;
+    }
+
+
+    .unit-piece-top {
+        top: -8px;
+    }
+
+
+    .unit-piece-left {
+        left: -8px;
+    }
+
+
+    .unit-piece-right {
+        right: -8px;
+    }
+
+
+    .unit-piece-bottom {
+        bottom: -8px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 420px) {
+
+    #individualUnitViewControl {
+        padding:
+            5px 6px;
+
+        gap: 5px;
+    }
+
+
+    #individualUnitViewLabel {
+        font-size: 10px;
+    }
+
+
+    .individual-unit-switch {
+        width: 42px;
+        height: 24px;
+    }
+
+
+    .individual-unit-slider::before {
+        width: 16px;
+        height: 16px;
+
+        left: 2px;
+        top: 2px;
+    }
+
+
+    .individual-unit-switch input:checked
+    + .individual-unit-slider::before {
+        transform:
+            translateX(18px);
+    }
+
+
+    .unit-piece {
+        width: 30px;
+        height: 30px;
+
+        min-width: 30px;
+        min-height: 30px;
+
+        font-size: 5px;
+
+        line-height: 6px;
     }
 
 }
