@@ -875,8 +875,7 @@ body.side-select-page {
 ========================================================= */
 
 .sideChoiceBtn,
-.adminChoiceBtn,
-.settingsChoiceBtn {
+.adminChoiceBtn {
     width: min(100%, 300px);
 
     min-height: 50px;
@@ -949,29 +948,6 @@ body.side-select-page {
 
 
 /* =========================================================
-   SETTINGS BUTTON
-========================================================= */
-
-.settingsChoiceBtn {
-    margin-top: 4px;
-
-    border:
-        2px solid #777;
-
-    background:
-        #333;
-
-    font-weight: bold;
-}
-
-
-.settingsChoiceBtn:hover {
-    background:
-        #4a4a4a;
-}
-
-
-/* =========================================================
    SPECTATOR NOTICE
 ========================================================= */
 
@@ -1031,8 +1007,7 @@ body.side-select-page {
 
 
     .sideChoiceBtn,
-    .adminChoiceBtn,
-    .settingsChoiceBtn {
+    .adminChoiceBtn {
         width: min(100%, 280px);
     }
 

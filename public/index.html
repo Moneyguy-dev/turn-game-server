@@ -31,10 +31,6 @@
 
         <div class="sideSelectButtons">
 
-            <!-- ================================================= -->
-            <!-- BLUE -->
-            <!-- ================================================= -->
-
             <button
                 id="blueBtn"
                 class="menuBtn sideChoiceBtn blueChoiceBtn"
@@ -43,10 +39,6 @@
                 Blue Forces
             </button>
 
-
-            <!-- ================================================= -->
-            <!-- RED -->
-            <!-- ================================================= -->
 
             <button
                 id="redBtn"
@@ -57,29 +49,12 @@
             </button>
 
 
-            <!-- ================================================= -->
-            <!-- ADMIN -->
-            <!-- ================================================= -->
-
             <button
                 id="adminBtn"
                 class="menuBtn adminChoiceBtn"
                 type="button"
             >
                 Admin Control
-            </button>
-
-
-            <!-- ================================================= -->
-            <!-- SETTINGS -->
-            <!-- ================================================= -->
-
-            <button
-                id="settingsBtn"
-                class="menuBtn settingsChoiceBtn"
-                type="button"
-            >
-                ⚙ Settings
             </button>
 
         </div>
@@ -94,72 +69,34 @@
 
     <script>
 
-        // ========================================================
-        // BLUE BUTTON
-        // ========================================================
-
         document
             .getElementById("blueBtn")
-            .addEventListener(
-                "click",
-                () => {
+            .addEventListener("click", () => {
 
-                    window.location.href =
-                        "blue.html?mode=blue";
+                window.location.href =
+                    "blue.html?mode=blue";
 
-                }
-            );
+            });
 
-
-        // ========================================================
-        // RED BUTTON
-        // ========================================================
 
         document
             .getElementById("redBtn")
-            .addEventListener(
-                "click",
-                () => {
+            .addEventListener("click", () => {
 
-                    window.location.href =
-                        "red.html?mode=red";
+                window.location.href =
+                    "red.html?mode=red";
 
-                }
-            );
+            });
 
-
-        // ========================================================
-        // ADMIN BUTTON
-        // ========================================================
 
         document
             .getElementById("adminBtn")
-            .addEventListener(
-                "click",
-                () => {
+            .addEventListener("click", () => {
 
-                    window.location.href =
-                        "admin.html?mode=all";
+                window.location.href =
+                    "admin.html?mode=all";
 
-                }
-            );
-
-
-        // ========================================================
-        // SETTINGS BUTTON
-        // ========================================================
-
-        document
-            .getElementById("settingsBtn")
-            .addEventListener(
-                "click",
-                () => {
-
-                    window.location.href =
-                        "settings.html";
-
-                }
-            );
+            });
 
     </script>
 
