@@ -490,6 +490,12 @@ button {
         unitLoadingPulse 1s infinite;
 }
 
+.panel-unit.loading {
+    opacity: 0.7;
+
+    border-style: dashed;
+}
+
 @keyframes unitLoadingPulse {
     0% {
         filter: brightness(1);
@@ -591,23 +597,7 @@ button {
     text-align: center;
 }
 
-
-/*
-   FIX:
-   Original selector was:
-
-   #individualUnitViewControl.on
-   #individualUnitViewStatus
-
-   which requires a descendant selector.
-
-   This supports both class-based JS and checkbox-based state.
-*/
-
-#individualUnitViewControl.on #individualUnitViewStatus {
-    color: #8fa0ff;
-}
-
+#individualUnitViewControl.on #individualUnitViewStatus,
 #individualUnitViewControl.active #individualUnitViewStatus {
     color: #8fa0ff;
 }
@@ -786,7 +776,8 @@ button {
     border-bottom: 2px solid #444;
 }
 
-.closePanelBtn {
+.closePanelBtn,
+.panel-close {
     width: 36px;
     height: 36px;
 
@@ -808,13 +799,15 @@ button {
         filter 0.15s ease;
 }
 
-.closePanelBtn:hover {
+.closePanelBtn:hover,
+.panel-close:hover {
     background: #666;
 
     filter: brightness(1.1);
 }
 
-.closePanelBtn:active {
+.closePanelBtn:active,
+.panel-close:active {
     filter: brightness(0.9);
 }
 

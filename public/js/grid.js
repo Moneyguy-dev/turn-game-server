@@ -18,6 +18,7 @@ export let board = [];
 // ============================================================
 
 export const startHexes = {
+
     blue: {
         r: 15,
         c: 15
@@ -74,7 +75,10 @@ export const territories = {
 export function initGrid() {
 
     gameBoard =
-        document.getElementById("gameBoard");
+        document.getElementById(
+            "gameBoard"
+        );
+
 
     if (!gameBoard) {
 
@@ -85,13 +89,15 @@ export function initGrid() {
         return false;
     }
 
-    computeHexSize();
 
-    buildHexGrid();
+    computeHexSize();
 
     initBoard();
 
+    buildHexGrid();
+
     renderTerritories();
+
 
     return true;
 }
@@ -104,10 +110,14 @@ export function initGrid() {
 export function computeHexSize() {
 
     const mapContainer =
-        document.getElementById("mapContainer");
+        document.getElementById(
+            "mapContainer"
+        );
+
 
     let availableWidth =
         window.innerWidth;
+
 
     let availableHeight =
         window.innerHeight;
@@ -118,11 +128,13 @@ export function computeHexSize() {
         const rect =
             mapContainer.getBoundingClientRect();
 
+
         if (rect.width > 0) {
 
             availableWidth =
                 rect.width - 30;
         }
+
 
         if (rect.height > 0) {
 
@@ -190,7 +202,9 @@ export function buildHexGrid() {
     if (!gameBoard) {
 
         gameBoard =
-            document.getElementById("gameBoard");
+            document.getElementById(
+                "gameBoard"
+            );
     }
 
 
@@ -204,10 +218,9 @@ export function buildHexGrid() {
     }
 
 
-    /*
-     * Rebuild only the visual grid.
-     * Board data is preserved.
-     */
+    // IMPORTANT:
+    // gameBoard contains ONLY the hex grid.
+    // Controls should live outside #gameBoard.
 
     gameBoard.innerHTML = "";
 
@@ -233,8 +246,10 @@ export function buildHexGrid() {
     gameBoard.style.position =
         "relative";
 
+
     gameBoard.style.width =
         `${boardWidth}px`;
+
 
     gameBoard.style.height =
         `${boardHeight}px`;
@@ -260,7 +275,9 @@ export function buildHexGrid() {
         ) {
 
             const wrapper =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
 
             wrapper.className =
@@ -270,12 +287,15 @@ export function buildHexGrid() {
             wrapper.dataset.row =
                 String(r);
 
+
             wrapper.dataset.col =
                 String(c);
 
 
             const hex =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
 
             hex.className =
@@ -289,6 +309,7 @@ export function buildHexGrid() {
             hex.dataset.row =
                 String(r);
 
+
             hex.dataset.col =
                 String(c);
 
@@ -298,7 +319,9 @@ export function buildHexGrid() {
             // =================================================
 
             const numberLabel =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
 
             numberLabel.className =
@@ -312,39 +335,50 @@ export function buildHexGrid() {
             numberLabel.style.position =
                 "absolute";
 
+
             numberLabel.style.left =
                 "50%";
+
 
             numberLabel.style.top =
                 "50%";
 
+
             numberLabel.style.transform =
                 "translate(-50%, -50%)";
+
 
             numberLabel.style.zIndex =
                 "2";
 
+
             numberLabel.style.pointerEvents =
                 "none";
+
 
             numberLabel.style.fontSize =
                 `${Math.max(
                     10,
-                    Math.floor(hexSize * 0.25)
+                    Math.floor(
+                        hexSize * 0.25
+                    )
                 )}px`;
+
 
             numberLabel.style.fontWeight =
                 "700";
 
+
             numberLabel.style.color =
                 "#ffffff";
+
 
             numberLabel.style.textShadow =
                 "0 1px 2px #000000, 0 0 3px #000000";
 
 
             // =================================================
-            // HEX POSITION
+            // POSITION
             // =================================================
 
             const x =
@@ -369,18 +403,21 @@ export function buildHexGrid() {
             wrapper.style.left =
                 `${x}px`;
 
+
             wrapper.style.top =
                 `${y}px`;
 
+
             wrapper.style.width =
                 `${hexSize}px`;
+
 
             wrapper.style.height =
                 `${hexHeight}px`;
 
 
             // =================================================
-            // ADD ELEMENTS
+            // BUILD
             // =================================================
 
             hex.appendChild(
@@ -479,7 +516,10 @@ export function getHex(
 ) {
 
     const wrapper =
-        getHexWrapper(r, c);
+        getHexWrapper(
+            r,
+            c
+        );
 
 
     if (!wrapper) {
@@ -513,22 +553,23 @@ export function renderTerritories() {
     wrappers.forEach(
         wrapper => {
 
-            [...wrapper.classList]
-                .forEach(
-                    className => {
+            [
+                ...wrapper.classList
+            ].forEach(
+                className => {
 
-                        if (
-                            className.startsWith(
-                                "territory-"
-                            )
-                        ) {
+                    if (
+                        className.startsWith(
+                            "territory-"
+                        )
+                    ) {
 
-                            wrapper.classList.remove(
-                                className
-                            );
-                        }
+                        wrapper.classList.remove(
+                            className
+                        );
                     }
-                );
+                }
+            );
         }
     );
 
